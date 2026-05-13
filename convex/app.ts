@@ -2,6 +2,13 @@ import { v } from "convex/values";
 import { query, mutation, action } from "./_generated/server";
 import { api } from "./_generated/api";
 
+export const listMDContent = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("mdcontent").collect();
+  },
+});
+
 export const getMDContent = query({
   args: {
     slug: v.string(),
