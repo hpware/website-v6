@@ -5,14 +5,15 @@ import ThemeToggle from "./ThemeToggle.astro";
 const tabs = [
     { name: "Home", url: "/" },
     { name: "Blog", url: "/blog" },
-    { name: "About", url: "/about" },
+    { name: "Hosting", url: "/hosting" },
+    { name: "Patching", url: "/blog/patching-copydotfail/" },
 ];
 ---
 
 <header>
     <div class="hidden md:block">
-        <nav class="fixed right-0 z-50 flex flex-row px-7 py-6">
-            <div class="z-50 flex items-center gap-1 rounded-lg p-2 shadow-lg">
+        <nav class="fixed right-0 z-999 flex flex-row px-7 py-6">
+            <div class="z-999 flex items-center gap-1 rounded-lg p-2 shadow-lg">
                 {
                     tabs.map((tab) => (
                         <Link

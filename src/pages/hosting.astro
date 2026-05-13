@@ -1,0 +1,41 @@
+---
+import Layout from "../layouts/Default.astro";
+import { Server, MonitorCog, AtSign } from "@lucide/astro";
+import Link from "../components/Link.astro";
+---
+
+<Layout title="免費架" description="免費的伺服器 (只有 IPv6)">
+    <div
+        class="absolute inset-0 justify-center flex flex-col text-center items-center space-y-3"
+    >
+        <span class="text-6xl"
+            ><Server
+                class="w-20 h-20 hover:-rotate-5 hover:scale-150 transition-all duration-300"
+            />免費架</span
+        >
+        <span class=""
+            >限制每人 1 個 HE 的 IPv6 與 1 核心 / 1G 記憶體 的主機<span
+                class="text-sm">*1</span
+            >
+        </span>
+        <div class="flex flex-col md:flex-row space-x-2 mt-1">
+            <Link
+                href="https://manageut.yhw.tw"
+                class="group flex flex-row items-center space-x-1"
+            >
+                <MonitorCog
+                    class="group-hover:-rotate-5 group-hover:scale-110 transition-all duration-300"
+                />
+                管理介面
+            </Link>
+        </div>
+    </div>
+
+    <div class="min-h-screen"></div>
+    <div class="flex flex-col p-5">
+        <span
+            ><span class="text-sm">*1</span
+            >&nbsp;:&nbsp;伺服器爆掉就沒有了，我也有權利移除伺服器。
+        </span>
+    </div>
+</Layout>

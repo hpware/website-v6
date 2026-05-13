@@ -1,6 +1,7 @@
 @import "tailwindcss";
+@plugin '@tailwindcss/typography';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
     font-family: "Huninn";
