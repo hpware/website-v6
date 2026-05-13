@@ -9,7 +9,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "convex": "convex dev",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
   },
   "dependencies": {
     "@astrojs/mdx": "^5.0.4",
@@ -21,10 +24,14 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.3.1",
+    "convex": "^1.38.0",
     "lucide-react": "^1.14.0",
+    "marked-react": "^4.0.0",
+    "prism-react-renderer": "^2.4.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "sharp": "^0.34.3",
-    "tailwindcss": "^4.3.0"
+    "tailwindcss": "^4.3.0",
+    "uuid": "^14.0.0"
   }
 }

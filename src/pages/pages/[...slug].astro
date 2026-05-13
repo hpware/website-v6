@@ -1,0 +1,36 @@
+---
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
+import DefaultLayout from "../../layouts/Default.astro";
+import PageClient from "../../components/pages/PageClient";
+import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
+import { SITE_DESCRIPTION } from "../../consts";
+
+export async function getStaticPaths() {
+    const pages = await fetchQuery(api.pages.listPublished, {});
+
+    return pages.map((page) => ({
+        params: { slug: page.slug },
+        props: { page },
+    }));
+}
+
+const { page } = Astro.props;
+
+const dbPage = {
+    uuid: page._id,
+    slug: page.slug,
+    title: page.title,
+    writer: normalizeWriter(page.writer),
+    page_type: page.page_type,
+    status: page.status,
+    markdown_content: page.markdown_content,
+    landing_image: page.landing_image || "",
+    created_at: normalizeTimestamp(page.created_at).toISOString(),
+    updated_at: normalizeTimestamp(page.updated_at).toISOString(),
+};
+---
+
+<DefaultLayout title={dbPage.title} description={SITE_DESCRIPTION}>
+    <PageClient db={dbPage} />
+</DefaultLayout>
