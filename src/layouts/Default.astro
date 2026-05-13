@@ -1,0 +1,29 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
+import { SITE_DESCRIPTION, SITE_NAME } from "../consts";
+
+interface Props {
+    title?: string;
+    description?: string;
+}
+const desc = Astro.props.description ?? SITE_DESCRIPTION;
+---
+
+<!doctype html>
+<html lang="zh-tw">
+    <head>
+        <BaseHead
+            title={`${Astro.props.title === undefined ? "" : `${Astro.props.title} | `}${SITE_NAME}`}
+            description={desc.length > 160 ? desc.slice(0, 157) + "..." : desc}
+        />
+    </head>
+    <body>
+        <Header />
+        <main>
+            <slot />
+        </main>
+        <Footer />
+    </body>
+</html>
