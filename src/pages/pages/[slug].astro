@@ -6,16 +6,19 @@ import PageClient from "../../components/pages/PageClient";
 import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
 import { SITE_DESCRIPTION } from "../../consts";
 
-export async function getStaticPaths() {
-    const pages = await convex.query(api.pages.listPublished, {});
+export const prerender = false;
 
-    return pages.map((page: any) => ({
-        params: { slug: page.slug },
-        props: { page },
-    }));
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.rewrite("/404");
 }
 
-const { page } = Astro.props;
+const page = await convex.query(api.pages.getPublishedBySlug, { slug });
+
+if (!page) {
+    return Astro.rewrite("/404");
+}
 
 const dbPage = {
     uuid: page._id,
