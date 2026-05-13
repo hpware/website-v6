@@ -1,0 +1,29 @@
+{
+  "languages": {
+    "TypeScript": {
+      "language_servers": ["typescript-language-server", "astro-language-server", "!vtsls"]
+    },
+    "TSX": {
+      "language_servers": ["typescript-language-server", "astro-language-server", "!vtsls"]
+    },
+    "Astro": {
+      "language_servers": ["astro-language-server", "typescript-language-server", "!vtsls"]
+    }
+  },
+  "lsp": {
+    "typescript-language-server": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib"
+        }
+      }
+    },
+    "astro-language-server": {
+      "settings": {
+        "typescript": {
+          "tsdk": "node_modules/typescript/lib"
+        }
+      }
+    }
+  }
+}

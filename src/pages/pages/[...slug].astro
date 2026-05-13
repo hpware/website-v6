@@ -9,7 +9,7 @@ import { SITE_DESCRIPTION } from "../../consts";
 export async function getStaticPaths() {
     const pages = await convex.query(api.pages.listPublished, {});
 
-    return pages.map((page) => ({
+    return pages.map((page: any) => ({
         params: { slug: page.slug },
         props: { page },
     }));

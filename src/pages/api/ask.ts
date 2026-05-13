@@ -1,8 +1,7 @@
-import { getCollection } from "astro:content";
+import type { APIRoute } from "astro";
 
-export async function GET(context) {
-  const posts = await getCollection("blog");
+export const GET: APIRoute = async () => {
   return Response.json({
     error: "Working in progress. Please use convex endpoints instead.",
   });
-}
+};
