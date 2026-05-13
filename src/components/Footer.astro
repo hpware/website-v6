@@ -2,13 +2,89 @@
 const today = new Date();
 import { SITE_NAME } from "../consts";
 import Link from "./Link.astro";
+import Socials from "./Socials.tsx";
+
+const linkColumns = [
+    [
+        { name: "Home", href: "/" },
+        { name: "Blog", href: "/blog" },
+        { name: "About", href: "/about" },
+    ],
+    [
+        { name: "v5 網站", href: "https://v5.yuanhau.com" },
+        { name: "v4.1.3 網站", href: "https://v4-1-3.yuanhau.com" },
+        { name: "v4.1.2 舊版 Blog", href: "https://4-1-2.yuanhau.com/posts/" },
+        { name: "wp.yuanhau.com", href: "https://wp.yuanhau.com" },
+        {
+            name: "Website Source Code",
+            href: "https://github.com/hpware/yhstatic_v6",
+        },
+        { name: "Email", href: "mailto:hw+yhv6@yuanhau.com" },
+        { name: "Status Page", href: "https://status.yhw.tw/" },
+    ],
+];
 ---
 
-<footer
-    class="border-t-1px border-gray-200 text-center py-4 text-sm text-gray-500"
->
-    &copy; {today.getFullYear()}
-    {SITE_NAME} 此網站採用 <Link
-        href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</Link
-    > 授權條款釋出。
+<footer class="relative inset-x-0 bottom-0 mt-16">
+    <hr
+        class="m-auto w-[calc(100%-30px)] flex-wrap bg-black/50 text-center dark:bg-white/50"
+    />
+
+    <div
+        class="mt-4 mb-2 flex flex-row flex-wrap justify-center gap-2 p-1 align-middle"
+    >
+        <section
+            class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)] md:pl-12"
+        >
+            <img
+                src="/images/profile.jpg"
+                width="60"
+                height="60"
+                alt="Profile Picture"
+                draggable="false"
+                class="rounded"
+            />
+            <span class="text-xl">Howard</span>
+            <span class="text-sm">
+                <i>
+                    Take risks in life. Your grand-grand-grandkids won't
+                    remember you, so why not go and try to take some risks (not
+                    gamble)?
+                </i>
+            </span>
+            <Socials />
+        </section>
+
+        <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
+            <h3 class="m-2 text-xl"><i>Links</i></h3>
+            <div class="ml-4 flex flex-col md:flex-row">
+                {
+                    linkColumns.map((column, index) => (
+                        <div
+                            class={`flex flex-col gap-2 ${index === 1 ? "mt-4 md:mt-0 md:ml-12" : "mr-12"}`}
+                        >
+                            {column.map((item) => (
+                                <Link
+                                    href={item.href}
+                                    class="flex flex-row items-center transition-all duration-300 hover:text-gray-600/50 dark:hover:text-gray-300/50"
+                                >
+                                    {item.name}
+                                </Link>
+                            ))}
+                        </div>
+                    ))
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="flex flex-col">
+        <div class="p-4 text-center text-gray-500 md:text-right">
+            &copy; {today.getFullYear()}
+            {SITE_NAME} || 此網站採用 <Link
+                href="https://creativecommons.org/licenses/by/4.0/"
+                >CC BY 4.0</Link
+            > 授權條款釋出。 v6 ß
+        </div>
+    </div>
 </footer>

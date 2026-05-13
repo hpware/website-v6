@@ -1,11 +1,53 @@
 ---
 import { SITE_NAME } from "../consts";
+import Link from "./Link.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+
+const tabs = [
+    { name: "Home", url: "/" },
+    { name: "Blog", url: "/blog" },
+    { name: "About", url: "/about" },
+];
 ---
 
-<nav class="flex flex-row justify-between text-center items-center py-4 px-2">
-    <h2 class="text-xl"><a href="/">{SITE_NAME}</a></h2>
-    <div class="flex flex-row space-x-4">
-        <a href="/about" class="hover:underline"></a>
-        <a href="/contact" class="hover:underline">Contact</a>
+<header>
+    <div class="hidden md:block">
+        <nav class="fixed right-0 z-50 flex flex-row px-7 py-6">
+            <div class="z-50 flex items-center gap-1 rounded-lg p-2 shadow-lg">
+                {
+                    tabs.map((tab) => (
+                        <Link
+                            href={tab.url}
+                            class="mx-1 px-1  transition-all duration-300"
+                        >
+                            {tab.name}
+                        </Link>
+                    ))
+                }
+                <ThemeToggle />
+            </div>
+        </nav>
     </div>
-</nav>
+
+    <div class="block md:hidden">
+        <nav
+            class="fixed inset-x-0 z-50 mt-4 flex w-full flex-row justify-center"
+        >
+            <div
+                class="flex items-center gap-1 rounded-lg border border-accent bg-gray-100/5 p-2 shadow-lg backdrop-blur-xl"
+            >
+                {
+                    tabs.map((tab) => (
+                        <Link
+                            href={tab.url}
+                            class="mx-1 rounded-lg border border-accent p-2 shadow-lg transition-all duration-300 hover:bg-gray-500/20 dark:border-0 dark:hover:bg-white/20"
+                        >
+                            {tab.name}
+                        </Link>
+                    ))
+                }
+                <ThemeToggle />
+            </div>
+        </nav>
+    </div>
+</header>

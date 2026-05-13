@@ -1,0 +1,49 @@
+---
+import { SunIcon, MoonIcon } from "@lucide/astro";
+---
+
+<button
+    type="button"
+    class="rounded-lg border border-accent p-2 shadow-lg transition-all duration-300 hover:cursor-pointer hover:bg-gray-500/20 dark:border-0 dark:hover:bg-white/20"
+    aria-label="Toggle theme"
+    data-theme-toggle
+>
+    <SunIcon class="hidden size-6 dark:block" data-theme-icon="sun" />
+    <MoonIcon class="size-6 dark:hidden" data-theme-icon="moon" />
+</button>
+
+<script>
+    const storageKey = "theme";
+    const root = document.documentElement;
+
+    const getSystemTheme = () =>
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+    const getTheme = () => localStorage.getItem(storageKey) ?? getSystemTheme();
+
+    const applyTheme = (theme: string) => {
+        root.classList.toggle("dark", theme === "dark");
+        root.dataset.theme = theme;
+    };
+
+    applyTheme(getTheme());
+
+    document.addEventListener("click", (event) => {
+        const button = (event.target as HTMLElement).closest("[data-theme-toggle]");
+        if (!button) return;
+
+        const nextTheme = root.classList.contains("dark") ? "light" : "dark";
+        localStorage.setItem(storageKey, nextTheme);
+        applyTheme(nextTheme);
+    });
+
+    window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", () => {
+            if (!localStorage.getItem(storageKey)) {
+                applyTheme(getSystemTheme());
+            }
+        });
+</script>
