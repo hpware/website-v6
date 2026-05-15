@@ -8,8 +8,11 @@ status: published
 ---
 
 # Patching exploits
-Update May 15th 2026: Nginx RCE!! Affected services is currently unknwon
-Update May 14, 2026: Some servers are upgraded to patch the issue, but some are not. During the period before all the servers are patched, some services will be offline.
+## Updates
+### May 15, 2026: 
+Nginx RCE!! Affected services is currently unknown.
+### May 14, 2026
+Some servers are upgraded to patch the issue, but some are not. During the period before all the servers are patched, some services will be offline.
 
 ## Patched instances:
 | Instance                 | Provider | Copy Fail (CVE-2026-31431) | Dirty Frag (CVE-2026-43284)  | Fragnesia (CVE-2026-46300) | Nginx RCE (CVE-2026-42945) | Status |
