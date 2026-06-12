@@ -1,0 +1,26 @@
+---
+import Layout from "../layouts/Default.astro";
+import { Server, MonitorCog, AtSign } from "@lucide/astro";
+import Link from "../components/Link.astro";
+---
+
+<Layout title="舉報間用">
+    <div
+        class="absolute inset-0 justify-center flex flex-col text-center items-center space-y-3"
+    >
+        <span class="text-6xl">檢舉濫用行為</span>
+        <div class="flex flex-col md:flex-row space-x-2 mt-1">
+            <Link
+                href="mailto:hlabuse@yhw.tw"
+                class="group flex flex-row items-center space-x-3"
+            >
+                <AtSign
+                    class="group-hover:-rotate-5 group-hover:scale-110 transition-all duration-300"
+                />
+                <span class="pl-2">Email</span>
+            </Link>
+        </div>
+    </div>
+
+    <div class="min-h-screen"></div>
+</Layout>
