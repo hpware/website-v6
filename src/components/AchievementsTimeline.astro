@@ -1,0 +1,156 @@
+---
+import { Scroll, Award, Flag, Building2 } from "@lucide/astro";
+
+interface Achievement {
+    icon: any;
+    title: string;
+    date: string;
+    description: string;
+}
+
+interface Props {
+    achievements?: Achievement[];
+}
+
+const defaults: Achievement[] = [
+    {
+        icon: Scroll,
+        title: "成就一",
+        date: "2022",
+        description: "這是第一個佔位成就，之後可以換成真正的內容。",
+    },
+    {
+        icon: Award,
+        title: "成就二",
+        date: "2023",
+        description: "這是第二個佔位成就，描述一下你做了什麼。",
+    },
+    {
+        icon: Flag,
+        title: "成就三",
+        date: "2024",
+        description: "這是第三個佔位成就，記錄一個里程碑。",
+    },
+    {
+        icon: Building2,
+        title: "成就四",
+        date: "2025",
+        description: "這是第四個佔位成就，最近的一項。",
+    },
+];
+
+const { achievements = defaults } = Astro.props;
+---
+
+<ol class="ach mx-auto flex w-full max-w-2xl flex-col md:max-w-none md:flex-row">
+    {
+        achievements.map((item, i) => {
+            const Icon = item.icon;
+            const isLast = i === achievements.length - 1;
+            return (
+                <li class="ach-item">
+                    <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
+                        <Icon class="h-7 w-7" />
+                    </span>
+                    {!isLast && <span class="ach-line" aria-hidden="true" />}
+                    <div class="ach-content">
+                        <span class="text-sm font-medium text-[#e8761f]">
+                            {item.date}
+                        </span>
+                        <h3 class="text-xl font-bold">{item.title}</h3>
+                        <p class="mt-1 text-muted-foreground">
+                            {item.description}
+                        </p>
+                    </div>
+                </li>
+            );
+        })
+    }
+</ol>
+
+<style>
+    /* --- Mobile: vertical timeline, node-left / content-right --- */
+    .ach-item {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        gap: 1.25rem;
+    }
+
+    .ach-content {
+        padding-top: 0.5rem;
+        padding-bottom: 3rem;
+    }
+
+    /* Moving dashed connector — node center to node center, Y axis */
+    .ach-line {
+        position: absolute;
+        left: 30px; /* node center (32px) − half line width (2px) */
+        top: 72px; /* just below the 64px node */
+        width: 4px;
+        height: calc(100% - 76px);
+        background-image: repeating-linear-gradient(
+            to bottom,
+            #e8761f 0,
+            #e8761f 8px,
+            transparent 8px,
+            transparent 16px
+        );
+        background-size: 4px 16px;
+        background-repeat: repeat-y;
+        animation: ach-dash-y 0.6s linear infinite;
+    }
+
+    /* --- Desktop: horizontal timeline, node-top / content-below --- */
+    @media (min-width: 768px) {
+        .ach-item {
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            text-align: center;
+        }
+
+        .ach-content {
+            padding-top: 1rem;
+            padding-bottom: 0;
+            padding-inline: 0.5rem;
+        }
+
+        /* X axis: from this node's center to the next node's center */
+        .ach-line {
+            left: calc(50% + 32px); /* this node center + radius */
+            top: 30px; /* node vertical center (32px) − half line (2px) */
+            width: calc(100% - 64px); /* reach next node, minus both radii */
+            height: 4px;
+            background-image: repeating-linear-gradient(
+                to right,
+                #e8761f 0,
+                #e8761f 8px,
+                transparent 8px,
+                transparent 16px
+            );
+            background-size: 16px 4px;
+            background-repeat: repeat-x;
+            animation: ach-dash-x 0.6s linear infinite;
+        }
+    }
+
+    @keyframes ach-dash-y {
+        to {
+            background-position-y: 16px;
+        }
+    }
+
+    @keyframes ach-dash-x {
+        to {
+            background-position-x: 16px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ach-line {
+            animation: none;
+        }
+    }
+</style>

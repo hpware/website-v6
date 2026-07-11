@@ -1,11 +1,17 @@
 ---
 import Layout from "../layouts/Default.astro";
+import AchievementsTimeline from "../components/AchievementsTimeline.astro";
 ---
 
 <Layout title="首頁">
-    <div
-        class="flex flex-col text-center items-center justify-center absolute inset-0"
+    <section
+        class="flex min-h-[80vh] flex-col items-center justify-center text-center"
     >
         <span class="text-2xl font-bold">元皓</span>
-    </div>
+    </section>
+
+    <section class="mx-auto w-full max-w-2xl px-4 pb-24">
+        <h2 class="mb-10 text-center text-3xl font-bold">成就</h2>
+        <AchievementsTimeline />
+    </section>
 </Layout>
