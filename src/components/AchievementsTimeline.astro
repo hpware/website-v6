@@ -15,34 +15,30 @@ interface Props {
 const defaults: Achievement[] = [
     {
         icon: Scroll,
-        title: "成就一",
-        date: "2022",
-        description: "這是第一個佔位成就，之後可以換成真正的內容。",
-    },
-    {
-        icon: Award,
-        title: "成就二",
-        date: "2023",
-        description: "這是第二個佔位成就，描述一下你做了什麼。",
-    },
-    {
-        icon: Flag,
-        title: "成就三",
-        date: "2024",
-        description: "這是第三個佔位成就，記錄一個里程碑。",
-    },
-    {
-        icon: Building2,
-        title: "成就四",
+        title: "電腦軟題應用丙級證照",
         date: "2025",
-        description: "這是第四個佔位成就，最近的一項。",
+        description: "爛爛的證照",
+    },
+    {
+        icon: Scroll,
+        title: "電腦硬體裝修丙級證照",
+        date: "2026",
+        description: "還算簡單",
+    },
+    {
+        icon: Scroll,
+        title: "工業電子丙級證照",
+        date: "2026",
+        description: "沒有爆炸 :)\n然後悍的很爛",
     },
 ];
 
 const { achievements = defaults } = Astro.props;
 ---
 
-<ol class="ach mx-auto flex w-full max-w-2xl flex-col md:max-w-none md:flex-row">
+<ol
+    class="ach mx-auto flex w-full max-w-2xl flex-col md:max-w-none md:flex-row"
+>
     {
         achievements.map((item, i) => {
             const Icon = item.icon;
@@ -58,9 +54,13 @@ const { achievements = defaults } = Astro.props;
                             {item.date}
                         </span>
                         <h3 class="text-xl font-bold">{item.title}</h3>
-                        <p class="mt-1 text-muted-foreground">
-                            {item.description}
-                        </p>
+                        <p
+                            class="mt-1 text-muted-foreground"
+                            set:html={item.description.replaceAll(
+                                "\n",
+                                "<br/>",
+                            )}
+                        />
                     </div>
                 </li>
             );
