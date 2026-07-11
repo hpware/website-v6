@@ -8,13 +8,17 @@ status: "published"
 ---
 
 # Why is the server down?
-While the maintenance yesterday, the BIOS got reset, and VT-D is disabled by default. This unannounced incident happened.
+
+While the maintenance yesterday, BIOS got reset, and VT-D is disabled. So this unannounced incident happened.
 
 # Effected
+
 ## Nodes
+
 - node-3
 
 ## Services
+
 - SSO
 - some static www services
 - file hosting
