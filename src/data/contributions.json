@@ -153,9 +153,26 @@
         ]
       },
       {
+        "slug": "logs",
+        "title": "Logs",
+        "description": "就...一個紀錄的平台",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "App",
+            "url": "https://log.yachts"
+          },
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/log"
+          }
+        ]
+      },
+      {
         "slug": "raycast-taiwan-bus",
         "title": "台灣公車 Raycast 插件",
-        "description": "一個 Demo \"ktshia\"的程式!",
+        "description": "一個 Demo \"ktshia\" 的程式!",
         "isUnmaintained": true,
         "categories": [],
         "links": [
@@ -169,12 +186,93 @@
         "slug": "ktshia-bus",
         "title": "Ktshia (或 kt-chia)",
         "description": "一個 All in one 的公車 API!",
-        "isUnmaintained": false,
+        "isUnmaintained": true,
         "categories": [],
         "links": [
           {
             "label": "Github",
             "url": "https://github.com/hpware/ktshia"
+          }
+        ]
+      },
+      {
+        "slug": "website-v5",
+        "title": "ofc V5 網站",
+        "description": "2025 版的",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Website",
+            "url": "https://v5.yuanhau.com"
+          },
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/yuanhau-v5-maybe"
+          }
+        ]
+      },
+      {
+        "slug": "news-analyze",
+        "title": "News Analyze",
+        "description": "當時做的新聞比較的東西，結果跑到翻譯然後 Reverse Engineer Line News...",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/news-analyze"
+          }
+        ]
+      },
+      {
+        "slug": "md-viewer",
+        "title": "Markdown 瀏覽器 (mdViewer)",
+        "description": "當是用的 Markdown renderer, 然後我那時候還是蠻喜歡 text-content:center 的 😅",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "App",
+            "url": "https://md.yhw.tw"
+          },
+          {
+            "label": "About",
+            "url": "https://md.yhw.tw/?u=https://mdviewer.yuanhau.com/mds/about.md"
+          },
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/mdrenderer"
+          }
+        ]
+      },
+      {
+        "slug": "website-v4",
+        "title": "ofc v4 網站",
+        "description": "2024 版的 (用 Nuxt 做的專案)",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Website",
+            "url": "https://v4-1-3.yuanhau.com"
+          },
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/yuanhau-v4.1"
+          }
+        ]
+      },
+      {
+        "slug": "website-v3",
+        "title": "ofc v3 網站",
+        "description": "2024 版的 (OG)",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/hpware-vue-v3"
           }
         ]
       }
