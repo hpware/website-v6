@@ -63,6 +63,11 @@ export const GET: APIRoute = async () => {
       changefreq: "monthly",
       priority: 0.7,
     },
+    {
+      url: absoluteUrl("/contributions/"),
+      changefreq: "monthly",
+      priority: 0.8,
+    },
   ];
 
   const posts = await getCollection("blog", ({ data }) => data.status === "published");

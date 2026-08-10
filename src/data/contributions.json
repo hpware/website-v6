@@ -1,0 +1,183 @@
+[
+  {
+    "id": "security-and-bugs",
+    "title": "Security stuff",
+    "description": "Bugs (and logic issues) found it prod, reported and fixed by orgs and schools!",
+    "items": [
+      {
+        "slug": "ctu-indexof-dataleak",
+        "title": "陸軍專科校務 svc 直接公開",
+        "description": "I'm just looking around the web.config files and just googled other places using the same provider and found this 💀",
+        "categories": ["合作?"],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00768"
+          }
+        ]
+      },
+      {
+        "slug": "svc-endpoints-exposed-tpcu-sw",
+        "title": "城市科大新校務 svc 直接公開 🫪",
+        "description": "I'm just looking around the web.config files that I have and found this...",
+        "categories": [],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00818"
+          }
+        ]
+      },
+      {
+        "slug": "ctu-indexof-dataleak",
+        "title": "建國科大可隨便下載學生的接種卡",
+        "description": "I'm just looking for `Index of` and found this. What the hell 💀",
+        "categories": [],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00768"
+          }
+        ]
+      },
+      {
+        "slug": "nochecks-on-download-tpcu-sw",
+        "title": "城市科大新校務可下載任何檔案",
+        "description": "阿阿阿 ?Path= 就好了... Just bad code practices. Thats all to this exploit.",
+        "categories": [],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00659"
+          }
+        ]
+      },
+      {
+        "slug": "aiforce-vibed-ass-app",
+        "title": "創泓伺服器資訊洩漏",
+        "description": "我在資安大會當場發現的... 然後伺服器有 64G 的記憶題 🤑",
+        "categories": [],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00635"
+          }
+        ]
+      },
+      {
+        "slug": "instpage-php",
+        "title": "讓 instpage.php 消失",
+        "description": "(算是嘗試",
+        "isUnmaintained": false,
+        "categories": ["iframe"],
+        "links": [
+          {
+            "label": "大園國小",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2024-00823"
+          },
+          {
+            "label": "輕艇協會",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2024-00863"
+          },
+          {
+            "label": "大忠國小",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2024-01021"
+          },
+          {
+            "label": "及幼幼兒園",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2024-01037"
+          },
+          {
+            "label": "長興國小",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00336"
+          },
+          {
+            "label": "德龍國小",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00337"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "playing-with-random-hardware",
+    "title": "Playing with random hardware :)",
+    "description": "",
+    "items": [
+      {
+        "slug": "rtl6100-research",
+        "title": "玩 Dynalink RTL6100W",
+        "description": "用一下就壞了 (這算是 2025 年的事了)",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Page",
+            "url": "http://github.yuanhau.com/hacking-RTL6100/"
+          },
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/hacking-RTL6100"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "projects",
+    "title": "Projects",
+    "description": "Things I have built or maintained.",
+    "items": [
+      {
+        "slug": "hong-chiao",
+        "title": "虹橋校務系統代理的東東",
+        "description": "新的校務系統太醜太難用所以這是使用學校校務系統所提供的 JSON 或 HTML 並把它使用 Headless chrome + tRPC 全部導入到 Shadcn/UI 的 UI 介面進行使用",
+        "isUnmaintained": false,
+        "categories": [],
+        "links": [
+          { "label": "App", "url": "https://tpcu-sw.yhw.tw" },
+          { "label": "Github", "url": "https://github.com/hpware/hong_chiao" }
+        ]
+      },
+      {
+        "slug": "basic-cert-signer",
+        "title": "Basic Cert Signer (Core services)",
+        "description": "給我家 HomeLab 破破的憑證發放系統 (我現在還在用)",
+        "isUnmaintained": false,
+        "categories": [],
+        "links": [
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/basic-cert-signer"
+          }
+        ]
+      },
+      {
+        "slug": "raycast-taiwan-bus",
+        "title": "台灣公車 Raycast 插件",
+        "description": "一個 Demo \"ktshia\"的程式!",
+        "isUnmaintained": true,
+        "categories": [],
+        "links": [
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/raycast-taiwan-bus-tdx"
+          }
+        ]
+      },
+      {
+        "slug": "ktshia-bus",
+        "title": "Ktshia (或 kt-chia)",
+        "description": "一個 All in one 的公車 API!",
+        "isUnmaintained": false,
+        "categories": [],
+        "links": [
+          {
+            "label": "Github",
+            "url": "https://github.com/hpware/ktshia"
+          }
+        ]
+      }
+    ]
+  }
+]
