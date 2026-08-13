@@ -1,0 +1,13 @@
+---
+import DynamicPage from "../../../components/site/DynamicPage.astro";
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+if (!slug) {
+    return Astro.rewrite("/en/404");
+}
+---
+
+<DynamicPage locale="en" slug={slug} />

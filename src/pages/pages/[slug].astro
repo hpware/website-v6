@@ -1,39 +1,10 @@
 ---
-import { api } from "../../../convex/_generated/api";
-import { convex } from "../../lib/convex";
-import DefaultLayout from "../../layouts/Default.astro";
-import PageClient from "../../components/pages/PageClient";
-import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
-import { SITE_DESCRIPTION } from "../../consts";
-
 export const prerender = false;
 
-const { slug } = Astro.params;
-
-if (!slug) {
-    return Astro.rewrite("/404");
-}
-
-const page = await convex.query(api.pages.getPublishedBySlug, { slug });
-
-if (!page) {
-    return Astro.rewrite("/404");
-}
-
-const dbPage = {
-    uuid: page._id,
-    slug: page.slug,
-    title: page.title,
-    writer: normalizeWriter(page.writer),
-    page_type: page.page_type,
-    status: page.status,
-    markdown_content: page.markdown_content,
-    landing_image: page.landing_image || "",
-    created_at: normalizeTimestamp(page.created_at).toISOString(),
-    updated_at: normalizeTimestamp(page.updated_at).toISOString(),
-};
+return Astro.redirect(
+    Astro.params.slug
+        ? `/zh-TW/pages/${Astro.params.slug}/`
+        : "/zh-TW/404",
+    302,
+);
 ---
-
-<DefaultLayout title={dbPage.title} description={SITE_DESCRIPTION}>
-    <PageClient db={dbPage} client:load />
-</DefaultLayout>

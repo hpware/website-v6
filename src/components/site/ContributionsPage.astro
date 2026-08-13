@@ -1,0 +1,103 @@
+---
+import contributionData from "../../data/contributions.json";
+import Layout from "../../layouts/Default.astro";
+import { translations, type Locale } from "../../i18n";
+import Link from "../Link.astro";
+
+interface ContributionLink {
+    label: string;
+    url: string;
+}
+
+interface ContributionItem {
+    slug: string;
+    title: string;
+    description: string;
+    isUnmaintained?: boolean;
+    categories: string[];
+    links: ContributionLink[];
+}
+
+interface ContributionSection {
+    id: string;
+    title: string;
+    description: string | null;
+    items: ContributionItem[];
+}
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = translations[locale].contributions;
+const sections = contributionData as ContributionSection[];
+---
+
+<Layout
+    locale={locale}
+    translationPath="/contributions/"
+    title={copy.title}
+    description={copy.metaDescription}
+>
+    <div class="mx-auto max-w-3xl">
+        <h1 class="text-2xl">{copy.title}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">{copy.description}</p>
+
+        {
+            sections.map((section) => (
+                <section class="mt-10" aria-labelledby={section.id}>
+                    <h2 id={section.id} class="text-xl">
+                        {section.title}
+                    </h2>
+                    {section.description && (
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {section.description}
+                        </p>
+                    )}
+
+                    <ul class="mt-5 flex flex-col gap-7">
+                        {section.items.map((item, index) => {
+                            const itemId = `${section.id}-${index + 1}-${item.slug}`;
+
+                            return (
+                                <li aria-labelledby={itemId}>
+                                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                                        <h3 id={itemId} class="text-lg">
+                                            {item.title}
+                                        </h3>
+                                        {(item.categories.length > 0 ||
+                                            item.isUnmaintained) && (
+                                            <span class="text-xs text-muted-foreground">
+                                                {[
+                                                    ...item.categories,
+                                                    ...(item.isUnmaintained
+                                                        ? [copy.unmaintained]
+                                                        : []),
+                                                ].join(" · ")}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <p class="mt-1 text-sm leading-6 text-muted-foreground">
+                                        {item.description}
+                                    </p>
+
+                                    {item.links.length > 0 && (
+                                        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                                            {item.links.map((link) => (
+                                                <Link href={link.url} underline>
+                                                    {link.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </section>
+            ))
+        }
+    </div>
+</Layout>

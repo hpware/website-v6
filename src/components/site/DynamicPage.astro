@@ -1,0 +1,43 @@
+---
+import { api } from "../../../convex/_generated/api";
+import PageClient from "../pages/PageClient";
+import { translations, type Locale } from "../../i18n";
+import DefaultLayout from "../../layouts/Default.astro";
+import { convex } from "../../lib/convex";
+import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
+
+interface Props {
+    locale: Locale;
+    slug: string;
+}
+
+const { locale, slug } = Astro.props;
+const page = await convex.query(api.pages.getPublishedBySlug, { slug });
+
+if (!page) {
+    return Astro.rewrite(`/${locale}/404`);
+}
+
+const dbPage = {
+    uuid: page._id,
+    slug: page.slug,
+    title: page.title,
+    writer: normalizeWriter(page.writer),
+    page_type: page.page_type,
+    status: page.status,
+    markdown_content: page.markdown_content,
+    landing_image: page.landing_image || "",
+    created_at: normalizeTimestamp(page.created_at).toISOString(),
+    updated_at: normalizeTimestamp(page.updated_at).toISOString(),
+};
+const copy = translations[locale];
+---
+
+<DefaultLayout
+    locale={locale}
+    translationPath={`/pages/${slug}/`}
+    title={dbPage.title}
+    description={copy.siteDescription}
+>
+    <PageClient db={dbPage} ui={copy.pages} client:load />
+</DefaultLayout>

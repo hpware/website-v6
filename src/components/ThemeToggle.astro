@@ -1,11 +1,18 @@
 ---
 import { SunIcon, MoonIcon } from "@lucide/astro";
+import { defaultLocale, translations, type Locale } from "../i18n";
+
+interface Props {
+    locale?: Locale;
+}
+
+const { locale = defaultLocale } = Astro.props;
 ---
 
 <button
     type="button"
     class="rounded-lg border border-accent p-2 shadow-lg transition-all duration-300 hover:cursor-pointer hover:bg-gray-500/20 dark:border-0 dark:hover:bg-white/20"
-    aria-label="Toggle theme"
+    aria-label={translations[locale].themeToggle}
     data-theme-toggle
 >
     <SunIcon class="hidden size-6 dark:block" data-theme-icon="sun" />

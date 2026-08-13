@@ -1,0 +1,41 @@
+---
+import { Server } from "@lucide/astro";
+import Layout from "../../layouts/Default.astro";
+import { translations, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy = translations[locale];
+---
+
+<Layout
+    locale={locale}
+    translationPath="/hosting/pricing/"
+    title={copy.pricing.title}
+    description={copy.pricing.description}
+>
+    <div
+        class="absolute inset-0 flex flex-col items-center justify-center space-y-3 text-center"
+    >
+        <span class="text-6xl"
+            ><Server
+                class="h-20 w-20 transition-all duration-300 hover:-rotate-5 hover:scale-150"
+            />{copy.pricing.heading}</span
+        >
+        <div class="mt-1 flex flex-col space-x-6 md:flex-row">
+            <span>{copy.pricing.price} <code class="bold">$0</code>!</span>
+        </div>
+    </div>
+
+    <div class="min-h-screen"></div>
+    <div class="flex flex-col p-5">
+        <span
+            ><span class="text-sm">*1</span>&nbsp;:&nbsp;{
+                copy.hosting.footnote
+            }</span
+        >
+    </div>
+</Layout>

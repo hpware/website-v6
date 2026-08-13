@@ -1,13 +1,36 @@
 ---
 import Link from "./Link.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+import {
+    defaultLocale,
+    localizedPath,
+    translations,
+    type Locale,
+} from "../i18n";
 
+interface Props {
+    locale?: Locale;
+    translationPath?: string;
+}
+
+const {
+    locale = defaultLocale,
+    translationPath = Astro.url.pathname,
+} = Astro.props;
+const copy = translations[locale];
 const tabs = [
-    { name: "Home", url: "/" },
-    { name: "Blog", url: "/blog" },
-    { name: "Contributions", shortName: "Contrib.", url: "/contributions" },
-    { name: "Hosting", url: "/hosting" },
+    { name: copy.nav.home, url: localizedPath(locale, "/") },
+    { name: copy.nav.blog, url: localizedPath(locale, "/blog/") },
+    {
+        name: copy.nav.contributions,
+        shortName: copy.nav.contributionsShort,
+        url: localizedPath(locale, "/contributions/"),
+    },
+    { name: copy.nav.hosting, url: localizedPath(locale, "/hosting/") },
 ];
+const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
+const languageLabel = locale === "en" ? "繁中" : "EN";
+const languageUrl = localizedPath(otherLocale, translationPath);
 ---
 
 <header>
@@ -26,7 +49,16 @@ const tabs = [
                         </Link>
                     ))
                 }
-                <ThemeToggle />
+                <Link
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={copy.nav.language}
+                    class="mx-1 px-1 font-bold transition-all duration-300"
+                >
+                    {languageLabel}
+                </Link>
+                <ThemeToggle locale={locale} />
             </div>
         </nav>
     </div>
@@ -48,7 +80,16 @@ const tabs = [
                         </Link>
                     ))
                 }
-                <ThemeToggle />
+                <Link
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={copy.nav.language}
+                    class="mx-1 px-1 font-bold transition-all duration-300"
+                >
+                    {languageLabel}
+                </Link>
+                <ThemeToggle locale={locale} />
             </div>
         </nav>
     </div>
