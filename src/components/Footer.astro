@@ -12,10 +12,17 @@ import {
 
 interface Props {
     locale?: Locale;
+    translationPath?: string;
 }
 
-const { locale = defaultLocale } = Astro.props;
+const {
+    locale = defaultLocale,
+    translationPath = Astro.url.pathname,
+} = Astro.props;
 const T = createTranslator(locale);
+const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
+const languageLabel = locale === "en" ? "繁體中文" : "English";
+const languageUrl = localizedPath(otherLocale, translationPath);
 const linkColumns = [
     [
         { name: T("首頁"), href: localizedPath(locale, "/") },
@@ -89,6 +96,17 @@ const linkColumns = [
                         </div>
                     ))
                 }
+            </div>
+            <div class="mt-5 ml-4 flex items-center gap-2 text-sm">
+                <span>{T("語言")}:</span>
+                <Link
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    class="font-semibold"
+                >
+                    {languageLabel}
+                </Link>
             </div>
         </section>
     </div>

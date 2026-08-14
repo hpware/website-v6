@@ -34,10 +34,10 @@ const desc = Astro.props.description ?? T("歡迎來到我的網站！");
         />
     </head>
     <body>
-        <Header locale={locale} translationPath={translationPath} />
+        <Header locale={locale} />
         <main class="min-h-screen px-4 pt-24 md:pt-8">
             <slot />
         </main>
-        <Footer locale={locale} />
+        <Footer locale={locale} translationPath={translationPath} />
     </body>
 </html>
