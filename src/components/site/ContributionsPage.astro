@@ -48,8 +48,12 @@ const sections = contributionData as ContributionSection[];
 
         {
             sections.map((section) => (
-                <section class="mt-10" aria-labelledby={section.id}>
-                    <h2 id={section.id} class="text-xl">
+                <section
+                    id={section.id}
+                    class="mt-10"
+                    aria-labelledby={`${section.id}-heading`}
+                >
+                    <h2 id={`${section.id}-heading`} class="text-xl">
                         {section.title}
                     </h2>
                     {section.description && (
@@ -58,14 +62,21 @@ const sections = contributionData as ContributionSection[];
                         </p>
                     )}
 
-                    <ul class="mt-5 flex flex-col gap-7">
+                    <ul class="mt-4 flex flex-col gap-4">
                         {section.items.map((item, index) => {
                             const itemId = `${section.id}-${index + 1}-${item.slug}`;
 
                             return (
-                                <li aria-labelledby={itemId}>
-                                    <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                                        <h3 id={itemId} class="text-lg">
+                                <li
+                                    id={itemId}
+                                    aria-labelledby={`${itemId}-heading`}
+                                    class="rounded-lg border border-accent p-4"
+                                >
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <h3
+                                            id={`${itemId}-heading`}
+                                            class="text-xl"
+                                        >
                                             {item.title}
                                         </h3>
                                         {(item.categories.length > 0 ||
@@ -81,14 +92,14 @@ const sections = contributionData as ContributionSection[];
                                         )}
                                     </div>
 
-                                    <p class="mt-1 text-sm leading-6 text-muted-foreground">
+                                    <p class="mt-2 text-sm leading-6 text-muted-foreground">
                                         {item.description}
                                     </p>
 
                                     {item.links.length > 0 && (
-                                        <div class="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                                        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
                                             {item.links.map((link) => (
-                                                <Link href={link.url} underline>
+                                                <Link href={link.url}>
                                                     {link.label}
                                                 </Link>
                                             ))}

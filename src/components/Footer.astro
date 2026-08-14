@@ -1,5 +1,6 @@
 ---
 const today = new Date();
+import { Languages } from "@lucide/astro";
 import { SITE_NAME } from "../consts";
 import Link from "./Link.astro";
 import Socials from "./Socials.tsx";
@@ -97,22 +98,27 @@ const linkColumns = [
                     ))
                 }
             </div>
-            <div class="mt-5 ml-4 flex items-center gap-2 text-sm">
-                <span>{T("語言")}:</span>
-                <Link
-                    href={languageUrl}
-                    lang={otherLocale}
-                    hreflang={otherLocale}
-                    class="font-semibold"
-                >
-                    {languageLabel}
-                </Link>
-            </div>
         </section>
     </div>
 
-    <div class="flex flex-col">
-        <div class="p-4 text-center text-gray-500 md:text-right">
+    <div
+        class="flex flex-col items-center gap-4 px-4 py-4 text-gray-500 sm:flex-row sm:justify-between md:px-12"
+    >
+        <a
+            href={languageUrl}
+            lang={otherLocale}
+            hreflang={otherLocale}
+            aria-label={`${T("語言")}: ${languageLabel}`}
+            class="group inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/40 px-3 py-1.5 text-sm text-foreground shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-accent hover:bg-accent/10 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+            <Languages
+                aria-hidden="true"
+                class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+            />
+            <span class="font-medium">{languageLabel}</span>
+        </a>
+
+        <div class="text-center text-sm sm:text-right">
             &copy; {today.getFullYear()}
             {SITE_NAME} || {T("此網站採用")} <Link
                 href="https://creativecommons.org/licenses/by-sa/4.0/"
