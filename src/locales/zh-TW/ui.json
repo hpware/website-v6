@@ -5,7 +5,7 @@
     "blog": "部落格",
     "contributions": "貢獻",
     "contributionsShort": "貢獻",
-    "hosting": "免費架",
+    "hosting": "主機服務",
     "language": "語言"
   },
   "themeToggle": "切換深淺色主題",
@@ -38,34 +38,34 @@
   },
   "contributions": {
     "title": "貢獻",
-    "description": "專案、研究、問題回報，以及其他我做過的東西。",
-    "metaDescription": "Howard 做過的專案、資安研究、問題回報與其他貢獻。",
-    "unmaintained": "停止維護"
+    "description": "我參與過的專案、研究、發現的錯誤，以及其他工作。",
+    "metaDescription": "Howard 的專案、資安研究、錯誤發現與其他貢獻。",
+    "unmaintained": "已停止維護"
   },
   "hosting": {
-    "title": "免費架",
-    "description": "免費的伺服器（只有 IPv6）。",
-    "heading": "免費架",
-    "limit": "限制每人 1 個 HE IPv6，以及 1 核心、1 GB 記憶體的主機",
-    "manage": "管理主機",
-    "reportAbuse": "舉報濫用行為",
-    "footnote": "伺服器爆掉就沒有了，我也有權利移除伺服器。"
+    "title": "免費主機服務",
+    "description": "免費、僅支援 IPv6 的虛擬機主機服務。",
+    "heading": "免費主機服務",
+    "limit": "每人限用一個 HE IPv6 位址，以及一台配有 1 個 CPU 核心與 1 GB 記憶體的虛擬機",
+    "manage": "管理虛擬機",
+    "reportAbuse": "檢舉濫用行為",
+    "footnote": "不保證服務可用，且我保留移除虛擬機的權利。"
   },
   "pricing": {
-    "title": "免費架價格",
-    "description": "免費 IPv6 主機服務的價格。",
-    "heading": "VM hosting",
-    "price": "價格？"
+    "title": "主機服務價格",
+    "description": "免費、僅支援 IPv6 的主機服務價格。",
+    "heading": "虛擬機主機",
+    "price": "費用？"
   },
   "abuse": {
-    "title": "舉報濫用行為",
+    "title": "檢舉濫用行為",
     "heading": "檢舉濫用行為"
   },
   "notFound": {
-    "title": "404 找不到這個頁面",
-    "heading": "404 找不到這個頁面",
-    "description": "抱歉，您訪問的頁面不存在。",
-    "instruction": "請檢查網址是否正確，或返回首頁繼續瀏覽。",
+    "title": "404 找不到頁面",
+    "heading": "404 找不到頁面",
+    "description": "抱歉，您要找的頁面不存在。",
+    "instruction": "請檢查網址，或返回首頁繼續瀏覽。",
     "home": "首頁"
   },
   "pages": {
@@ -73,6 +73,6 @@
     "unavailable": "無法顯示內容",
     "learnMore": "了解更多",
     "heroAlt": "主視覺圖片：",
-    "loading": "正在載入頁面……"
+    "loading": "正在載入此頁面……"
   }
 }

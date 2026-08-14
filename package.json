@@ -9,8 +9,6 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "translate": "gtx-cli translate",
-    "translate:check": "gtx-cli translate --dry-run",
     "astro": "astro",
     "convex": "convex dev",
     "convex:dev": "convex dev",
@@ -41,7 +39,6 @@
     "@astrojs/check": "^0.9.9",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^25.7.0",
-    "gtx-cli": "^2.16.4",
     "typescript": "^6.0.3"
   }
 }

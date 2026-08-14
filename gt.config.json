@@ -1,9 +1,0 @@
-{
-  "defaultLocale": "en",
-  "locales": ["zh-TW"],
-  "files": {
-    "json": {
-      "include": ["src/locales/[locale]/*.json"]
-    }
-  }
-}
