@@ -1,11 +1,11 @@
 import english from "./locales/en/ui.json";
-import traditionalChinese from "./locales/zh-TW/ui.json";
 
 export const locales = ["en", "zh-TW"] as const;
 
 export type Locale = (typeof locales)[number];
 
-type TranslationSchema = typeof english;
+export type Message = keyof typeof english;
+export type Translator = (message: Message) => string;
 
 export const defaultLocale: Locale = "zh-TW";
 
@@ -21,7 +21,6 @@ export function localizedPath(locale: Locale, pathname = "/") {
     return `/${locale}${normalizedPath}`.replace(/\/{2,}/g, "/");
 }
 
-export const translations: Record<Locale, TranslationSchema> = {
-    en: english,
-    "zh-TW": traditionalChinese,
-};
+export function createTranslator(locale: Locale): Translator {
+    return (message) => locale === "en" ? english[message] : message;
+}

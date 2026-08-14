@@ -2,10 +2,10 @@
 import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
-import { SITE_DESCRIPTION, SITE_NAME } from "../consts";
+import { SITE_NAME } from "../consts";
 import {
+    createTranslator,
     defaultLocale,
-    translations,
     type Locale,
 } from "../i18n";
 
@@ -19,11 +19,8 @@ const {
     locale = defaultLocale,
     translationPath = Astro.url.pathname,
 } = Astro.props;
-const desc =
-    Astro.props.description ??
-    (locale === defaultLocale
-        ? translations[locale].siteDescription
-        : SITE_DESCRIPTION);
+const T = createTranslator(locale);
+const desc = Astro.props.description ?? T("歡迎來到我的網站！");
 ---
 
 <!doctype html>

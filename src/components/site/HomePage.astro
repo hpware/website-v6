@@ -1,17 +1,17 @@
 ---
 import AchievementsTimeline from "../AchievementsTimeline.astro";
 import Layout from "../../layouts/Default.astro";
-import { translations, type Locale } from "../../i18n";
+import { createTranslator, type Locale } from "../../i18n";
 
 interface Props {
     locale: Locale;
 }
 
 const { locale } = Astro.props;
-const copy = translations[locale].home;
+const T = createTranslator(locale);
 ---
 
-<Layout locale={locale} translationPath="/" title={copy.title}>
+<Layout locale={locale} translationPath="/" title={T("首頁")}>
     <section
         class="flex min-h-[80vh] flex-col items-center justify-center text-center"
     >
@@ -20,7 +20,7 @@ const copy = translations[locale].home;
 
     <section class="mx-auto w-full max-w-2xl px-4 pb-24">
         <h2 class="mb-10 text-center text-3xl font-bold">
-            {copy.achievements}
+            {T("成就")}
         </h2>
         <AchievementsTimeline />
     </section>

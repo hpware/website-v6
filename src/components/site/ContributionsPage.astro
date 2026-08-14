@@ -1,7 +1,7 @@
 ---
 import contributionData from "../../data/contributions.json";
 import Layout from "../../layouts/Default.astro";
-import { translations, type Locale } from "../../i18n";
+import { createTranslator, type Locale } from "../../i18n";
 import Link from "../Link.astro";
 
 interface ContributionLink {
@@ -30,19 +30,21 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const copy = translations[locale].contributions;
+const T = createTranslator(locale);
 const sections = contributionData as ContributionSection[];
 ---
 
 <Layout
     locale={locale}
     translationPath="/contributions/"
-    title={copy.title}
-    description={copy.metaDescription}
+    title={T("貢獻")}
+    description={T("Howard 的專案、資安研究、錯誤發現與其他貢獻。")}
 >
     <div class="mx-auto max-w-3xl">
-        <h1 class="text-2xl">{copy.title}</h1>
-        <p class="mt-2 text-sm text-muted-foreground">{copy.description}</p>
+        <h1 class="text-2xl">{T("貢獻")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("我參與過的專案、研究、發現的錯誤，以及其他工作。")}
+        </p>
 
         {
             sections.map((section) => (
@@ -72,7 +74,7 @@ const sections = contributionData as ContributionSection[];
                                                 {[
                                                     ...item.categories,
                                                     ...(item.isUnmaintained
-                                                        ? [copy.unmaintained]
+                                                        ? [T("已停止維護")]
                                                         : []),
                                                 ].join(" · ")}
                                             </span>

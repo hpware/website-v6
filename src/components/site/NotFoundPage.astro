@@ -1,28 +1,28 @@
 ---
 import { TriangleAlert } from "@lucide/astro";
 import Layout from "../../layouts/Default.astro";
-import { localizedPath, translations, type Locale } from "../../i18n";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
 interface Props {
     locale: Locale;
 }
 
 const { locale } = Astro.props;
-const copy = translations[locale].notFound;
+const T = createTranslator(locale);
 ---
 
-<Layout locale={locale} translationPath="/404/" title={copy.title}>
+<Layout locale={locale} translationPath="/404/" title={T("404 找不到頁面")}>
     <div
         class="absolute inset-0 flex flex-col items-center justify-center text-center"
     >
         <TriangleAlert class="h-24 w-24 text-red-600" />
-        <h1 class="text-4xl">{copy.heading}</h1>
-        <p>{copy.description}</p>
+        <h1 class="text-4xl">{T("404 找不到頁面")}</h1>
+        <p>{T("抱歉，您要找的頁面不存在。")}</p>
         <p>
-            {locale === "en" ? "Check the URL, or return to the " : "請檢查網址是否正確，或返回"}<a
+            <a
                 href={localizedPath(locale, "/")}
-                class="underline underline-offset-4">{copy.home}</a
-            >{locale === "en" ? " to continue." : "繼續瀏覽。"}
+                class="underline underline-offset-4"
+            >{T("請檢查網址，或返回首頁繼續瀏覽。")}</a>
         </p>
     </div>
 </Layout>

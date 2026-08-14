@@ -5,13 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { TriangleAlertIcon } from "lucide-react";
 import CodeRender from "./CodeRenderer";
 import type { db as DbPage } from "./types";
-
-interface PageUiCopy {
-  archived: string;
-  unavailable: string;
-  learnMore: string;
-  heroAlt: string;
-}
+import { createTranslator, type Locale, type Translator } from "../../i18n";
 
 function slugify(text: string) {
   return String(text)
@@ -117,24 +111,28 @@ function PageArchivedBanner({ writer, label }: { writer: string; label: string }
   );
 }
 
-export default function PageClient({ db, ui }: { db: DbPage; ui: PageUiCopy }) {
+export default function PageClient({ db, locale }: { db: DbPage; locale: Locale }) {
+  const T = createTranslator(locale);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {db.page_type === "landing" ? (
-        <Landing db={db} ui={ui} />
+        <Landing db={db} T={T} />
       ) : db.page_type === "simple" || db.page_type === "info" ? (
         <Simple db={db} />
       ) : (
         <div className="flex min-h-screen flex-col items-center justify-center text-4xl font-bold text-gray-400">
-          {ui.unavailable}
+          {T("無法顯示內容")}
         </div>
       )}
-      {db.status === "archived" && <PageArchivedBanner writer={db.writer} label={ui.archived} />}
+      {db.status === "archived" && (
+        <PageArchivedBanner writer={db.writer} label={T("此頁面已封存，作者：")} />
+      )}
     </div>
   );
 }
 
-function Landing({ db, ui }: { db: DbPage; ui: PageUiCopy }) {
+function Landing({ db, T }: { db: DbPage; T: Translator }) {
   return (
     <div className="relative">
       <div className="relative">
@@ -142,7 +140,7 @@ function Landing({ db, ui }: { db: DbPage; ui: PageUiCopy }) {
           {db.landing_image ? (
             <img
               src={db.landing_image}
-              alt={`${ui.heroAlt} ${db.title}`}
+              alt={`${T("主視覺圖片：")} ${db.title}`}
               className="h-full w-full rounded-2xl object-cover shadow-lg"
             />
           ) : null}
@@ -154,7 +152,7 @@ function Landing({ db, ui }: { db: DbPage; ui: PageUiCopy }) {
           </div>
           <a href="#learnmore">
             <button className="rounded-full bg-white px-8 py-3 font-semibold text-indigo-600 shadow-lg transition-all hover:bg-gray-50">
-              {ui.learnMore}
+              {T("了解更多")}
             </button>
           </a>
         </div>

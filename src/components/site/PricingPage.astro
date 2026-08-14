@@ -1,21 +1,21 @@
 ---
 import { Server } from "@lucide/astro";
 import Layout from "../../layouts/Default.astro";
-import { translations, type Locale } from "../../i18n";
+import { createTranslator, type Locale } from "../../i18n";
 
 interface Props {
     locale: Locale;
 }
 
 const { locale } = Astro.props;
-const copy = translations[locale];
+const T = createTranslator(locale);
 ---
 
 <Layout
     locale={locale}
     translationPath="/hosting/pricing/"
-    title={copy.pricing.title}
-    description={copy.pricing.description}
+    title={T("主機服務價格")}
+    description={T("免費、僅支援 IPv6 的主機服務價格。")}
 >
     <div
         class="absolute inset-0 flex flex-col items-center justify-center space-y-3 text-center"
@@ -23,10 +23,10 @@ const copy = translations[locale];
         <span class="text-6xl"
             ><Server
                 class="h-20 w-20 transition-all duration-300 hover:-rotate-5 hover:scale-150"
-            />{copy.pricing.heading}</span
+            />{T("虛擬機主機")}</span
         >
         <div class="mt-1 flex flex-col space-x-6 md:flex-row">
-            <span>{copy.pricing.price} <code class="bold">$0</code>!</span>
+            <span>{T("費用？")} <code class="bold">$0</code>!</span>
         </div>
     </div>
 
@@ -34,7 +34,7 @@ const copy = translations[locale];
     <div class="flex flex-col p-5">
         <span
             ><span class="text-sm">*1</span>&nbsp;:&nbsp;{
-                copy.hosting.footnote
+                T("不保證服務可用，且我保留移除虛擬機的權利。")
             }</span
         >
     </div>

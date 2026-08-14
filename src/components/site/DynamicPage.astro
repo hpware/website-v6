@@ -1,7 +1,7 @@
 ---
 import { api } from "../../../convex/_generated/api";
 import PageClient from "../pages/PageClient";
-import { translations, type Locale } from "../../i18n";
+import { createTranslator, type Locale } from "../../i18n";
 import DefaultLayout from "../../layouts/Default.astro";
 import { convex } from "../../lib/convex";
 import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
@@ -30,14 +30,14 @@ const dbPage = {
     created_at: normalizeTimestamp(page.created_at).toISOString(),
     updated_at: normalizeTimestamp(page.updated_at).toISOString(),
 };
-const copy = translations[locale];
+const T = createTranslator(locale);
 ---
 
 <DefaultLayout
     locale={locale}
     translationPath={`/pages/${slug}/`}
     title={dbPage.title}
-    description={copy.siteDescription}
+    description={T("歡迎來到我的網站！")}
 >
-    <PageClient db={dbPage} ui={copy.pages} client:load />
+    <PageClient db={dbPage} locale={locale} client:load />
 </DefaultLayout>
