@@ -76,6 +76,22 @@ const linkColumns = [
                 </i>
             </span>
             <Socials />
+
+            <div class="mt-auto pt-6">
+                <a
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={`${T("語言")}: ${languageLabel}`}
+                    class="group inline-flex w-fit items-center gap-2 rounded-full border border-border/70 bg-card/40 px-3 py-1.5 text-sm text-foreground shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-accent hover:bg-accent/10 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                    <Languages
+                        aria-hidden="true"
+                        class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+                    />
+                    <span class="font-medium">{languageLabel}</span>
+                </a>
+            </div>
         </section>
 
         <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
@@ -101,24 +117,8 @@ const linkColumns = [
         </section>
     </div>
 
-    <div
-        class="flex flex-col items-center gap-4 px-4 py-4 text-gray-500 sm:flex-row sm:justify-between md:px-12"
-    >
-        <a
-            href={languageUrl}
-            lang={otherLocale}
-            hreflang={otherLocale}
-            aria-label={`${T("語言")}: ${languageLabel}`}
-            class="group inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/40 px-3 py-1.5 text-sm text-foreground shadow-sm transition-all duration-200 hover:-translate-y-px hover:border-accent hover:bg-accent/10 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-            <Languages
-                aria-hidden="true"
-                class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
-            />
-            <span class="font-medium">{languageLabel}</span>
-        </a>
-
-        <div class="text-center text-sm sm:text-right">
+    <div class="flex flex-col">
+        <div class="p-4 text-center text-gray-500 md:text-right">
             &copy; {today.getFullYear()}
             {SITE_NAME} || {T("此網站採用")} <Link
                 href="https://creativecommons.org/licenses/by-sa/4.0/"
