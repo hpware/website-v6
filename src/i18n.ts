@@ -5,7 +5,11 @@ export const locales = ["en", "zh-TW"] as const;
 export type Locale = (typeof locales)[number];
 
 export type Message = keyof typeof english;
-export type Translator = (message: Message) => string;
+export type TranslationVariant = "default" | "short";
+export type Translator = (
+    message: Message,
+    variant?: TranslationVariant,
+) => string;
 
 export const defaultLocale: Locale = "zh-TW";
 
@@ -22,5 +26,12 @@ export function localizedPath(locale: Locale, pathname = "/") {
 }
 
 export function createTranslator(locale: Locale): Translator {
-    return (message) => locale === "en" ? english[message] : message;
+    return (message, variant = "default") => {
+        if (locale === "zh-TW") return message;
+
+        const translation = english[message];
+        return typeof translation === "string"
+            ? translation
+            : translation[variant];
+    };
 }

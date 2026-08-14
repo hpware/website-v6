@@ -2,7 +2,10 @@
   "歡迎來到我的網站！": "Welcome to my website!",
   "首頁": "Home",
   "部落格": "Blog",
-  "貢獻": "Contributions",
+  "貢獻": {
+    "default": "Contributions",
+    "short": "Contrib."
+  },
   "主機服務": "Hosting",
   "語言": "Language",
   "切換深淺色主題": "Toggle theme",
