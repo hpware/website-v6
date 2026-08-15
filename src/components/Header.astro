@@ -1,12 +1,28 @@
 ---
 import Link from "./Link.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+import {
+    createTranslator,
+    defaultLocale,
+    localizedPath,
+    type Locale,
+} from "../i18n";
 
+interface Props {
+    locale?: Locale;
+}
+
+const { locale = defaultLocale } = Astro.props;
+const T = createTranslator(locale);
 const tabs = [
-    { name: "Home", url: "/" },
-    { name: "Blog", url: "/blog" },
-    { name: "Contributions", shortName: "Contrib.", url: "/contributions" },
-    { name: "Hosting", url: "/hosting" },
+    { name: T("首頁"), url: localizedPath(locale, "/") },
+    { name: T("部落格"), url: localizedPath(locale, "/blog/") },
+    {
+        name: T("貢獻"),
+        shortName: T("貢獻", "short"),
+        url: localizedPath(locale, "/contributions/"),
+    },
+    { name: T("主機服務"), url: localizedPath(locale, "/hosting/") },
 ];
 ---
 
@@ -20,13 +36,13 @@ const tabs = [
                     tabs.map((tab) => (
                         <Link
                             href={tab.url}
-                            class="mx-1 px-1  transition-all duration-300"
+                            class="mx-1 shrink-0 whitespace-nowrap px-1 transition-all duration-300"
                         >
                             {tab.name}
                         </Link>
                     ))
                 }
-                <ThemeToggle />
+                <ThemeToggle locale={locale} />
             </div>
         </nav>
     </div>
@@ -42,13 +58,13 @@ const tabs = [
                     tabs.map((tab) => (
                         <Link
                             href={tab.url}
-                            class="mx-1 px-1  transition-all duration-300"
+                            class="mx-1 shrink-0 whitespace-nowrap px-1 transition-all duration-300"
                         >
                             {tab.shortName ?? tab.name}
                         </Link>
                     ))
                 }
-                <ThemeToggle />
+                <ThemeToggle locale={locale} />
             </div>
         </nav>
     </div>

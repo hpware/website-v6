@@ -1,0 +1,81 @@
+name: Translate pending UI copy
+
+on:
+  push:
+    branches-ignore:
+      - "translations/**"
+    paths:
+      - "src/**/*.astro"
+      - "src/**/*.ts"
+      - "src/**/*.tsx"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  models: read
+  pull-requests: write
+
+concurrency:
+  group: translate-ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the source branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Translate missing UI strings
+        id: translate
+        env:
+          GITHUB_MODEL: openai/gpt-4.1-mini
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/translate-missing.mjs
+          if git diff --quiet -- src/locales/en/ui.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the translation PR
+        if: steps.translate.outputs.changed == 'true'
+        env:
+          BASE_BRANCH: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          translation_branch="translations/${BASE_BRANCH//\//-}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$translation_branch"
+          git add src/locales/en/ui.json
+          git commit -m "Translate pending UI copy"
+
+          git fetch origin "+refs/heads/$translation_branch:refs/remotes/origin/$translation_branch" || true
+          git push --force-with-lease origin "HEAD:refs/heads/$translation_branch"
+
+          existing_pr=$(gh pr list \
+            --state open \
+            --base "$BASE_BRANCH" \
+            --head "$translation_branch" \
+            --json url \
+            --jq '.[0].url // ""')
+
+          if [ -n "$existing_pr" ]; then
+            echo "Updated $existing_pr"
+          else
+            gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$translation_branch" \
+              --title "Translate pending UI copy" \
+              --body "Adds AI-generated English translations for new website UI strings marked with T(...). Markdown, content data, and contribution records are excluded. Automated by a workflow implemented by Codex."
+          fi

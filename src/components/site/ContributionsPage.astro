@@ -1,0 +1,116 @@
+---
+import contributionData from "../../data/contributions.json";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, type Locale } from "../../i18n";
+import Link from "../Link.astro";
+
+interface ContributionLink {
+    label: string;
+    url: string;
+}
+
+interface ContributionItem {
+    slug: string;
+    title: string;
+    description: string;
+    isUnmaintained?: boolean;
+    categories: string[];
+    links: ContributionLink[];
+}
+
+interface ContributionSection {
+    id: string;
+    title: string;
+    description: string | null;
+    items: ContributionItem[];
+}
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const sections = contributionData as ContributionSection[];
+---
+
+<Layout
+    locale={locale}
+    translationPath="/contributions/"
+    title={T("貢獻")}
+    description={T("Howard 的專案、資安研究、錯誤發現與其他貢獻。")}
+>
+    <div class="mx-auto max-w-3xl">
+        <h1 class="text-2xl">{T("貢獻")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("我參與過的專案、研究、發現的錯誤，以及其他工作。")}
+        </p>
+
+        {
+            sections.map((section) => (
+                <section
+                    id={section.id}
+                    class="mt-10"
+                    aria-labelledby={`${section.id}-heading`}
+                >
+                    <h2 id={`${section.id}-heading`} class="text-xl">
+                        {section.title}
+                    </h2>
+                    {section.description && (
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {section.description}
+                        </p>
+                    )}
+
+                    <ul class="mt-4 flex flex-col gap-4">
+                        {section.items.map((item, index) => {
+                            const itemId = `${section.id}-${index + 1}-${item.slug}`;
+
+                            return (
+                                <li
+                                    id={itemId}
+                                    aria-labelledby={`${itemId}-heading`}
+                                    class="rounded-lg border border-accent p-4"
+                                >
+                                    <div class="flex flex-wrap items-start justify-between gap-2">
+                                        <h3
+                                            id={`${itemId}-heading`}
+                                            class="text-xl"
+                                        >
+                                            {item.title}
+                                        </h3>
+                                        {(item.categories.length > 0 ||
+                                            item.isUnmaintained) && (
+                                            <span class="text-xs text-muted-foreground">
+                                                {[
+                                                    ...item.categories,
+                                                    ...(item.isUnmaintained
+                                                        ? [T("已停止維護")]
+                                                        : []),
+                                                ].join(" · ")}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                                        {item.description}
+                                    </p>
+
+                                    {item.links.length > 0 && (
+                                        <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                                            {item.links.map((link) => (
+                                                <Link href={link.url}>
+                                                    {link.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </section>
+            ))
+        }
+    </div>
+</Layout>

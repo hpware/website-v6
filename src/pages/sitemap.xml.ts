@@ -12,6 +12,8 @@ type SitemapEntry = {
   priority?: number;
 };
 
+const LOCALES = ["en", "zh-TW"] as const;
+
 function xmlEscape(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -47,49 +49,63 @@ ${urls}
 }
 
 export const GET: APIRoute = async () => {
-  const entries: SitemapEntry[] = [
+  const entries: SitemapEntry[] = LOCALES.flatMap((locale) => [
     {
-      url: absoluteUrl("/"),
-      changefreq: "weekly",
+      url: absoluteUrl(`/${locale}/`),
+      changefreq: "weekly" as const,
       priority: 1.0,
     },
     {
-      url: absoluteUrl("/blog/"),
-      changefreq: "weekly",
+      url: absoluteUrl(`/${locale}/blog/`),
+      changefreq: "weekly" as const,
       priority: 0.8,
     },
     {
-      url: absoluteUrl("/hosting/"),
-      changefreq: "monthly",
+      url: absoluteUrl(`/${locale}/hosting/`),
+      changefreq: "monthly" as const,
       priority: 0.7,
     },
     {
-      url: absoluteUrl("/contributions/"),
-      changefreq: "monthly",
+      url: absoluteUrl(`/${locale}/hosting/pricing/`),
+      changefreq: "monthly" as const,
+      priority: 0.6,
+    },
+    {
+      url: absoluteUrl(`/${locale}/abuse/`),
+      changefreq: "yearly" as const,
+      priority: 0.5,
+    },
+    {
+      url: absoluteUrl(`/${locale}/contributions/`),
+      changefreq: "monthly" as const,
       priority: 0.8,
     },
-  ];
+  ]);
 
   const posts = await getCollection("blog", ({ data }) => data.status === "published");
 
   entries.push(
-    ...posts.map((post) => ({
-      url: absoluteUrl(`/blog/${post.id}/`),
-      lastmod: post.data.updatedDate ?? post.data.pubDate,
-      changefreq: "monthly" as const,
-      priority: 0.6,
-    })),
+    ...LOCALES.flatMap((locale) =>
+      posts.map((post) => ({
+        url: absoluteUrl(`/${locale}/blog/${post.id}/`),
+        lastmod: post.data.updatedDate ?? post.data.pubDate,
+        changefreq: "monthly" as const,
+        priority: 0.6,
+      })),
+    ),
   );
 
   try {
     const pages = await convex.query(api.pages.listPublished, {});
     entries.push(
-      ...pages.map((page) => ({
-        url: absoluteUrl(`/pages/${page.slug}/`),
-        lastmod: new Date(page.updated_at),
-        changefreq: "monthly" as const,
-        priority: 0.6,
-      })),
+      ...LOCALES.flatMap((locale) =>
+        pages.map((page) => ({
+          url: absoluteUrl(`/${locale}/pages/${page.slug}/`),
+          lastmod: new Date(page.updated_at),
+          changefreq: "monthly" as const,
+          priority: 0.6,
+        })),
+      ),
     );
   } catch {
     // Keep the sitemap buildable even when Convex is unavailable locally.

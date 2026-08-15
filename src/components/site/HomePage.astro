@@ -1,0 +1,27 @@
+---
+import AchievementsTimeline from "../AchievementsTimeline.astro";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+---
+
+<Layout locale={locale} translationPath="/" title={T("首頁")}>
+    <section
+        class="flex min-h-[80vh] flex-col items-center justify-center text-center"
+    >
+        <span class="text-2xl font-bold">元皓</span>
+    </section>
+
+    <section class="mx-auto w-full max-w-2xl px-4 pb-24">
+        <h2 class="mb-10 text-center text-3xl font-bold">
+            {T("成就")}
+        </h2>
+        <AchievementsTimeline />
+    </section>
+</Layout>

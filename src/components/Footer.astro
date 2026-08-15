@@ -1,28 +1,51 @@
 ---
 const today = new Date();
+import { Languages } from "@lucide/astro";
 import { SITE_NAME } from "../consts";
 import Link from "./Link.astro";
 import Socials from "./Socials.tsx";
+import {
+    createTranslator,
+    defaultLocale,
+    localizedPath,
+    type Locale,
+} from "../i18n";
 
+interface Props {
+    locale?: Locale;
+    translationPath?: string;
+}
+
+const {
+    locale = defaultLocale,
+    translationPath = Astro.url.pathname,
+} = Astro.props;
+const T = createTranslator(locale);
+const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
+const languageLabel = locale === "en" ? "繁體中文" : "English";
+const languageUrl = localizedPath(otherLocale, translationPath);
 const linkColumns = [
     [
-        { name: "Home", href: "/" },
-        { name: "Blog", href: "/blog" },
-        { name: "Contributions", href: "/contributions" },
-        { name: "About", href: "/about" },
+        { name: T("首頁"), href: localizedPath(locale, "/") },
+        { name: T("部落格"), href: localizedPath(locale, "/blog/") },
+        {
+            name: T("貢獻"),
+            href: localizedPath(locale, "/contributions/"),
+        },
+        { name: T("關於"), href: "/about" },
     ],
     [
-        { name: "v5 網站", href: "https://v5.yuanhau.com" },
-        { name: "v4.1.3 網站", href: "https://v4-1-3.yuanhau.com" },
-        { name: "v4.1.2 舊版 Blog", href: "https://4-1-2.yuanhau.com/posts/" },
+        { name: T("v5 網站"), href: "https://v5.yuanhau.com" },
+        { name: T("v4.1.3 網站"), href: "https://v4-1-3.yuanhau.com" },
+        { name: T("v4.1.2 舊版部落格"), href: "https://4-1-2.yuanhau.com/posts/" },
         { name: "wp.yuanhau.com", href: "https://wp.yuanhau.com" },
         {
-            name: "Website Source Code",
+            name: T("網站原始碼"),
             href: "https://github.com/hpware/website-v6",
         },
-        { name: "Email", href: "mailto:hw+yhv6@yuanhau.com" },
-        { name: "Status Page", href: "https://status.yhw.tw/" },
-        { name: "Status Page (HL)", href: "https://yhw.tw/status" },
+        { name: T("電子郵件"), href: "mailto:hw+yhv6@yuanhau.com" },
+        { name: T("服務狀態"), href: "https://status.yhw.tw/" },
+        { name: T("服務狀態（HL）"), href: "https://yhw.tw/status" },
     ],
 ];
 ---
@@ -42,23 +65,38 @@ const linkColumns = [
                 src="/images/profile.jpg"
                 width="60"
                 height="60"
-                alt="Profile Picture"
+                alt={T("Howard 的大頭貼")}
                 draggable="false"
                 class="rounded"
             />
             <span class="text-xl">Howard</span>
             <span class="text-sm">
                 <i>
-                    Take risks in life. Your grand-grand-grandkids won't
-                    remember you, so why not go and try to take some risks and
-                    learn even more?
+                    {T("人生就是要冒險。你的曾曾曾孫不會記得你，那何不放手試試、多冒一點險，也多學一點東西？")}
                 </i>
             </span>
             <Socials />
+
+            <div class="mt-auto pt-6">
+                <Link
+                    id="language-switcher"
+                    href={`${languageUrl}#language-switcher`}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={`${T("語言")}: ${languageLabel}`}
+                    class="w-fit text-sm"
+                >
+                    <Languages
+                        aria-hidden="true"
+                        class="mr-2 size-4 text-muted-foreground"
+                    />
+                    {languageLabel}
+                </Link>
+            </div>
         </section>
 
         <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
-            <h3 class="m-2 text-xl"><i>Links</i></h3>
+            <h3 class="m-2 text-xl"><i>{T("連結")}</i></h3>
             <div class="ml-4 flex flex-col md:flex-row">
                 {
                     linkColumns.map((column, index) => (
@@ -83,10 +121,16 @@ const linkColumns = [
     <div class="flex flex-col">
         <div class="p-4 text-center text-gray-500 md:text-right">
             &copy; {today.getFullYear()}
-            {SITE_NAME} || 此網站採用 <Link
+            {SITE_NAME} || {T("此網站採用")} <Link
                 href="https://creativecommons.org/licenses/by-sa/4.0/"
                 >CC BY-SA 4.0</Link
-            > 授權條款釋出。 v6 ß
+            > {T("授權條款釋出。")} v6 ß
         </div>
     </div>
 </footer>
+
+<style is:global>
+    html:has(#language-switcher:target) {
+        scroll-behavior: auto;
+    }
+</style>

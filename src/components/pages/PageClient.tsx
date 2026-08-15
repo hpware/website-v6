@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { TriangleAlertIcon } from "lucide-react";
 import CodeRender from "./CodeRenderer";
 import type { db as DbPage } from "./types";
+import { createTranslator, type Locale, type Translator } from "../../i18n";
 
 function slugify(text: string) {
   return String(text)
@@ -101,33 +102,37 @@ export const renderer = {
   },
 };
 
-function PageArchivedBanner({ writer }: { writer: string }) {
+function PageArchivedBanner({ writer, label }: { writer: string; label: string }) {
   return (
     <div className="fixed inset-x-0 top-0 z-50 flex items-center justify-center gap-2 bg-red-600 p-4 text-white">
       <TriangleAlertIcon />
-      <h2 className="text-lg font-medium">This page has been archived by {writer}</h2>
+      <h2 className="text-lg font-medium">{label} {writer}</h2>
     </div>
   );
 }
 
-export default function PageClient({ db }: { db: DbPage }) {
+export default function PageClient({ db, locale }: { db: DbPage; locale: Locale }) {
+  const T = createTranslator(locale);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {db.page_type === "landing" ? (
-        <Landing db={db} />
+        <Landing db={db} T={T} />
       ) : db.page_type === "simple" || db.page_type === "info" ? (
         <Simple db={db} />
       ) : (
         <div className="flex min-h-screen flex-col items-center justify-center text-4xl font-bold text-gray-400">
-          Content Not Available
+          {T("無法顯示內容")}
         </div>
       )}
-      {db.status === "archived" && <PageArchivedBanner writer={db.writer} />}
+      {db.status === "archived" && (
+        <PageArchivedBanner writer={db.writer} label={T("此頁面已封存，作者：")} />
+      )}
     </div>
   );
 }
 
-function Landing({ db }: { db: DbPage }) {
+function Landing({ db, T }: { db: DbPage; T: Translator }) {
   return (
     <div className="relative">
       <div className="relative">
@@ -135,7 +140,7 @@ function Landing({ db }: { db: DbPage }) {
           {db.landing_image ? (
             <img
               src={db.landing_image}
-              alt={`A hero image for ${db.title}`}
+              alt={`${T("主視覺圖片：")} ${db.title}`}
               className="h-full w-full rounded-2xl object-cover shadow-lg"
             />
           ) : null}
@@ -147,7 +152,7 @@ function Landing({ db }: { db: DbPage }) {
           </div>
           <a href="#learnmore">
             <button className="rounded-full bg-white px-8 py-3 font-semibold text-indigo-600 shadow-lg transition-all hover:bg-gray-50">
-              Learn more
+              {T("了解更多")}
             </button>
           </a>
         </div>

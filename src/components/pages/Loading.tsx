@@ -1,4 +1,4 @@
-export default function Loading() {
+export default function Loading({ label = "Loading this page..." }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center self-center h-screen absolute inset-0">
       <div
@@ -23,7 +23,7 @@ export default function Loading() {
         </svg>
       </div>
       <span className="-translate-y-5 text-gray-500 dark:text-gray-400">
-        Loading this page...
+        {label}
       </span>
     </div>
   );
