@@ -20,4 +20,23 @@ const blog = defineCollection({
 		}),
 });
 
-export const collections = { blog };
+const food = defineCollection({
+	// Food reviews live as Markdown in `src/content/food/`.
+	loader: glob({ base: './src/content/food', pattern: '**/*.{md,mdx}' }),
+	schema: ({ image }) =>
+		z.object({
+			title: z.string(),
+			description: z.string(),
+			pubDate: z.coerce.date(),
+			updatedDate: z.coerce.date().optional(),
+			author: z.string().optional(),
+			status: z.enum(["draft", "published", "archived"]).default("published"),
+			uuid: z.string().optional(),
+			heroImage: z.optional(image()),
+			rating: z.number().min(0).max(5).optional(),
+			priceRange: z.string().optional(),
+			location: z.string().optional(),
+		}),
+});
+
+export const collections = { blog, food };

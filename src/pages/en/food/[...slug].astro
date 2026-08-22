@@ -1,0 +1,21 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import FoodPostPage from "../../../components/site/FoodPostPage.astro";
+
+export async function getStaticPaths() {
+    const reviews = await getCollection(
+        "food",
+        ({ data }) => data.status === "published",
+    );
+
+    return reviews.map((review) => ({
+        params: { slug: review.id },
+        props: review,
+    }));
+}
+
+type Props = CollectionEntry<"food">;
+const post = Astro.props;
+---
+
+<FoodPostPage locale="en" post={post} />
