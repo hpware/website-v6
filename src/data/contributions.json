@@ -5,6 +5,18 @@
     "description": "Bugs (and logic issues) found it prod, reported and fixed by orgs and schools!",
     "items": [
       {
+        "slug": "crete-userdata-leak-all-from-one-request-away",
+        "title": "CRETE 個人資料公開",
+        "description": "This is just some shitty code pratices. Please DO NOT TRUST USER INPUT bro.",
+        "categories": [],
+        "links": [
+          {
+            "label": "Report",
+            "url": "https://zeroday.hitcon.org/vulnerability/ZD-2026-00954"
+          }
+        ]
+      },
+      {
         "slug": "ctu-indexof-dataleak",
         "title": "陸軍專科校務 svc 直接公開",
         "description": "I'm just looking around the web.config files and just googled other places using the same provider and found this 💀",
