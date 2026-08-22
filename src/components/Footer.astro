@@ -16,10 +16,8 @@ interface Props {
     translationPath?: string;
 }
 
-const {
-    locale = defaultLocale,
-    translationPath = Astro.url.pathname,
-} = Astro.props;
+const { locale = defaultLocale, translationPath = Astro.url.pathname } =
+    Astro.props;
 const T = createTranslator(locale);
 const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
 const languageLabel = locale === "en" ? "繁體中文" : "English";
@@ -38,7 +36,10 @@ const linkColumns = [
     [
         { name: T("v5 網站"), href: "https://v5.yuanhau.com" },
         { name: T("v4.1.3 網站"), href: "https://v4-1-3.yuanhau.com" },
-        { name: T("v4.1.2 舊版部落格"), href: "https://4-1-2.yuanhau.com/posts/" },
+        {
+            name: T("v4.1.2 舊版部落格"),
+            href: "https://4-1-2.yuanhau.com/posts/",
+        },
         { name: "wp.yuanhau.com", href: "https://wp.yuanhau.com" },
         {
             name: T("網站原始碼"),
@@ -73,7 +74,11 @@ const linkColumns = [
             <span class="text-xl">Howard</span>
             <span class="text-sm">
                 <i>
-                    {T("人生就是要冒險。你的曾曾曾孫不會記得你，那何不放手試試、多冒一點險，也多學一點東西？")}
+                    {
+                        T(
+                            "Take risks in life. Your great-great-great-grandchildren won't remember you, so why not try, take a few risks, and learn even more? ",
+                        )
+                    }
                 </i>
             </span>
             <Socials />
@@ -122,10 +127,11 @@ const linkColumns = [
     <div class="flex flex-col">
         <div class="p-4 text-center text-gray-500 md:text-right">
             &copy; {today.getFullYear()}
-            {SITE_NAME} || {T("此網站採用")} <Link
-                href="https://creativecommons.org/licenses/by-sa/4.0/"
+            {SITE_NAME} || {T("此網站採用")}
+            <Link href="https://creativecommons.org/licenses/by-sa/4.0/"
                 >CC BY-SA 4.0</Link
-            > {T("授權條款釋出。")} v6 ß
+            >
+            {T("授權條款釋出。")} v6 ß
         </div>
     </div>
 </footer>
