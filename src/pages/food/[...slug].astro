@@ -1,0 +1,10 @@
+---
+export const prerender = false;
+
+return Astro.redirect(
+    Astro.params.slug
+        ? `/zh-TW/food/${Astro.params.slug}/`
+        : "/zh-TW/food/",
+    302,
+);
+---

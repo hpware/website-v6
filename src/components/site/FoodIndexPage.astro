@@ -1,0 +1,64 @@
+---
+import { getCollection } from "astro:content";
+import FormattedDate from "../FormattedDate.astro";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const reviews = (await getCollection("food"))
+    .filter((review) => review.data.status === "published")
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout
+    locale={locale}
+    translationPath="/food/"
+    title={T("美食")}
+    description={T("美食食記，記錄我吃過的東西。")}
+>
+    <div class="mx-auto max-w-3xl">
+        <h1 class="text-2xl">{T("食記")}</h1>
+        <ul class="mt-4 flex flex-col gap-4">
+            {
+                reviews.map((review) => (
+                    <li>
+                        <a
+                            href={localizedPath(
+                                locale,
+                                `/food/${review.id}/`,
+                            )}
+                            class="block rounded-lg border border-accent p-4 transition-all duration-300 hover:bg-gray-500/10 dark:hover:bg-white/10"
+                        >
+                            <span class="text-xl">{review.data.title}</span>
+                            <br />
+                            <small>
+                                {T("發佈於")}{" "}
+                                <FormattedDate
+                                    date={review.data.pubDate}
+                                    locale={locale}
+                                />
+                                {review.data.rating !== undefined && (
+                                    <>
+                                        {" · "}
+                                        {review.data.rating} / 5
+                                    </>
+                                )}
+                                {review.data.location && (
+                                    <>
+                                        {" · "}
+                                        {review.data.location}
+                                    </>
+                                )}
+                            </small>
+                        </a>
+                    </li>
+                ))
+            }
+        </ul>
+    </div>
+</Layout>
