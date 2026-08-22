@@ -2,6 +2,9 @@
   "歡迎來到我的網站！": "Welcome to my website!",
   "首頁": "Home",
   "部落格": "Blog",
+  "美食": "Food",
+  "食記": "Food reviews",
+  "美食食記，記錄我吃過的東西。": "Food reviews documenting things I have eaten.",
   "貢獻": {
     "default": "Contributions",
     "short": "Contrib."
