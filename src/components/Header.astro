@@ -7,6 +7,13 @@ import {
     localizedPath,
     type Locale,
 } from "../i18n";
+import {
+    FileTextIcon,
+    HandHelping,
+    HouseIcon,
+    ServerIcon,
+    Utensils,
+} from "@lucide/astro";
 
 interface Props {
     locale?: Locale;
@@ -15,15 +22,23 @@ interface Props {
 const { locale = defaultLocale } = Astro.props;
 const T = createTranslator(locale);
 const tabs = [
-    { name: T("首頁"), url: localizedPath(locale, "/") },
-    { name: T("部落格"), url: localizedPath(locale, "/blog/") },
-    { name: T("美食"), url: localizedPath(locale, "/food/") },
+    { name: T("首頁"), icon: HouseIcon, url: localizedPath(locale, "/") },
+    {
+        name: T("部落格"),
+        icon: FileTextIcon,
+        url: localizedPath(locale, "/blog/"),
+    },
+    { name: T("美食"), icon: Utensils, url: localizedPath(locale, "/food/") },
     {
         name: T("貢獻"),
-        shortName: T("貢獻", "short"),
+        icon: HandHelping,
         url: localizedPath(locale, "/contributions/"),
     },
-    { name: T("主機服務"), url: localizedPath(locale, "/hosting/") },
+    {
+        name: T("主機服務"),
+        icon: ServerIcon,
+        url: localizedPath(locale, "/hosting/"),
+    },
 ];
 ---
 
@@ -59,9 +74,11 @@ const tabs = [
                     tabs.map((tab) => (
                         <Link
                             href={tab.url}
-                            class="mx-1 shrink-0 whitespace-nowrap px-1 transition-all duration-300"
+                            aria-label={tab.name}
+                            title={tab.name}
+                            class="mx-1 shrink-0 px-1 transition-all duration-300"
                         >
-                            {tab.shortName ?? tab.name}
+                            <tab.icon class="size-5" aria-hidden="true" />
                         </Link>
                     ))
                 }
