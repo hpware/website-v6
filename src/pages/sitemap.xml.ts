@@ -61,6 +61,11 @@ export const GET: APIRoute = async () => {
       priority: 0.8,
     },
     {
+      url: absoluteUrl(`/${locale}/food/`),
+      changefreq: "monthly" as const,
+      priority: 0.7,
+    },
+    {
       url: absoluteUrl(`/${locale}/hosting/`),
       changefreq: "monthly" as const,
       priority: 0.7,
@@ -89,6 +94,22 @@ export const GET: APIRoute = async () => {
       posts.map((post) => ({
         url: absoluteUrl(`/${locale}/blog/${post.id}/`),
         lastmod: post.data.updatedDate ?? post.data.pubDate,
+        changefreq: "monthly" as const,
+        priority: 0.6,
+      })),
+    ),
+  );
+
+  const reviews = await getCollection(
+    "food",
+    ({ data }) => data.status === "published",
+  );
+
+  entries.push(
+    ...LOCALES.flatMap((locale) =>
+      reviews.map((review) => ({
+        url: absoluteUrl(`/${locale}/food/${review.id}/`),
+        lastmod: review.data.updatedDate ?? review.data.pubDate,
         changefreq: "monthly" as const,
         priority: 0.6,
       })),

@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { query } from "./_generated/server";
 
 export const listMDContent = query({
   args: {},
@@ -16,8 +15,8 @@ export const getMDContent = query({
   handler: async (ctx, args) => {
     const content = await ctx.db
       .query("mdcontent")
-      .filter((q) => q.eq(q.field("slug"), args.slug))
-      .collect();
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .take(1);
     return content;
   },
 });

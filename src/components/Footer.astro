@@ -1,6 +1,7 @@
 ---
-const today = new Date();
+import { Image } from "astro:assets";
 import { Languages } from "@lucide/astro";
+import ProfileImage from "../assets/profile.webp";
 import { SITE_NAME } from "../consts";
 import Link from "./Link.astro";
 import Socials from "./Socials.tsx";
@@ -10,6 +11,8 @@ import {
     localizedPath,
     type Locale,
 } from "../i18n";
+
+const today = new Date();
 
 interface Props {
     locale?: Locale;
@@ -31,7 +34,6 @@ const linkColumns = [
             name: T("貢獻"),
             href: localizedPath(locale, "/contributions/"),
         },
-        { name: T("關於"), href: "/about" },
     ],
     [
         { name: T("v5 網站"), href: "https://v5.yuanhau.com" },
@@ -63,12 +65,17 @@ const linkColumns = [
         <section
             class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)] md:pl-12"
         >
-            <img
-                src="/images/profile.jpg"
-                width="60"
-                height="60"
+            <Image
+                src={ProfileImage}
+                width={60}
+                height={60}
+                densities={[1, 2]}
+                format="webp"
+                quality="mid"
                 alt={T("Howard 的大頭貼")}
                 draggable="false"
+                loading="lazy"
+                decoding="async"
                 class="rounded"
             />
             <span class="text-xl">Howard</span>
@@ -102,7 +109,7 @@ const linkColumns = [
         </section>
 
         <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
-            <h3 class="m-2 text-xl"><i>{T("連結")}</i></h3>
+            <h2 class="m-2 text-xl"><i>{T("連結")}</i></h2>
             <div class="ml-4 flex flex-col md:flex-row">
                 {
                     linkColumns.map((column, index) => (
@@ -125,7 +132,9 @@ const linkColumns = [
     </div>
 
     <div class="flex flex-col">
-        <div class="p-4 text-center text-gray-500 md:text-right">
+        <div
+            class="p-4 text-center text-gray-600 md:text-right dark:text-gray-300"
+        >
             &copy; {today.getFullYear()}
             {SITE_NAME} || {T("此網站採用")}
             <Link href="https://creativecommons.org/licenses/by-sa/4.0/"
