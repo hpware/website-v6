@@ -11,6 +11,22 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: "Huninn English";
+    src: url("/fonts/Huninn-English.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Huninn Traditional Chinese";
+    src: url("/fonts/Huninn-ZhTW.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
     --background: oklch(0.995 0.01 195.8);
     --foreground: oklch(0.141 0.005 285.823);
@@ -83,7 +99,8 @@
 @theme inline {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
-    --font-sans: var(--font-atkinson), sans-serif;
+    --font-sans:
+        "Huninn English", "Huninn", var(--font-atkinson), sans-serif;
     --font-mono:
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
@@ -135,7 +152,9 @@
     }
 
     html:lang(zh-TW) body {
-        font-family: "Huninn", var(--font-atkinson), sans-serif;
+        font-family:
+            "Huninn Traditional Chinese", "Huninn", var(--font-atkinson),
+            sans-serif;
     }
 
     @keyframes ticker-to-left {
