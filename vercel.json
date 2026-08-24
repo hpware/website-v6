@@ -1,5 +1,6 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
+    "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm exec convex deploy --cmd 'pnpm build'; else pnpm build; fi",
     "headers": [
         {
             "source": "/_astro/(.*)",
