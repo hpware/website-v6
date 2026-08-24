@@ -1,16 +1,32 @@
-"use client";
-
 import Markdown from "marked-react";
 import { v4 as uuidv4 } from "uuid";
 import { TriangleAlertIcon } from "lucide-react";
+import { isValidElement, type ReactNode } from "react";
 import CodeRender from "./CodeRenderer";
 import type { db as DbPage } from "./types";
 import { createTranslator, type Locale, type Translator } from "../../i18n";
 
-function slugify(text: string) {
-  return String(text)
+function textContent(node: ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(textContent).join("");
+  }
+
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return textContent(node.props.children);
+  }
+
+  return "";
+}
+
+function slugify(node: ReactNode) {
+  return textContent(node)
+    .normalize("NFKD")
     .toLowerCase()
-    .replace(/[^\w]+/g, "-")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
     .replace(/(^-|-$)+/g, "");
 }
 
@@ -18,9 +34,9 @@ const linkClass =
   "relative inline-block text-indigo-600 no-underline after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:text-indigo-800 hover:after:scale-x-100 focus-visible:after:scale-x-100 dark:text-indigo-400 dark:hover:text-indigo-300";
 
 export const renderer = {
-  heading(text: string, level: number) {
+  heading(children: ReactNode, level: number) {
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
-    const id = slugify(text);
+    const id = slugify(children);
     const size =
       level === 1
         ? "text-4xl mb-6"
@@ -33,7 +49,7 @@ export const renderer = {
               : "text-lg mb-2";
     return (
       <Tag id={id} key={uuidv4()} className={`${size} font-bold tracking-tight`}>
-        {text}
+        {children}
       </Tag>
     );
   },
@@ -79,6 +95,8 @@ export const renderer = {
         src={src}
         alt={alt}
         key={uuidv4()}
+        loading="lazy"
+        decoding="async"
         className="my-8 h-auto max-w-full rounded-xl shadow-md"
       />
     );
@@ -141,6 +159,9 @@ function Landing({ db, T }: { db: DbPage; T: Translator }) {
             <img
               src={db.landing_image}
               alt={`${T("主視覺圖片：")} ${db.title}`}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="h-full w-full rounded-2xl object-cover shadow-lg"
             />
           ) : null}

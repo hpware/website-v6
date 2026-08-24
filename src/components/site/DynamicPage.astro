@@ -5,6 +5,7 @@ import { createTranslator, type Locale } from "../../i18n";
 import DefaultLayout from "../../layouts/Default.astro";
 import { convex } from "../../lib/convex";
 import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
+import NotFoundPage from "./NotFoundPage.astro";
 
 interface Props {
     locale: Locale;
@@ -14,11 +15,16 @@ interface Props {
 const { locale, slug } = Astro.props;
 const page = await convex.query(api.pages.getPublishedBySlug, { slug });
 
+Astro.response.headers.set(
+    "Cache-Control",
+    "public, max-age=0, s-maxage=60, stale-while-revalidate=86400",
+);
+
 if (!page) {
-    return Astro.rewrite(`/${locale}/404`);
+    Astro.response.status = 404;
 }
 
-const dbPage = {
+const dbPage = page && {
     uuid: page._id,
     slug: page.slug,
     title: page.title,
@@ -33,11 +39,17 @@ const dbPage = {
 const T = createTranslator(locale);
 ---
 
-<DefaultLayout
-    locale={locale}
-    translationPath={`/pages/${slug}/`}
-    title={dbPage.title}
-    description={T("歡迎來到我的網站！")}
->
-    <PageClient db={dbPage} locale={locale} client:load />
-</DefaultLayout>
+{
+    dbPage ? (
+        <DefaultLayout
+            locale={locale}
+            translationPath={`/pages/${slug}/`}
+            title={dbPage.title}
+            description={T("歡迎來到我的網站！")}
+        >
+            <PageClient db={dbPage} locale={locale} />
+        </DefaultLayout>
+    ) : (
+        <NotFoundPage locale={locale} />
+    )
+}

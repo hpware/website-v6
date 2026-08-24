@@ -1,6 +1,52 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
+    "headers": [
+        {
+            "source": "/_astro/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        }
+    ],
     "redirects": [
+        {
+            "source": "/blog/:path*",
+            "destination": "/zh-TW/blog/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/food/:path*",
+            "destination": "/zh-TW/food/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/pages/:path*",
+            "destination": "/zh-TW/pages/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/abuse",
+            "destination": "/zh-TW/abuse/",
+            "permanent": false
+        },
+        {
+            "source": "/contributions",
+            "destination": "/zh-TW/contributions/",
+            "permanent": false
+        },
+        {
+            "source": "/hosting/:path*",
+            "destination": "/zh-TW/hosting/:path*",
+            "permanent": false
+        },
+        {
+            "source": "/projects",
+            "destination": "/zh-TW/contributions/#projects",
+            "permanent": true
+        },
         {
             "source": "/",
             "has": [
