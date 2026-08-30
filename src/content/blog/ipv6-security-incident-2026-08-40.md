@@ -20,4 +20,4 @@ No. In fact, by default every MANAGEUT users' servers are open to the world with
 
 # Why now?
 
-Zeabur just got hacked. So I checked my home lab, and I'm upgrading my Dokploy server.
+Zeabur just got hacked. So I checked my home lab, and I'm upgrading my Dokploy server as well.
