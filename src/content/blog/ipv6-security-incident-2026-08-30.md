@@ -9,7 +9,7 @@ status: "published"
 
 # What happened?
 
-During a system upgrade operation, I found out ALL IPv6 addresses ARE OPEN TO THE WORLD WIDE WEB! This is a mistake on my end with this shitty rule. In the future every internal IPv6 would
+During a system upgrade operation, I found out ALL IPv6 addresses ARE OPEN TO THE WORLD WIDE WEB! This is a mistake on my end with this shitty rule. In the future every internal IPv6 would NOT be available via the internet.
 ![Config error](../../assets/blog/ipv6-security-incident-1788090942888.jpeg)
 
 # Does this effect manageut users?
@@ -21,3 +21,5 @@ No. In fact, by default every MANAGEUT users' servers are open to the world with
 # Why now?
 
 Zeabur just got hacked. So I checked my home lab, and I'm upgrading my Dokploy server as well.
+
+Thanks for the reading shitty blog post I made!
