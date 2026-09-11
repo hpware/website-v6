@@ -46,7 +46,7 @@ const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
 const languageLabel = locale === "en" ? "繁體中文" : "English";
 const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
 const leaf =
-    "border-2 border-teal-400 hover:bg-teal-400/50 p-2 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200";
+    "flex h-11 items-center border-2 border-teal-400 hover:bg-teal-400/50 p-2 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200";
 ---
 
 <header>
@@ -74,12 +74,12 @@ const leaf =
                 ))
             }
             <div
-                class="border-2 border-blue-400 hover:bg-blue-400/50 py-2 px-3 group rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200"
+                class="flex h-11 items-center border-2 border-blue-400 hover:bg-blue-400/50 px-3 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200"
             >
                 <select
                     data-language-select
                     aria-label={T("語言")}
-                    class="bg-background group-hover:bg-blue-400/50 border-0 transition-all duration-200"
+                    class="h-full w-fit bg-background group-hover:bg-blue-400/50 border-0 transition-all duration-200"
                 >
                     <option
                         value={localizedPath("en", Astro.url.pathname)}
@@ -101,9 +101,9 @@ const leaf =
                 type="button"
                 data-menu-toggle
                 aria-label={T("選單")}
-                class={`border-2 border-teal-400 hover:bg-teal-400/50 py-2 px-3 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200`}
+                class="flex h-11 w-11 items-center justify-center border-2 border-teal-400 hover:bg-teal-400/50 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200"
             >
-                <MenuIcon class="size-6" aria-hidden="true" />
+                <MenuIcon class="size-5" aria-hidden="true" />
             </button>
         </div>
     </nav>
@@ -132,7 +132,7 @@ const leaf =
         >
             {languageLabel}
         </Link>
-        <div class="p-2">
+        <div class="mt-2 flex justify-center border-t border-gray-300/20 pt-2">
             <ThemeToggle locale={locale} />
         </div>
     </div>
