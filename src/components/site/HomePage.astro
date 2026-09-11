@@ -9,13 +9,28 @@ interface Props {
 
 const { locale } = Astro.props;
 const T = createTranslator(locale);
+const gradient =
+    "text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-amber-300 dark:from-blue-400 dark:to-amber-200";
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
-    <section
-        class="flex min-h-[80vh] flex-col items-center justify-center text-center"
-    >
-        <span class="text-2xl font-bold">元皓</span>
+    <section class="font-sans">
+        <div class="absolute inset-0 flex min-h-screen flex-col justify-center">
+            <div class="m-auto w-fit justify-center text-center">
+                <h1 class={`text-left text-5xl font-bold md:text-7xl ${gradient}`}>
+                    {T("嗨！")}
+                </h1>
+                <h1 class={`text-2xl font-bold md:text-6xl ${gradient}`}>
+                    {T("這是元皓的首頁。")}
+                </h1>
+            </div>
+            <h3
+                class="text-center text-xl font-bold text-gray-500 -translate-y-52 md:-translate-x-12 md:text-right md:-translate-y-12 dark:text-gray-300"
+            >
+                {T("往下滑看看我在這裡做些什麼 😏")}
+            </h3>
+        </div>
+        <div class="min-h-screen" aria-hidden="true"></div>
     </section>
 
     <section class="mx-auto w-full max-w-2xl px-4 pb-24">

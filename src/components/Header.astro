@@ -1,6 +1,7 @@
 ---
 import Link from "./Link.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+import { SITE_NAME } from "../consts";
 import {
     createTranslator,
     defaultLocale,
@@ -11,6 +12,7 @@ import {
     FileTextIcon,
     HandHelping,
     HouseIcon,
+    MenuIcon,
     ServerIcon,
     Utensils,
 } from "@lucide/astro";
@@ -40,50 +42,127 @@ const tabs = [
         url: localizedPath(locale, "/hosting/"),
     },
 ];
+const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
+const languageLabel = locale === "en" ? "繁體中文" : "English";
+const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
+const leaf =
+    "border-2 border-teal-400 hover:bg-teal-400/50 p-2 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200";
 ---
 
 <header>
-    <div class="hidden md:block">
-        <nav class="fixed right-0 z-999 flex flex-row px-7 py-6">
-            <div
-                class="z-999 flex max-w-[calc(100vw-1rem)] items-center gap-1 overflow-x-auto rounded-lg p-2 shadow-lg backdrop-blur-md"
-            >
-                {
-                    tabs.map((tab) => (
-                        <Link
-                            href={tab.url}
-                            class="mx-1 shrink-0 whitespace-nowrap px-1 transition-all duration-300"
-                        >
-                            {tab.name}
-                        </Link>
-                    ))
-                }
-                <ThemeToggle locale={locale} />
+    <nav
+        data-navbar
+        class="fixed inset-x-0 z-50 flex flex-row justify-between border border-gray-300/0 rounded-xl p-4 text-center backdrop-blur-lg transition-all duration-300 data-[scrolled]:mx-7 data-[scrolled]:mt-5 data-[scrolled]:rounded-2xl data-[scrolled]:border-gray-300/30 data-[scrolled]:p-1 data-[scrolled]:shadow-lg"
+    >
+        <div class="p-4 mx-4">
+            <div class="flex flex-row items-center justify-center text-center">
+                <span class="text-xl font-bold">{SITE_NAME}</span>
             </div>
-        </nav>
-    </div>
+        </div>
 
-    <div class="block md:hidden">
-        <nav
-            class="fixed inset-x-0 z-50 mt-4 flex w-full flex-row justify-center"
+        <div
+            class="hidden flex-row items-center justify-center text-center gap-2 p-2 mx-2 md:flex"
         >
-            <div
-                class="z-999 flex max-w-[calc(100vw-1rem)] items-center gap-1 overflow-x-auto rounded-lg p-2 text-sm shadow-lg backdrop-blur-md"
-            >
-                {
-                    tabs.map((tab) => (
-                        <Link
-                            href={tab.url}
-                            aria-label={tab.name}
-                            title={tab.name}
-                            class="mx-1 shrink-0 px-1 transition-all duration-300"
-                        >
+            {
+                tabs.map((tab) => (
+                    <Link href={tab.url} class={leaf}>
+                        <div class="ml-2 mr-2 flex flex-row gap-1">
                             <tab.icon class="size-5" aria-hidden="true" />
-                        </Link>
-                    ))
-                }
-                <ThemeToggle locale={locale} />
+                            <span>{tab.name}</span>
+                        </div>
+                    </Link>
+                ))
+            }
+            <div
+                class="border-2 border-blue-400 hover:bg-blue-400/50 py-2 px-3 group rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200"
+            >
+                <select
+                    data-language-select
+                    aria-label={T("語言")}
+                    class="bg-background group-hover:bg-blue-400/50 border-0 transition-all duration-200"
+                >
+                    <option
+                        value={localizedPath("en", Astro.url.pathname)}
+                        selected={locale === "en"}>en</option
+                    >
+                    <option
+                        value={localizedPath("zh-TW", Astro.url.pathname)}
+                        selected={locale === "zh-TW"}>zh</option
+                    >
+                </select>
             </div>
-        </nav>
+            <ThemeToggle locale={locale} />
+        </div>
+
+        <div
+            class="flex flex-row items-center justify-center text-center p-2 mx-2 md:hidden"
+        >
+            <button
+                type="button"
+                data-menu-toggle
+                aria-label={T("選單")}
+                class={`border-2 border-teal-400 hover:bg-teal-400/50 py-2 px-3 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-all duration-200`}
+            >
+                <MenuIcon class="size-6" aria-hidden="true" />
+            </button>
+        </div>
+    </nav>
+
+    <div
+        data-mobile-menu
+        hidden
+        class="fixed inset-x-7 top-24 z-50 flex-col rounded-2xl border border-gray-300/30 bg-background/90 p-3 shadow-lg backdrop-blur-lg md:hidden"
+    >
+        {
+            tabs.map((tab) => (
+                <Link
+                    href={tab.url}
+                    class="flex flex-row items-center gap-2 p-2"
+                >
+                    <tab.icon class="size-5" aria-hidden="true" />
+                    <span>{tab.name}</span>
+                </Link>
+            ))
+        }
+        <Link
+            href={languageUrl}
+            lang={otherLocale}
+            hreflang={otherLocale}
+            class="flex flex-row items-center gap-2 p-2"
+        >
+            {languageLabel}
+        </Link>
+        <div class="p-2">
+            <ThemeToggle locale={locale} />
+        </div>
     </div>
 </header>
+
+<script>
+    const navbar = document.querySelector("[data-navbar]");
+    const handleScroll = () => {
+        if (!navbar) return;
+        if (window.scrollY > 10) {
+            navbar.setAttribute("data-scrolled", "");
+        } else {
+            navbar.removeAttribute("data-scrolled");
+        }
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+
+    const menuToggle = document.querySelector("[data-menu-toggle]");
+    const mobileMenu = document.querySelector("[data-mobile-menu]");
+    menuToggle?.addEventListener("click", () => {
+        if (mobileMenu instanceof HTMLElement) {
+            mobileMenu.hidden = !mobileMenu.hidden;
+        }
+    });
+
+    const languageSelect = document.querySelector("[data-language-select]");
+    languageSelect?.addEventListener("change", (event) => {
+        if (event.target instanceof HTMLSelectElement) {
+            window.location.href = event.target.value;
+        }
+    });
+</script>
