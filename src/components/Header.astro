@@ -1,6 +1,6 @@
 ---
-import Link from "./Link.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+import { SITE_NAME } from "../consts";
 import {
     createTranslator,
     defaultLocale,
@@ -11,6 +11,8 @@ import {
     FileTextIcon,
     HandHelping,
     HouseIcon,
+    Languages,
+    MenuIcon,
     ServerIcon,
     Utensils,
 } from "@lucide/astro";
@@ -40,50 +42,115 @@ const tabs = [
         url: localizedPath(locale, "/hosting/"),
     },
 ];
+const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
+const languageLabel = locale === "en" ? "繁體中文" : "English";
+const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
 ---
 
 <header>
-    <div class="hidden md:block">
-        <nav class="fixed right-0 z-999 flex flex-row px-7 py-6">
-            <div
-                class="z-999 flex max-w-[calc(100vw-1rem)] items-center gap-1 overflow-x-auto rounded-lg p-2 shadow-lg backdrop-blur-md"
-            >
-                {
-                    tabs.map((tab) => (
-                        <Link
-                            href={tab.url}
-                            class="mx-1 shrink-0 whitespace-nowrap px-1 transition-all duration-300"
-                        >
-                            {tab.name}
-                        </Link>
-                    ))
-                }
-                <ThemeToggle locale={locale} />
-            </div>
-        </nav>
-    </div>
-
-    <div class="block md:hidden">
+    <div class="fixed inset-x-0 top-0 z-50">
         <nav
-            class="fixed inset-x-0 z-50 mt-4 flex w-full flex-row justify-center"
+            data-navbar
+            class="flex flex-row justify-between border border-gray-300/0 rounded-xl px-4 py-2 text-center backdrop-blur-lg transition-all duration-300 data-[scrolled]:mx-7 data-[scrolled]:mt-5 data-[scrolled]:rounded-2xl data-[scrolled]:border-gray-300/30 data-[scrolled]:px-3 data-[scrolled]:py-1 data-[scrolled]:shadow-lg"
         >
-            <div
-                class="z-999 flex max-w-[calc(100vw-1rem)] items-center gap-1 overflow-x-auto rounded-lg p-2 text-sm shadow-lg backdrop-blur-md"
-            >
-                {
-                    tabs.map((tab) => (
-                        <Link
-                            href={tab.url}
-                            aria-label={tab.name}
-                            title={tab.name}
-                            class="mx-1 shrink-0 px-1 transition-all duration-300"
-                        >
-                            <tab.icon class="size-5" aria-hidden="true" />
-                        </Link>
-                    ))
-                }
+            <div class="mx-2">
+                <div class="flex flex-row items-center justify-center text-center">
+                    <a
+                        href={localizedPath(locale, "/")}
+                        class="flex h-11 items-center text-xl font-bold whitespace-nowrap"
+                    >
+                        {SITE_NAME}
+                    </a>
+                </div>
+            </div>
+
+            <div class="hidden flex-row items-center justify-center text-center gap-3 px-1 mx-1 md:flex">
+                {tabs.map((tab) => (
+                    <a href={tab.url} class="group flex h-11 items-center">
+                        <span class="flex flex-row items-center gap-1.5">
+                            <tab.icon
+                                class="size-5 shrink-0"
+                                aria-hidden="true"
+                            />
+                            <span
+                                class="relative leading-none after:absolute after:left-0 after:-bottom-1.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:content-[''] after:transition-transform after:duration-300 after:ease-out group-hover:after:scale-x-100 group-focus-visible:after:scale-x-100"
+                            >
+                                {tab.name}
+                            </span>
+                        </span>
+                    </a>
+                ))}
                 <ThemeToggle locale={locale} />
             </div>
+
+            <div class="flex flex-row items-center justify-center text-center px-1 mx-1 md:hidden">
+                <button
+                    type="button"
+                    data-menu-toggle
+                    aria-label={T("選單")}
+                    class="flex h-11 w-11 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/20"
+                >
+                    <MenuIcon class="size-5" aria-hidden="true" />
+                </button>
+            </div>
         </nav>
+
+        <div
+            data-mobile-menu
+            hidden
+            class="mx-7 mt-2 flex-col overflow-hidden rounded-2xl border border-gray-300/30 bg-background/90 p-2 shadow-lg backdrop-blur-lg md:hidden"
+        >
+            {tabs.map((tab) => (
+                <a
+                    href={tab.url}
+                    class="flex flex-row items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
+                >
+                    <tab.icon class="size-5 shrink-0" aria-hidden="true" />
+                    <span>{tab.name}</span>
+                </a>
+            ))}
+            <div class="mx-3 my-1 border-t border-gray-300/20"></div>
+            <div class="flex flex-row items-center justify-between p-1">
+                <a
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    class="flex flex-row items-center gap-3 rounded-xl p-2 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
+                >
+                    <Languages aria-hidden="true" class="size-5 shrink-0" />
+                    <span>{languageLabel}</span>
+                </a>
+                <ThemeToggle locale={locale} />
+            </div>
+        </div>
     </div>
 </header>
+
+<script>
+    const navbar = document.querySelector("[data-navbar]");
+    const handleScroll = () => {
+        if (!navbar) return;
+        if (window.scrollY > 10) {
+            navbar.setAttribute("data-scrolled", "");
+        } else {
+            navbar.removeAttribute("data-scrolled");
+        }
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+
+    const menuToggle = document.querySelector("[data-menu-toggle]");
+    const mobileMenu = document.querySelector("[data-mobile-menu]");
+    menuToggle?.addEventListener("click", () => {
+        if (mobileMenu instanceof HTMLElement) {
+            mobileMenu.hidden = !mobileMenu.hidden;
+        }
+    });
+
+    const languageSelect = document.querySelector("[data-language-select]");
+    languageSelect?.addEventListener("change", (event) => {
+        if (event.target instanceof HTMLSelectElement) {
+            window.location.href = event.target.value;
+        }
+    });
+</script>
