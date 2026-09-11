@@ -98,25 +98,25 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
             class="mx-7 mt-2 flex-col overflow-hidden rounded-2xl border border-gray-300/30 bg-background/90 p-2 shadow-lg backdrop-blur-lg md:hidden"
         >
             {tabs.map((tab) => (
-                <Link
+                <a
                     href={tab.url}
-                    class="flex flex-row items-center gap-3 p-3"
+                    class="flex flex-row items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
                 >
                     <tab.icon class="size-5 shrink-0" aria-hidden="true" />
                     <span>{tab.name}</span>
-                </Link>
+                </a>
             ))}
             <div class="mx-3 my-1 border-t border-gray-300/20"></div>
             <div class="flex flex-row items-center justify-between p-1">
-                <Link
+                <a
                     href={languageUrl}
                     lang={otherLocale}
                     hreflang={otherLocale}
-                    class="flex flex-row items-center gap-3 p-2"
+                    class="flex flex-row items-center gap-3 rounded-xl p-2 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
                 >
                     <Languages aria-hidden="true" class="size-5 shrink-0" />
                     <span>{languageLabel}</span>
-                </Link>
+                </a>
                 <ThemeToggle locale={locale} />
             </div>
         </div>
