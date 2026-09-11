@@ -55,16 +55,10 @@ const linkColumns = [
 ---
 
 <footer class="relative inset-x-0 bottom-0 mt-16">
-    <hr
-        class="m-auto w-[calc(100%-30px)] flex-wrap bg-black/50 text-center dark:bg-white/50"
-    />
+    <hr class="m-auto w-[calc(100%-30px)] flex-wrap bg-black/50 text-center dark:bg-white/50" />
 
-    <div
-        class="mt-4 mb-2 flex flex-row flex-wrap justify-center gap-2 p-1 align-middle"
-    >
-        <section
-            class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)] md:pl-12"
-        >
+    <div class="mt-4 mb-2 flex flex-row flex-wrap justify-center gap-2 p-1 align-middle">
+        <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)] md:pl-12">
             <Image
                 src={ProfileImage}
                 width={60}
@@ -81,11 +75,9 @@ const linkColumns = [
             <span class="text-xl">Howard</span>
             <span class="text-sm">
                 <i>
-                    {
-                        T(
-                            "Take risks in life. Your great-great-great-grandchildren won't remember you, so why not try, take a few risks, and learn even more? ",
-                        )
-                    }
+                    {T(
+                        "Take risks in life. Your great-great-great-grandchildren won't remember you, so why not try, take a few risks, and learn even more? ",
+                    )}
                 </i>
             </span>
             <Socials />
@@ -109,38 +101,38 @@ const linkColumns = [
         </section>
 
         <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
-            <h2 class="m-2 text-xl"><i>{T("連結")}</i></h2>
+            <h2 class="m-2 text-xl">
+                <i>{T("連結")}</i>
+            </h2>
             <div class="ml-4 flex flex-col md:flex-row">
-                {
-                    linkColumns.map((column, index) => (
-                        <div
-                            class={`flex flex-col gap-2 ${index === 1 ? "mt-4 md:mt-0 md:ml-12" : "mr-12"}`}
-                        >
-                            {column.map((item) => (
-                                <Link
-                                    href={item.href}
-                                    class="flex flex-row items-center transition-all duration-300 hover:text-gray-600/50 dark:hover:text-gray-300/50"
-                                >
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </div>
-                    ))
-                }
+                {linkColumns.map((column, index) => (
+                    <div
+                        class={`flex flex-col gap-2 ${index === 1 ? "mt-4 md:mt-0 md:ml-12" : "mr-12"}`}
+                    >
+                        {column.map((item) => (
+                            <Link
+                                href={item.href}
+                                class="flex flex-row items-center transition-all duration-300 hover:text-gray-600/50 dark:hover:text-gray-300/50"
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
+                    </div>
+                ))}
             </div>
         </section>
     </div>
 
     <div class="flex flex-col">
-        <div
-            class="p-4 text-center text-gray-600 md:text-right dark:text-gray-300"
-        >
+        <div class="p-4 text-center text-gray-600 md:text-right dark:text-gray-500">
             &copy; {today.getFullYear()}
             &nbsp;{SITE_NAME} || {T("此網站採用")}
-            &nbsp;<Link href="https://creativecommons.org/licenses/by-sa/4.0/"
-                >CC BY-SA 4.0</Link
-            >&nbsp;
-            {T("授權條款釋出。")} v6 ß
+            &nbsp;
+            <Link href="https://creativecommons.org/licenses/by-sa/4.0/">
+                CC BY-SA 4.0
+            </Link>
+            &nbsp;
+            {T("授權條款釋出。")} v6
         </div>
     </div>
 </footer>
