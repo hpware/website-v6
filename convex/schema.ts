@@ -58,6 +58,21 @@ export default defineSchema({
   })
     .index("by_gallery_sort", ["gallery_id", "sort_order"]),
 
+  photo_packs: defineTable({
+    title: v.string(),
+    slug: v.string(),
+    description: v.optional(v.string()),
+    cover_image_url: v.string(),
+    archive_url: v.string(),
+    photo_count: v.optional(v.number()),
+    archive_size: v.optional(v.string()),
+    status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
+    created_at: v.number(),
+    updated_at: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_status", ["status"]),
+
   mdcontent: defineTable({
     slug: v.string(),
     content: v.string(),

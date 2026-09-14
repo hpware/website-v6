@@ -18,6 +18,7 @@ import type * as blog from "../blog.js";
 import type * as comments from "../comments.js";
 import type * as galleries from "../galleries.js";
 import type * as pages from "../pages.js";
+import type * as photoPacks from "../photoPacks.js";
 import type * as todos from "../todos.js";
 
 /**
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   comments: typeof comments;
   galleries: typeof galleries;
   pages: typeof pages;
+  photoPacks: typeof photoPacks;
   todos: typeof todos;
 }>;
 export declare const api: FilterApi<
