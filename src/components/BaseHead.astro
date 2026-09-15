@@ -56,18 +56,15 @@ const {
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
-{
-    locales.map((alternateLocale) => (
-        <link
-            rel="alternate"
-            hreflang={alternateLocale}
-            href={new URL(
-                localizedPath(alternateLocale, translationPath),
-                Astro.site,
-            )}
-        />
-    ))
-}
+{locales.map((alternateLocale) => (
+    <link
+        rel="alternate"
+        hreflang={alternateLocale}
+        href={
+            new URL(localizedPath(alternateLocale, translationPath), Astro.site)
+        }
+    />
+))}
 <link
     rel="alternate"
     hreflang="x-default"
@@ -97,4 +94,5 @@ const {
     is:inline
     defer
     src="https://data.yuanhau.com/script.js"
-    data-website-id="f8c09740-d876-4715-a832-5f7bc5bb84b0"></script>
+    data-website-id="f8c09740-d876-4715-a832-5f7bc5bb84b0"
+></script>

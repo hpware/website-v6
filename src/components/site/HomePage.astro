@@ -17,10 +17,14 @@ const gradient =
     <section class="font-sans">
         <div class="absolute inset-0 flex min-h-screen flex-col justify-center">
             <div class="m-auto w-full px-6 text-left md:w-fit">
-                <h1 class={`text-4xl leading-[1.1] font-bold sm:text-5xl md:text-7xl ${gradient}`}>
+                <h1
+                    class={`text-4xl leading-[1.1] font-bold sm:text-5xl md:text-7xl ${gradient}`}
+                >
                     {T("嗨！")}
                 </h1>
-                <h1 class={`text-2xl leading-[1.1] font-bold sm:text-3xl md:text-6xl ${gradient}`}>
+                <h1
+                    class={`text-2xl leading-[1.1] font-bold sm:text-3xl md:text-6xl ${gradient}`}
+                >
                     {T("這是元皓的網站！")}
                 </h1>
             </div>
@@ -29,9 +33,7 @@ const gradient =
     </section>
 
     <section class="mx-auto w-full max-w-2xl px-4 pb-24">
-        <h2 class="mb-10 text-center text-3xl font-bold">
-            {T("成就")}
-        </h2>
+        <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
 </Layout>

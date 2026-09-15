@@ -1,5 +1,6 @@
 ---
 import { Scroll, Award, Flag, Building2 } from "@lucide/astro";
+import { achievements as achievementData } from "../data/achievements";
 
 interface Achievement {
     icon: any;
@@ -12,60 +13,37 @@ interface Props {
     achievements?: Achievement[];
 }
 
-const defaults: Achievement[] = [
-    {
-        icon: Scroll,
-        title: "電腦軟題應用丙級證照",
-        date: "2025",
-        description: "爛爛的證照",
-    },
-    {
-        icon: Scroll,
-        title: "電腦硬體裝修丙級證照",
-        date: "2025",
-        description: "還算簡單",
-    },
-    {
-        icon: Scroll,
-        title: "工業電子丙級證照",
-        date: "2026",
-        description: "沒有爆炸 :)\n然後悍的很爛",
-    },
-];
+export const defaults: Achievement[] = achievementData.map((item) => ({
+    ...item,
+    icon: { scroll: Scroll, award: Award, flag: Flag, building: Building2 }[item.icon],
+}));
 
 const { achievements = defaults } = Astro.props;
 ---
 
-<ol
-    class="ach mx-auto flex w-full max-w-2xl flex-col md:max-w-none md:flex-row"
->
-    {
-        achievements.map((item, i) => {
-            const Icon = item.icon;
-            const isLast = i === achievements.length - 1;
-            return (
-                <li class="ach-item">
-                    <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
-                        <Icon class="h-7 w-7" />
+<ol class="ach mx-auto flex w-full max-w-2xl flex-col md:max-w-none md:flex-row">
+    {achievements.map((item, i) => {
+        const Icon = item.icon;
+        const isLast = i === achievements.length - 1;
+        return (
+            <li class="ach-item">
+                <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
+                    <Icon class="h-7 w-7" />
+                </span>
+                {!isLast && <span class="ach-line" aria-hidden="true" />}
+                <div class="ach-content">
+                    <span class="text-sm font-medium text-[#e8761f]">
+                        {item.date}
                     </span>
-                    {!isLast && <span class="ach-line" aria-hidden="true" />}
-                    <div class="ach-content">
-                        <span class="text-sm font-medium text-[#e8761f]">
-                            {item.date}
-                        </span>
-                        <h3 class="text-xl font-bold">{item.title}</h3>
-                        <p
-                            class="mt-1 text-muted-foreground"
-                            set:html={item.description.replaceAll(
-                                "\n",
-                                "<br/>",
-                            )}
-                        />
-                    </div>
-                </li>
-            );
-        })
-    }
+                    <h3 class="text-xl font-bold">{item.title}</h3>
+                    <p
+                        class="mt-1 text-muted-foreground"
+                        set:html={item.description.replaceAll("\n", "<br/>")}
+                    />
+                </div>
+            </li>
+        );
+    })}
 </ol>
 
 <style>
