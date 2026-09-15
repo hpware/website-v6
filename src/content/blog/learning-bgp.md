@@ -74,6 +74,28 @@ sudo sysctl -w net.ipv4.ip_forward=1 # setup IP forwarding
 sudo ip addr add 10.65.0.1/23 dev ens20 # add 10.65.0.1 into ens20 (the port that will be hooked to my laptop)
 ```
 
+### Enable Firewall
+
+By default by cloud-init, `iptable` blocks FORWARD traffic. So I need to allow it for subnet `10.65.0.0/16` (covers future testing subnets)
+
+```bash
+sudo iptables -I FORWARD 1 -s 10.65.0.0/23 -d 10.65.0.0/21 -j ACCEPT
+sudo iptables -I FORWARD 1 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+```
+
+#### Save rules
+
+There are two ways, one using the `iptables-persistent` package, another just hard writing the rules file.
+
+```bash
+# First way
+sudo apt install iptables-persistent # install package (on first install it will auto save)
+sudo netfilter-persistent save # if you have changed more settings later.
+
+# Second way
+sudo iptables-save > /etc/iptables.rules # hard writing them
+```
+
 ## AS65002
 
 ```bash
@@ -226,5 +248,35 @@ BGP VM1
 root@bgp-vm3:~$ curl 10.65.2.1
 BGP VM2
 root@bgp-vm3:~$ curl 10.65.4.1
+BGP VM3
+```
+
+### Laptop
+
+```bash
+howard@dellfedora:~$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: enp0s31f6: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 8c:04:ba:07:ab:6e brd ff:ff:ff:ff:ff:ff
+    altname enx8c04ba07ab6e
+3: wlp2s0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN group default qlen 1000
+    link/ether 5a:e8:28:e0:6e:36 brd ff:ff:ff:ff:ff:ff permaddr a0:51:0b:f6:85:a6
+    altname wlxa0510bf685a6
+4: demonet@enp0s31f6: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default qlen 1000
+    link/ether 8c:04:ba:07:ab:6e brd ff:ff:ff:ff:ff:ff
+    inet 10.65.0.50/23 brd 10.65.1.255 scope global noprefixroute demonet
+       valid_lft forever preferred_lft forever
+    inet6 fe80::32d1:5c0d:97a0:a0e7/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+howard@dellfedora:~$ curl 10.65.0.1
+BGP VM1
+howard@dellfedora:~$ curl 10.65.2.1
+BGP VM2
+howard@dellfedora:~$ curl 10.65.4.1
 BGP VM3
 ```
