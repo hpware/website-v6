@@ -1,4 +1,11 @@
-NOTE This is not a tutorial, this is just a random learning blog post, and putting what I've learned.
+---
+title: "Learning BGP"
+description: "using FFR with bgpd"
+pubDate: 2026-09-15
+updatedDate: 2026-09-15
+author: "Howard Wu"
+status: "published"
+---
 
 ## Server setup
 
