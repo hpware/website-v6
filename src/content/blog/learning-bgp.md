@@ -7,8 +7,6 @@ author: "Howard Wu"
 status: "published"
 ---
 
-NOTE This is not a tutorial, this is just a random learning blog post, and putting what I've learned.
-
 ## Server setup
 
 My main hypervisor is Proxmox, and is using VLAN `3002`. With three Debian VMs with Cloud-init, specs are 1 core, 1 gig of ram, and a 16 gig drive. With only `bgpd` installed.
@@ -17,25 +15,30 @@ My main hypervisor is Proxmox, and is using VLAN `3002`. With three Debian VMs w
 
 #### AS65001
 
+```
 10.65.0.0/23 (Server IP: 10.65.0.1/23)
 MGMT: 10.77.1.158 (DHCP)
 BGP IP: 10.223.254.20/24
+  CLIENTS:
+    Laptop (10.65.1.130/23)
 
-##### Clients:
-
-Laptop (10.65.1.130/23)
+```
 
 #### AS65002
 
+```
 10.65.2.0/23 (Server takes the entire block)
-MGMT: 10.77.1.161 (DHCP)
+MGMT: 10.77.1.161
 BGP IP: 10.223.254.30/24
+```
 
 #### AS65003
 
+```
 10.65.4.0/23 (Server takes the entire block)
-MGMT: 10.77.1.160 (DHCP)
+MGMT: 10.77.1.160
 BGP IP: 10.223.254.40/24
+```
 
 ## Setup FRR
 
