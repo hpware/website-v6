@@ -13,7 +13,6 @@ import {
     HouseIcon,
     Languages,
     MenuIcon,
-    ServerIcon,
     Utensils,
 } from "@lucide/astro";
 
@@ -35,11 +34,6 @@ const tabs = [
         name: T("貢獻"),
         icon: HandHelping,
         url: localizedPath(locale, "/contributions/"),
-    },
-    {
-        name: T("主機服務"),
-        icon: ServerIcon,
-        url: localizedPath(locale, "/hosting/"),
     },
 ];
 const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
@@ -127,8 +121,8 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
 </header>
 
 <script>
-    const navbar = document.querySelector("[data-navbar]");
     const handleScroll = () => {
+        const navbar = document.querySelector("[data-navbar]");
         if (!navbar) return;
         if (window.scrollY > 10) {
             navbar.setAttribute("data-scrolled", "");
@@ -138,19 +132,17 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll);
+    document.addEventListener("astro:page-load", handleScroll);
 
-    const menuToggle = document.querySelector("[data-menu-toggle]");
-    const mobileMenu = document.querySelector("[data-mobile-menu]");
-    menuToggle?.addEventListener("click", () => {
-        if (mobileMenu instanceof HTMLElement) {
-            mobileMenu.hidden = !mobileMenu.hidden;
-        }
-    });
-
-    const languageSelect = document.querySelector("[data-language-select]");
-    languageSelect?.addEventListener("change", (event) => {
-        if (event.target instanceof HTMLSelectElement) {
-            window.location.href = event.target.value;
+    document.addEventListener("click", (event) => {
+        if (
+            event.target instanceof HTMLElement &&
+            event.target.closest("[data-menu-toggle]")
+        ) {
+            const mobileMenu = document.querySelector("[data-mobile-menu]");
+            if (mobileMenu instanceof HTMLElement) {
+                mobileMenu.hidden = !mobileMenu.hidden;
+            }
         }
     });
 </script>

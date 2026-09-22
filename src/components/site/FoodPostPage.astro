@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, render } from "astro:content";
 import { Image } from "astro:assets";
-import { CalendarSync, Calendar, ChevronLeft } from "@lucide/astro";
+import { CalendarSync, Calendar, ChevronLeft, FileDown } from "@lucide/astro";
 import FormattedDate from "../FormattedDate.astro";
 import Link from "../Link.astro";
 import Prose from "../Prose.astro";
@@ -42,7 +42,7 @@ const { heroImage, pubDate, updatedDate } = post.data;
                     <ChevronLeft class="h-5 w-5" />{T("返回")}
                 </Link>
                 <h1 class="text-4xl font-bold">{post.data.title}</h1>
-                <div class="mt-2 flex flex-row space-x-2">
+                <div class="mt-2 flex flex-row flex-wrap items-center gap-x-3 gap-y-2">
                     <div class="flex flex-row items-center space-x-1 text-center">
                         <Calendar class="h-5 w-5" />
                         <FormattedDate date={pubDate} locale={locale} />
@@ -65,6 +65,13 @@ const { heroImage, pubDate, updatedDate } = post.data;
                             </div>
                         )
                     }
+                    <a
+                        href={localizedPath(locale, `/food/${post.id}/file.md`)}
+                        class="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        <FileDown class="size-4" aria-hidden="true" />
+                        Markdown
+                    </a>
                 </div>
             </div>
             <hr class="mb-7 border-t border-border" />
