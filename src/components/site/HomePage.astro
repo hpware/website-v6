@@ -1,5 +1,6 @@
 ---
 import AchievementsTimeline from "../AchievementsTimeline.astro";
+import WorkTicker from "../WorkTicker.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
 
@@ -32,7 +33,9 @@ const gradient =
         <div class="min-h-screen" aria-hidden="true"></div>
     </section>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-24">
+    <WorkTicker locale={locale} />
+
+    <section class="mx-auto w-full max-w-2xl px-4 py-24">
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
