@@ -1,17 +1,10 @@
 ---
-import { type CollectionEntry, getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import FoodPostPage from "../../../components/site/FoodPostPage.astro";
+import { getPublishedFoodPaths } from "../../../lib/content";
 
 export async function getStaticPaths() {
-    const reviews = await getCollection(
-        "food",
-        ({ data }) => data.status === "published",
-    );
-
-    return reviews.map((review) => ({
-        params: { slug: review.id },
-        props: review,
-    }));
+    return getPublishedFoodPaths();
 }
 
 type Props = CollectionEntry<"food">;

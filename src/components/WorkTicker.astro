@@ -1,0 +1,168 @@
+---
+import { ArrowUpRight, FolderGit2, ShieldCheck } from "@lucide/astro";
+import contributionData from "../data/contributions.json";
+import { createTranslator, localizedPath, type Locale } from "../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const includedSections = contributionData.filter(({ id }) =>
+    ["projects", "security-and-bugs"].includes(id),
+);
+const items = includedSections.flatMap((section) =>
+    section.items.map((item, index) => ({
+        ...item,
+        href:
+            item.links[0]?.url ??
+            localizedPath(
+                locale,
+                `/contributions/#${section.id}-${index + 1}-${item.slug}`,
+            ),
+        kind: section.id === "projects" ? "project" : "security",
+    })),
+);
+const tickerItems = [...items, ...items];
+---
+
+<section class="work-ticker" aria-labelledby="work-ticker-heading">
+    <div class="mx-auto mb-6 flex max-w-5xl items-end justify-between gap-6 px-4">
+        <div>
+            <p class="mb-2 font-mono text-xs tracking-[0.18em] text-primary uppercase">
+                {T("最近在做什麼")}
+            </p>
+            <h2 id="work-ticker-heading" class="text-2xl font-bold sm:text-3xl">
+                {T("專案與資安研究")}
+            </h2>
+        </div>
+        <a
+            href={localizedPath(locale, "/contributions/")}
+            class="hidden shrink-0 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground sm:flex"
+        >
+            {T("查看全部")}
+            <ArrowUpRight class="size-4" aria-hidden="true" />
+        </a>
+    </div>
+
+    <div class="ticker-window" role="region" aria-label={T("專案與資安研究")}>
+        <div class="ticker-track">
+            {
+                tickerItems.map((item, index) => (
+                    <a
+                        href={item.href}
+                        class="ticker-card"
+                        aria-hidden={index >= items.length ? "true" : undefined}
+                        tabindex={index >= items.length ? -1 : undefined}
+                    >
+                        <span class="ticker-kind">
+                            {item.kind === "project" ? (
+                                <FolderGit2 class="size-4" aria-hidden="true" />
+                            ) : (
+                                <ShieldCheck class="size-4" aria-hidden="true" />
+                            )}
+                            {item.kind === "project"
+                                ? T("專案")
+                                : T("資安研究")}
+                        </span>
+                        <strong>{item.title}</strong>
+                        <span class="line-clamp-2 text-sm leading-6 text-muted-foreground">
+                            {item.description}
+                        </span>
+                    </a>
+                ))
+            }
+        </div>
+    </div>
+
+    <div class="mt-5 px-4 text-center sm:hidden">
+        <a
+            href={localizedPath(locale, "/contributions/")}
+            class="inline-flex items-center gap-1 text-sm text-muted-foreground"
+        >
+            {T("查看全部")}
+            <ArrowUpRight class="size-4" aria-hidden="true" />
+        </a>
+    </div>
+</section>
+
+<style>
+    .work-ticker {
+        margin-inline: -1rem;
+        overflow: hidden;
+        padding-block: 5rem;
+        border-block: 1px solid color-mix(in oklab, var(--border), transparent 25%);
+    }
+
+    .ticker-window {
+        overflow: hidden;
+        mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    }
+
+    .ticker-track {
+        display: flex;
+        width: max-content;
+        gap: 1rem;
+        padding-inline: 0.5rem;
+        animation: work-ticker 52s linear infinite;
+    }
+
+    .ticker-window:hover .ticker-track,
+    .ticker-window:focus-within .ticker-track {
+        animation-play-state: paused;
+    }
+
+    .ticker-card {
+        display: flex;
+        width: min(22rem, calc(100vw - 3rem));
+        min-height: 10.5rem;
+        flex-direction: column;
+        gap: 0.65rem;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: color-mix(in oklab, var(--background), var(--primary) 4%);
+        padding: 1.25rem;
+        transition: border-color 180ms ease, transform 180ms ease;
+    }
+
+    .ticker-card:hover,
+    .ticker-card:focus-visible {
+        border-color: var(--primary);
+        transform: translateY(-0.2rem);
+        outline: none;
+    }
+
+    .ticker-kind {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        width: fit-content;
+        color: var(--primary);
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    @keyframes work-ticker {
+        to {
+            transform: translateX(calc(-50% - 0.5rem));
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ticker-window {
+            overflow-x: auto;
+            mask-image: none;
+        }
+
+        .ticker-track {
+            animation: none;
+        }
+
+        .ticker-card[aria-hidden="true"] {
+            display: none;
+        }
+    }
+</style>
