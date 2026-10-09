@@ -1,14 +1,13 @@
 ---
-import type { CollectionEntry } from "astro:content";
+import { getEntry } from "astro:content";
 import FoodPostPage from "../../../components/site/FoodPostPage.astro";
-import { getPublishedFoodPaths } from "../../../lib/content";
+const post = Astro.params.slug
+    ? await getEntry("food", Astro.params.slug)
+    : undefined;
 
-export async function getStaticPaths() {
-    return getPublishedFoodPaths();
+if (!post || post.data.status !== "published") {
+    return Astro.rewrite("/zh-TW/404");
 }
-
-type Props = CollectionEntry<"food">;
-const post = Astro.props;
 ---
 
 <FoodPostPage locale="zh-TW" post={post} />
