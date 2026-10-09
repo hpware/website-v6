@@ -2,6 +2,10 @@
 User-agent: Bytespider
 Disallow: /
 
+# Content Signals
+User-agent: *
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
 # Spamthropic
 User-agent: ClaudeBot
 Disallow: /
