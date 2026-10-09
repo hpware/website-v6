@@ -14,6 +14,7 @@ import { rehypeImageAttributes } from "./src/lib/rehypeImageAttributes";
 // https://astro.build/config
 export default defineConfig({
   site: "https://v6.yuanhau.com",
+  output: "server",
   adapter: vercel(),
   integrations: [mdx(), sitemap(), react()],
   markdown: {
