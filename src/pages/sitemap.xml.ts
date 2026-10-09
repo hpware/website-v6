@@ -66,6 +66,11 @@ export const GET: APIRoute = async () => {
       priority: 0.7,
     },
     {
+      url: absoluteUrl(`/${locale}/photo-packs/`),
+      changefreq: "monthly" as const,
+      priority: 0.7,
+    },
+    {
       url: absoluteUrl(`/${locale}/hosting/`),
       changefreq: "monthly" as const,
       priority: 0.7,
