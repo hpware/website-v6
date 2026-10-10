@@ -38,6 +38,10 @@ const T = createTranslator(locale);
 
     applyTheme(getTheme());
 
+    document.addEventListener("astro:after-swap", () => {
+        applyTheme(getTheme());
+    });
+
     document.addEventListener("click", (event) => {
         const button = (event.target as HTMLElement).closest("[data-theme-toggle]");
         if (!button) return;

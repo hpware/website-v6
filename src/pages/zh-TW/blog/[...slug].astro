@@ -1,7 +1,6 @@
 ---
 import { getEntry } from "astro:content";
 import BlogPostPage from "../../../components/site/BlogPostPage.astro";
-
 const post = Astro.params.slug
     ? await getEntry("blog", Astro.params.slug)
     : undefined;
