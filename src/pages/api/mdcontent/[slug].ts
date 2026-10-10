@@ -9,6 +9,10 @@ export const GET: APIRoute = async ({ params }) => {
     return Response.json({ error: "Missing slug" }, { status: 400 });
   }
 
+  if (!convex) {
+    return Response.json({ error: "Content service unavailable" }, { status: 503 });
+  }
+
   try {
     const content = await convex.query(api.app.getMDContent, { slug });
 
