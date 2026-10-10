@@ -60,6 +60,7 @@ const { heroImage, pubDate, updatedDate } = post.data;
                     }
                     <a
                         href={localizedPath(locale, `/blog/${post.id}/file.md`)}
+                        download
                         class="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                         <FileDown class="size-4" aria-hidden="true" />

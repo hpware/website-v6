@@ -15,6 +15,18 @@ const includedSections = contributionData.filter(({ id }) =>
 const items = includedSections.flatMap((section) =>
     section.items.map((item, index) => ({
         ...item,
+        title:
+            locale === "en" &&
+            "titleEn" in item &&
+            typeof item.titleEn === "string"
+                ? item.titleEn
+                : item.title,
+        description:
+            locale === "en" &&
+            "descriptionEn" in item &&
+            typeof item.descriptionEn === "string"
+                ? item.descriptionEn
+                : item.description,
         href:
             item.links[0]?.url ??
             localizedPath(

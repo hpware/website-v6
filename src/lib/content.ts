@@ -58,7 +58,7 @@ export function markdownResponse(entry: MarkdownEntry) {
     return new Response(markdownSource(entry), {
         headers: {
             "Cache-Control": "public, max-age=0, s-maxage=3600",
-            "Content-Disposition": `inline; filename="${entry.id}.md"`,
+            "Content-Disposition": `attachment; filename="${entry.id}.md"`,
             "Content-Type": "text/markdown; charset=utf-8",
         },
     });
