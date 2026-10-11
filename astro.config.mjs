@@ -17,6 +17,7 @@ export default defineConfig({
   output: "server",
   adapter: vercel({
     includeFiles: [
+      "node_modules/@rolldown/binding-linux-x64-gnu",
       "node_modules/@rolldown/binding-wasm32-wasi",
       "node_modules/@napi-rs/wasm-runtime",
       "node_modules/@emnapi/core",
@@ -57,6 +58,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     assetsInclude: [
+      "node_modules/.pnpm/@rolldown+binding-linux-x64-gnu@*/node_modules/@rolldown/binding-linux-x64-gnu/*",
       "node_modules/.pnpm/@rolldown+binding-wasm32-wasi@*/node_modules/@rolldown/binding-wasm32-wasi/*",
       "node_modules/.pnpm/@napi-rs+wasm-runtime@*/node_modules/@napi-rs/wasm-runtime/*",
       "node_modules/.pnpm/@emnapi+core@*/node_modules/@emnapi/core/*",

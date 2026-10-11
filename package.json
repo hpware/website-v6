@@ -27,6 +27,7 @@
     "@emnapi/wasi-threads": "2.1.0",
     "@lucide/astro": "^1.33.0",
     "@napi-rs/wasm-runtime": "1.2.5",
+    "@rolldown/binding-linux-x64-gnu": "1.2.13",
     "@rolldown/binding-wasm32-wasi": "1.2.13",
     "@tailwindcss/vite": "^4.3.0",
     "@tybys/wasm-util": "0.10.3",
