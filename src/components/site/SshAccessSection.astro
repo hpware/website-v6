@@ -1,5 +1,5 @@
 ---
-import { Terminal, Copy, Check } from "lucide-react";
+import { Copy, Check } from "lucide-react";
 import { createTranslator, type Locale } from "../../i18n";
 
 interface Props {
@@ -12,57 +12,25 @@ const T = createTranslator(locale);
 const sshCommand = "ssh t.yuanhau.com";
 ---
 
-<section class="mx-auto w-full max-w-2xl px-4 pb-20">
-    <div
-        class="relative overflow-hidden rounded-2xl border border-border bg-card/60 p-6 shadow-sm backdrop-blur transition-all duration-300 hover:border-border/80 hover:shadow-md md:p-8"
+<div class="mt-6 flex items-center justify-start">
+    <button
+        type="button"
+        data-copy-ssh
+        data-command={sshCommand}
+        aria-label={T("複製指令")}
+        class="group inline-flex items-center gap-3 rounded-lg border border-border/80 bg-muted/30 px-4 py-2.5 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-start gap-3.5">
-                <div
-                    class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
-                >
-                    <Terminal className="size-6" />
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold tracking-tight md:text-2xl">
-                        {T("SSH 終端機服務")}
-                    </h2>
-                    <p class="mt-1 text-sm text-muted-foreground">
-                        {T("透過終端機直接連線至自訂 SSH 伺服器")}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-6 flex flex-col gap-2">
-            <div
-                class="group relative flex items-center justify-between gap-3 overflow-x-auto rounded-xl border border-border/80 bg-muted/60 px-4 py-3 font-mono text-sm shadow-inner"
-            >
-                <div class="flex items-center gap-2 text-foreground">
-                    <span class="select-none text-muted-foreground">$</span>
-                    <code class="font-semibold select-all">{sshCommand}</code>
-                </div>
-
-                <button
-                    type="button"
-                    data-copy-ssh
-                    data-command={sshCommand}
-                    aria-label={T("複製指令")}
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/60 bg-background/80 px-2.5 py-1.5 text-xs font-sans font-medium text-muted-foreground shadow-sm transition-all duration-200 hover:border-border hover:bg-background hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
-                >
-                    <span data-copy-icon-wrapper class="inline-flex items-center gap-1.5">
-                        <Copy className="size-3.5" />
-                        <span>{T("複製")}</span>
-                    </span>
-                    <span data-copied-icon-wrapper class="hidden items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                        <Check className="size-3.5" />
-                        <span>{T("已複製！")}</span>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
+        <span class="tracking-wide select-all">{sshCommand}</span>
+        <span class="text-muted-foreground transition-colors group-hover:text-foreground">
+            <span data-copy-icon-wrapper class="inline-flex items-center">
+                <Copy className="size-4" />
+            </span>
+            <span data-copied-icon-wrapper class="hidden items-center text-emerald-600 dark:text-emerald-400">
+                <Check className="size-4" />
+            </span>
+        </span>
+    </button>
+</div>
 
 <script>
     const copyButtons = document.querySelectorAll("[data-copy-ssh]");
