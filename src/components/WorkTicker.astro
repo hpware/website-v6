@@ -36,19 +36,13 @@ const items = includedSections.flatMap((section) =>
         kind: section.id === "projects" ? "project" : "security",
     })),
 );
-const tickerItems = [...items, ...items];
 ---
 
 <section class="work-ticker" aria-labelledby="work-ticker-heading">
     <div class="mx-auto mb-6 flex max-w-5xl items-end justify-between gap-6 px-4">
-        <div>
-            <p class="mb-2 font-mono text-xs tracking-[0.18em] text-primary uppercase">
-                {T("最近在做什麼")}
-            </p>
-            <h2 id="work-ticker-heading" class="text-2xl font-bold sm:text-3xl">
-                {T("專案與資安研究")}
-            </h2>
-        </div>
+        <h2 id="work-ticker-heading" class="text-2xl font-bold sm:text-3xl">
+            {T("專案與資安研究")}
+        </h2>
         <a
             href={localizedPath(locale, "/contributions/")}
             class="hidden shrink-0 items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground sm:flex"
@@ -61,12 +55,10 @@ const tickerItems = [...items, ...items];
     <div class="ticker-window" role="region" aria-label={T("專案與資安研究")}>
         <div class="ticker-track">
             {
-                tickerItems.map((item, index) => (
+                items.map((item) => (
                     <a
                         href={item.href}
                         class="ticker-card"
-                        aria-hidden={index >= items.length ? "true" : undefined}
-                        tabindex={index >= items.length ? -1 : undefined}
                     >
                         <span class="ticker-kind">
                             {item.kind === "project" ? (
@@ -108,25 +100,19 @@ const tickerItems = [...items, ...items];
     }
 
     .ticker-window {
-        overflow: hidden;
+        margin-inline: auto;
+        max-width: 64rem;
     }
 
     .ticker-track {
-        display: flex;
-        width: max-content;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
         gap: 1rem;
-        padding-inline: 0.5rem;
-        animation: work-ticker 52s linear infinite;
-    }
-
-    .ticker-window:hover .ticker-track,
-    .ticker-window:focus-within .ticker-track {
-        animation-play-state: paused;
+        padding-inline: 1rem;
     }
 
     .ticker-card {
         display: flex;
-        width: min(22rem, calc(100vw - 3rem));
         min-height: 10.5rem;
         flex-direction: column;
         gap: 0.65rem;
@@ -134,13 +120,11 @@ const tickerItems = [...items, ...items];
         border-radius: 1rem;
         background: color-mix(in oklab, var(--background), var(--primary) 4%);
         padding: 1.25rem;
-        transition: border-color 180ms ease, transform 180ms ease;
     }
 
     .ticker-card:hover,
     .ticker-card:focus-visible {
         border-color: var(--primary);
-        transform: translateY(-0.2rem);
         outline: none;
     }
 
@@ -156,23 +140,4 @@ const tickerItems = [...items, ...items];
         text-transform: uppercase;
     }
 
-    @keyframes work-ticker {
-        to {
-            transform: translateX(calc(-50% - 0.5rem));
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .ticker-window {
-            overflow-x: auto;
-        }
-
-        .ticker-track {
-            animation: none;
-        }
-
-        .ticker-card[aria-hidden="true"] {
-            display: none;
-        }
-    }
 </style>
