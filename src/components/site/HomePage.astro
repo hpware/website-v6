@@ -14,7 +14,7 @@ const T = createTranslator(locale);
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
     <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
-        <div class="mx-auto w-full max-w-3xl px-6 py-16 text-center sm:px-10">
+        <div class="mx-auto w-full max-w-3xl px-6 py-16 text-left sm:px-10">
             <h1 class="text-5xl leading-none font-bold tracking-tight sm:text-6xl md:text-6xl">
                 {T("嗨！")}
             </h1>
@@ -22,7 +22,7 @@ const T = createTranslator(locale);
                 {T("這是元皓的網站！")}
             </p>
 
-            <div class="mx-auto mt-10 flex w-fit max-w-full items-center gap-5 rounded-lg border-2 border-foreground/15 px-5 py-5 sm:gap-7 sm:px-8">
+            <div class="mt-10 flex w-fit max-w-full items-center gap-5 rounded-lg border-2 border-foreground/15 px-5 py-5 sm:gap-7 sm:px-8">
                 <code class="overflow-x-auto font-mono text-base tracking-wide sm:text-2xl" data-ssh-command>ssh t.yuanhau.com</code>
                 <button
                     type="button"
