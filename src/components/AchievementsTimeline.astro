@@ -27,10 +27,12 @@ const { achievements = defaults } = Astro.props;
         const isLast = i === achievements.length - 1;
         return (
             <li class="ach-item">
-                <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
-                    <Icon class="h-7 w-7" />
-                </span>
-                {!isLast && <span class="ach-line" aria-hidden="true" />}
+                <div class="ach-node-wrapper">
+                    <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
+                        <Icon class="h-7 w-7" />
+                    </span>
+                    {!isLast && <span class="ach-line" aria-hidden="true" />}
+                </div>
                 <div class="ach-content">
                     <span class="text-sm font-medium text-[#e8761f]">
                         {item.date}
@@ -49,24 +51,33 @@ const { achievements = defaults } = Astro.props;
 <style>
     /* --- Mobile: vertical timeline, node-left / content-right --- */
     .ach-item {
-        position: relative;
         display: flex;
         flex-direction: row;
         gap: 1.25rem;
     }
 
+    .ach-node-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
     .ach-content {
         padding-top: 0.5rem;
         padding-bottom: 3rem;
+        flex: 1;
     }
 
-    /* Moving dashed connector — node center to node center, Y axis */
+    /* Vertical line: starts below the 64px node and connects to next item */
     .ach-line {
         position: absolute;
-        left: 30px; /* node center (32px) − half line width (2px) */
-        top: 72px; /* just below the 64px node */
+        top: 64px;
+        bottom: -1rem;
+        left: 50%;
         width: 4px;
-        height: calc(100% - 76px);
+        transform: translateX(-50%);
         background-image: repeating-linear-gradient(
             to bottom,
             #e8761f 0,
@@ -82,25 +93,40 @@ const { achievements = defaults } = Astro.props;
     /* --- Desktop: horizontal timeline, node-top / content-below --- */
     @media (min-width: 768px) {
         .ach-item {
-            flex: 1;
+            flex: 1 1 0%;
             flex-direction: column;
-            align-items: center;
+            align-items: stretch;
             gap: 0;
             text-align: center;
         }
 
-        .ach-content {
-            padding-top: 1rem;
-            padding-bottom: 0;
-            padding-inline: 0.5rem;
+        .ach-node-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 64px;
         }
 
-        /* X axis: from this node's center to the next node's center */
+        .ach-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+            padding-bottom: 0;
+            padding-inline: 0.75rem;
+        }
+
+        /* Horizontal line: precisely spans from right edge of this node (50% + 32px) to next node (left edge) */
         .ach-line {
-            left: calc(50% + 32px); /* this node center + radius */
-            top: 30px; /* node vertical center (32px) − half line (2px) */
-            width: calc(100% - 64px); /* reach next node, minus both radii */
+            position: absolute;
+            left: calc(50% + 32px);
+            top: 50%;
+            bottom: auto;
+            width: calc(100% - 64px);
             height: 4px;
+            transform: translateY(-50%);
             background-image: repeating-linear-gradient(
                 to right,
                 #e8761f 0,
