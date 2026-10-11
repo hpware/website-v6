@@ -2,6 +2,7 @@
 import AchievementsTimeline from "../AchievementsTimeline.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
+import { CheckIcon, CopyIcon } from "@lucide/astro";
 
 interface Props {
     locale: Locale;
@@ -35,11 +36,36 @@ const T = createTranslator(locale);
         <AchievementsTimeline />
     </section>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-12" aria-labelledby="ssh-heading">
-        <div class="rounded-2xl border border-foreground/15 p-6 sm:p-8">
-            <h2 id="ssh-heading" class="text-2xl font-bold">{T("自訂 SSH 伺服器")}</h2>
-            <p class="mt-3 text-muted-foreground">{T("開啟終端機並執行以下指令：")}</p>
-            <pre class="mt-5 overflow-x-auto rounded-xl bg-foreground/5 p-4"><code class="select-all font-mono text-base">ssh t.yuanhau.com</code></pre>
+    <section class="mx-auto flex w-full max-w-2xl justify-center px-4 pb-12" aria-label={T("自訂 SSH 伺服器")}>
+        <div class="flex w-full max-w-lg items-center justify-center gap-5 rounded-lg border-2 border-foreground/30 px-6 py-8 sm:gap-7 sm:px-12">
+            <code class="font-mono text-xl tracking-wide sm:text-2xl" data-ssh-command>ssh t.yuanhau.com</code>
+            <button
+                type="button"
+                class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
+                aria-label={T("複製指令")}
+                data-ssh-copy
+            >
+                <CopyIcon class="size-7" aria-hidden="true" data-copy-icon />
+                <CheckIcon class="hidden size-7 text-green-500" aria-hidden="true" data-copied-icon />
+            </button>
         </div>
     </section>
 </Layout>
+
+<script>
+    const copyButton = document.querySelector("[data-ssh-copy]");
+    const command = document.querySelector("[data-ssh-command]");
+    const copyIcon = document.querySelector("[data-copy-icon]");
+    const copiedIcon = document.querySelector("[data-copied-icon]");
+
+    copyButton?.addEventListener("click", async () => {
+        if (!(command instanceof HTMLElement)) return;
+        await navigator.clipboard.writeText(command.textContent ?? "");
+        copyIcon?.classList.add("hidden");
+        copiedIcon?.classList.remove("hidden");
+        window.setTimeout(() => {
+            copyIcon?.classList.remove("hidden");
+            copiedIcon?.classList.add("hidden");
+        }, 1500);
+    });
+</script>
