@@ -18,19 +18,19 @@ const sshCommand = "ssh t.yuanhau.com";
         data-copy-ssh
         data-command={sshCommand}
         aria-label={T("複製指令")}
-        class="group inline-flex items-center justify-center gap-3 rounded-lg border border-border/80 bg-muted/30 px-6 py-3 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
+        class="group inline-flex select-none items-center justify-center gap-3 rounded-lg border border-border/80 bg-muted/30 px-6 py-3 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
     >
-        <span class="tracking-wide select-all text-center">{sshCommand}</span>
+        <span class="tracking-wide text-center">{sshCommand}</span>
         <span class="relative flex size-4 shrink-0 items-center justify-center text-muted-foreground transition-colors group-hover:text-foreground">
             <span
                 data-copy-icon
-                class="flex items-center justify-center transition-all duration-200"
+                class="flex items-center justify-center transition-opacity duration-200"
             >
                 <Copy class="size-4" />
             </span>
             <span
                 data-check-icon
-                class="absolute inset-0 flex items-center justify-center opacity-0 scale-75 transition-all duration-200 pointer-events-none text-emerald-500"
+                class="hidden items-center justify-center text-emerald-500"
             >
                 <Check class="size-4" />
             </span>
@@ -81,15 +81,13 @@ const sshCommand = "ssh t.yuanhau.com";
             const checkIcon = btn.querySelector("[data-check-icon]");
 
             if (copyIcon && checkIcon) {
-                copyIcon.classList.add("opacity-0", "scale-75", "pointer-events-none");
-                checkIcon.classList.remove("opacity-0", "scale-75", "pointer-events-none");
-                checkIcon.classList.add("opacity-100", "scale-100");
+                copyIcon.classList.add("hidden");
+                checkIcon.classList.remove("hidden");
 
                 if (timeoutId) clearTimeout(timeoutId);
                 timeoutId = window.setTimeout(() => {
-                    copyIcon.classList.remove("opacity-0", "scale-75", "pointer-events-none");
-                    checkIcon.classList.remove("opacity-100", "scale-100");
-                    checkIcon.classList.add("opacity-0", "scale-75", "pointer-events-none");
+                    copyIcon.classList.remove("hidden");
+                    checkIcon.classList.add("hidden");
                 }, 2000);
             }
         });
