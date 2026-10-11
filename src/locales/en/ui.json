@@ -28,6 +28,7 @@
   "成就": "Achievements",
   "貼文": "Posts",
   "發佈於": "Published on",
+  "發布於": "Published on",
   "返回": "Back",
   "我參與過的專案、研究、發現的錯誤，以及其他工作。": "Projects, research, bug findings, and other things I have worked on.",
   "Howard 的專案、資安研究、錯誤發現與其他貢獻。": "Projects, security research, bug findings, and other contributions by Howard.",
@@ -58,5 +59,10 @@
   "濫用回報": "Abuse",
   "RSS 訂閱": "RSS feed",
   "貢獻：": "Contributions: ",
-  "本文件的連結指向繁體中文版。使用 ?lang=en 或 ?lang=zh-TW 切換語言。": "Links point to the English version. Use ?lang=en or ?lang=zh-TW to switch."
+  "本文件的連結指向繁體中文版。使用 ?lang=en 或 ?lang=zh-TW 切換語言。": "Links point to the English version. Use ?lang=en or ?lang=zh-TW to switch.",
+  "SSH 終端機服務": "Custom SSH Server",
+  "透過終端機直接連線至自訂 SSH 伺服器": "Connect directly to custom SSH server via terminal",
+  "複製指令": "Copy command",
+  "複製": "Copy",
+  "已複製！": "Copied!"
 }

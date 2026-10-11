@@ -1,0 +1,95 @@
+---
+import { Copy, Check } from "@lucide/astro";
+import { createTranslator, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+
+const sshCommand = "ssh t.yuanhau.com";
+---
+
+<div class="mt-6 flex w-full items-center justify-center">
+    <button
+        type="button"
+        data-copy-ssh
+        data-command={sshCommand}
+        aria-label={T("複製指令")}
+        class="group inline-flex w-full max-w-md select-none items-center justify-start gap-3 rounded-lg border border-border/80 bg-muted/30 px-6 py-3 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-left"
+    >
+        <span class="tracking-wide text-left">{sshCommand}</span>
+        <span class="relative ml-auto flex size-4 shrink-0 items-center justify-center text-muted-foreground transition-colors group-hover:text-foreground">
+            <span
+                data-copy-icon
+                class="flex items-center justify-center transition-opacity duration-200"
+            >
+                <Copy class="size-4" />
+            </span>
+            <span
+                data-check-icon
+                class="hidden items-center justify-center text-emerald-500"
+            >
+                <Check class="size-4" />
+            </span>
+        </span>
+    </button>
+</div>
+
+<script>
+    const copyButtons = document.querySelectorAll("[data-copy-ssh]");
+
+    async function copyText(text: string): Promise<boolean> {
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch {
+                // fallback below
+            }
+        }
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            // fallback for environments with restricted clipboard permissions
+            const doc = document as unknown as Record<string, (cmd: string) => boolean>;
+            const successful = typeof doc["execCommand"] === "function" ? doc["execCommand"]("copy") : false;
+            textArea.remove();
+            return successful;
+        } catch {
+            textArea.remove();
+            return false;
+        }
+    }
+
+    copyButtons.forEach((btn) => {
+        let timeoutId: number | undefined;
+
+        btn.addEventListener("click", async () => {
+            const command = btn.getAttribute("data-command") || "ssh t.yuanhau.com";
+            await copyText(command);
+
+            const copyIcon = btn.querySelector("[data-copy-icon]");
+            const checkIcon = btn.querySelector("[data-check-icon]");
+
+            if (copyIcon && checkIcon) {
+                copyIcon.classList.add("hidden");
+                checkIcon.classList.remove("hidden");
+
+                if (timeoutId) clearTimeout(timeoutId);
+                timeoutId = window.setTimeout(() => {
+                    copyIcon.classList.remove("hidden");
+                    checkIcon.classList.add("hidden");
+                }, 2000);
+            }
+        });
+    });
+</script>

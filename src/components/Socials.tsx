@@ -9,7 +9,7 @@ const socials: Array<{
   {
     name: "website",
     url: "https://yuanhau.com/",
-    label: <Globe />,
+    label: <Globe className="size-6" />,
   },
   {
     name: "github",
@@ -101,7 +101,9 @@ export default function Socials() {
           key={social.url}
           href={social.url}
           aria-label={social.name}
-          className="relative inline-block text-sm no-underline transition-all duration-300 after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out after:content-[''] focus-visible:after:scale-x-100 dark:hover:text-white/60 hover:-rotate-10 hover:scale-110"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
         >
           {social.label}
         </a>
