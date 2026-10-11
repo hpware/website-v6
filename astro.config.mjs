@@ -16,7 +16,14 @@ export default defineConfig({
   site: "https://v6.yuanhau.com",
   output: "server",
   adapter: vercel({
-    includeFiles: ["node_modules/@rolldown/binding-wasm32-wasi"],
+    includeFiles: [
+      "node_modules/@rolldown/binding-wasm32-wasi",
+      "node_modules/@napi-rs/wasm-runtime",
+      "node_modules/@emnapi/core",
+      "node_modules/@emnapi/runtime",
+      "node_modules/@emnapi/wasi-threads",
+      "node_modules/@tybys/wasm-util",
+    ],
   }),
   integrations: [mdx(), sitemap(), react()],
   markdown: {
@@ -52,6 +59,11 @@ export default defineConfig({
     plugins: [tailwindcss()],
     assetsInclude: [
       "node_modules/.pnpm/@rolldown+binding-wasm32-wasi@*/node_modules/@rolldown/binding-wasm32-wasi/*",
+      "node_modules/.pnpm/@napi-rs+wasm-runtime@*/node_modules/@napi-rs/wasm-runtime/*",
+      "node_modules/.pnpm/@emnapi+core@*/node_modules/@emnapi/core/*",
+      "node_modules/.pnpm/@emnapi+runtime@*/node_modules/@emnapi/runtime/*",
+      "node_modules/.pnpm/@emnapi+wasi-threads@*/node_modules/@emnapi/wasi-threads/*",
+      "node_modules/.pnpm/@tybys+wasm-util@*/node_modules/@tybys/wasm-util/*",
     ],
   },
 });

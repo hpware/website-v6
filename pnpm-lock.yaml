@@ -32,15 +32,30 @@ importers:
       '@astrojs/vercel':
         specifier: ^11.0.13
         version: 11.0.13(astro@7.3.8(@astrojs/markdown-remark@7.3.2)(@types/node@25.7.0)(@vercel/functions@3.9.11(ws@8.21.0))(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(react@19.2.6)(rollup@4.60.3)(ws@8.21.0)
+      '@emnapi/core':
+        specifier: 2.0.0-alpha.5
+        version: 2.0.0-alpha.5
+      '@emnapi/runtime':
+        specifier: 2.0.0-alpha.5
+        version: 2.0.0-alpha.5
+      '@emnapi/wasi-threads':
+        specifier: 2.1.0
+        version: 2.1.0
       '@lucide/astro':
         specifier: ^1.33.0
         version: 1.33.0(astro@7.3.8(@astrojs/markdown-remark@7.3.2)(@types/node@25.7.0)(@vercel/functions@3.9.11(ws@8.21.0))(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@napi-rs/wasm-runtime':
+        specifier: 1.2.5
+        version: 1.2.5(@emnapi/core@2.0.0-alpha.5)(@emnapi/runtime@2.0.0-alpha.5)
       '@rolldown/binding-wasm32-wasi':
         specifier: 1.2.13
         version: 1.2.13
       '@tailwindcss/vite':
         specifier: ^4.3.0
         version: 4.3.0(vite@8.3.4(@types/node@25.7.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@tybys/wasm-util':
+        specifier: 0.10.3
+        version: 0.10.3
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -1284,8 +1299,8 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
-  '@tybys/wasm-util@0.10.4':
-    resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
+  '@tybys/wasm-util@0.10.3':
+    resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
   '@types/debug@4.1.13':
     resolution: {integrity: sha512-KSVgmQmzMwPlmtljOomayoR89W4FynCAi3E8PPs7vmDVPe84hT+vGPKkJfThkmXs0x0jAaa9U8uW8bbfyS2fWw==}
@@ -3916,21 +3931,21 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.11.1
       '@emnapi/runtime': 1.11.1
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.3
     optional: true
 
   '@napi-rs/wasm-runtime@1.2.5(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)':
     dependencies:
       '@emnapi/core': 1.11.3
       '@emnapi/runtime': 1.11.3
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.3
     optional: true
 
   '@napi-rs/wasm-runtime@1.2.5(@emnapi/core@2.0.0-alpha.5)(@emnapi/runtime@2.0.0-alpha.5)':
     dependencies:
       '@emnapi/core': 2.0.0-alpha.5
       '@emnapi/runtime': 2.0.0-alpha.5
-      '@tybys/wasm-util': 0.10.4
+      '@tybys/wasm-util': 0.10.3
 
   '@nodable/entities@2.1.0': {}
 
@@ -4187,7 +4202,7 @@ snapshots:
       tailwindcss: 4.3.0
       vite: 8.3.4(@types/node@25.7.0)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
-  '@tybys/wasm-util@0.10.4':
+  '@tybys/wasm-util@0.10.3':
     dependencies:
       tslib: 2.8.1
 
