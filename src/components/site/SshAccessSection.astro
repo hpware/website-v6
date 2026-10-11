@@ -18,10 +18,10 @@ const sshCommand = "ssh t.yuanhau.com";
         data-copy-ssh
         data-command={sshCommand}
         aria-label={T("複製指令")}
-        class="group inline-flex select-none items-center justify-center gap-3 rounded-lg border border-border/80 bg-muted/30 px-6 py-3 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-center"
+        class="group inline-flex w-full max-w-md select-none items-center justify-start gap-3 rounded-lg border border-border/80 bg-muted/30 px-6 py-3 font-mono text-sm text-foreground transition-all duration-200 hover:border-foreground/40 hover:bg-muted/60 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-left"
     >
-        <span class="tracking-wide text-center">{sshCommand}</span>
-        <span class="relative flex size-4 shrink-0 items-center justify-center text-muted-foreground transition-colors group-hover:text-foreground">
+        <span class="tracking-wide text-left">{sshCommand}</span>
+        <span class="relative ml-auto flex size-4 shrink-0 items-center justify-center text-muted-foreground transition-colors group-hover:text-foreground">
             <span
                 data-copy-icon
                 class="flex items-center justify-center transition-opacity duration-200"
