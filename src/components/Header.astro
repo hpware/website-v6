@@ -51,19 +51,19 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
                 <div class="flex flex-row items-center justify-center text-center">
                     <a
                         href={localizedPath(locale, "/")}
-                        class="flex h-11 items-center text-xl font-bold whitespace-nowrap"
+                        class="flex h-11 items-center text-2xl font-bold whitespace-nowrap"
                     >
                         {SITE_NAME}
                     </a>
                 </div>
             </div>
 
-            <div class="hidden flex-row items-center justify-center text-center gap-3 px-1 mx-1 md:flex">
+            <div class="hidden flex-row items-center justify-center gap-4 px-1 mx-1 text-xl md:flex">
                 {tabs.map((tab) => (
                     <a href={tab.url} class="group flex h-11 items-center">
                         <span class="flex flex-row items-center gap-1.5">
                             <tab.icon
-                                class="size-5 shrink-0"
+                                class="size-6 shrink-0"
                                 aria-hidden="true"
                             />
                             <span
