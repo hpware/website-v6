@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import "@rolldown/binding-wasm32-wasi";
 
 export async function getPublishedBlogPaths() {
     const posts = await getCollection(

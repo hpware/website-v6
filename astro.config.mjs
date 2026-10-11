@@ -15,7 +15,9 @@ import { rehypeImageAttributes } from "./src/lib/rehypeImageAttributes";
 export default defineConfig({
   site: "https://v6.yuanhau.com",
   output: "server",
-  adapter: vercel(),
+  adapter: vercel({
+    includeFiles: ["node_modules/@rolldown/binding-wasm32-wasi"],
+  }),
   integrations: [mdx(), sitemap(), react()],
   markdown: {
     processor: unified({ rehypePlugins: [rehypeImageAttributes] }),
@@ -48,5 +50,8 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    assetsInclude: [
+      "node_modules/.pnpm/@rolldown+binding-wasm32-wasi@*/node_modules/@rolldown/binding-wasm32-wasi/*",
+    ],
   },
 });
