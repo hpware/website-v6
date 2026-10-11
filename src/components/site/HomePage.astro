@@ -34,4 +34,12 @@ const T = createTranslator(locale);
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
+
+    <section class="mx-auto w-full max-w-2xl px-4 pb-12" aria-labelledby="ssh-heading">
+        <div class="rounded-2xl border border-foreground/15 p-6 sm:p-8">
+            <h2 id="ssh-heading" class="text-2xl font-bold">{T("自訂 SSH 伺服器")}</h2>
+            <p class="mt-3 text-muted-foreground">{T("開啟終端機並執行以下指令：")}</p>
+            <pre class="mt-5 overflow-x-auto rounded-xl bg-foreground/5 p-4"><code class="select-all font-mono text-base">ssh t.yuanhau.com</code></pre>
+        </div>
+    </section>
 </Layout>
