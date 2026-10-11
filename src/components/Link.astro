@@ -26,7 +26,7 @@ const { href, class: linkClass = "", ...attrs } = Astro.props;
             (href.startsWith("https://") ||
                 href.startsWith("http://") ||
                 href.startsWith("mailto:")) && (
-                <ExternalLinkIcon class="pl-1 w-4 h-4 group-hover:-rotate-5 group-hover:scale-110 transition-all duration-300" />
+                <ExternalLinkIcon class="pl-1 w-4 h-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             )
         }
     </div>

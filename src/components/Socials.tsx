@@ -9,7 +9,7 @@ const socials: Array<{
   {
     name: "website",
     url: "https://yuanhau.com/",
-    label: <Globe />,
+    label: <Globe className="size-6" />,
   },
   {
     name: "github",
@@ -95,13 +95,15 @@ const socials: Array<{
 
 export default function Socials() {
   return (
-    <div className="mt-2 flex flex-row flex-wrap gap-3">
+    <div className="mt-3 flex flex-row flex-wrap items-center gap-2">
       {socials.map((social) => (
         <a
           key={social.url}
           href={social.url}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label={social.name}
-          className="relative inline-block text-sm no-underline transition-all duration-300 after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out after:content-[''] focus-visible:after:scale-x-100 dark:hover:text-white/60 hover:-rotate-10 hover:scale-110"
+          className="inline-flex size-10 items-center justify-center rounded-lg text-muted-foreground transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-110 hover:bg-neutral-500/10 hover:text-foreground active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
         >
           {social.label}
         </a>
