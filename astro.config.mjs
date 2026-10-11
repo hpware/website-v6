@@ -22,7 +22,6 @@ export default defineConfig({
       "node_modules/@emnapi/core",
       "node_modules/@emnapi/runtime",
       "node_modules/@emnapi/wasi-threads",
-      "node_modules/@tybys/wasm-util",
     ],
   }),
   integrations: [mdx(), sitemap(), react()],
@@ -64,6 +63,10 @@ export default defineConfig({
       "node_modules/.pnpm/@emnapi+runtime@*/node_modules/@emnapi/runtime/*",
       "node_modules/.pnpm/@emnapi+wasi-threads@*/node_modules/@emnapi/wasi-threads/*",
       "node_modules/.pnpm/@tybys+wasm-util@*/node_modules/@tybys/wasm-util/*",
+      "node_modules/.pnpm/@emnapi+core@*/node_modules/@emnapi/core/dist/*",
+      "node_modules/.pnpm/@emnapi+runtime@*/node_modules/@emnapi/runtime/dist/*",
+      "node_modules/.pnpm/@emnapi+wasi-threads@*/node_modules/@emnapi/wasi-threads/dist/*",
+      "node_modules/.pnpm/@tybys+wasm-util@*/node_modules/@tybys/wasm-util/dist/*",
     ],
   },
 });
