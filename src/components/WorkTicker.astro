@@ -105,19 +105,22 @@ const items = includedSections.flatMap((section) =>
     }
 
     .ticker-window {
-        margin-inline: auto;
-        max-width: 64rem;
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: thin;
     }
 
     .ticker-track {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
+        display: flex;
         gap: 1rem;
         padding-inline: 1rem;
+        width: max-content;
     }
 
     .ticker-card {
         display: flex;
+        flex: 0 0 min(22rem, calc(100vw - 3rem));
+        width: min(22rem, calc(100vw - 3rem));
         min-height: 10.5rem;
         flex-direction: column;
         gap: 0.65rem;
