@@ -21,7 +21,7 @@
     "@astrojs/react": "^6.0.6",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/vercel": "^11.0.13",
+    "@astrojs/vercel": "11.0.12",
     "@lucide/astro": "^1.55.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.3.0",
