@@ -22,16 +22,16 @@ const T = createTranslator(locale);
                 {T("這是元皓的網站！")}
             </p>
 
-            <div class="mt-9 flex w-fit max-w-full items-center gap-4 rounded-lg border-2 border-foreground/15 px-5 py-4 sm:gap-6 sm:px-7">
-                <code class="overflow-x-auto font-mono text-base tracking-wide sm:text-xl" data-ssh-command>ssh t.yuanhau.com</code>
+            <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
+                <code class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base" data-ssh-command>ssh t.yuanhau.com</code>
                 <button
                     type="button"
                     class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
                     aria-label={T("複製指令")}
                     data-ssh-copy
                 >
-                    <CopyIcon class="size-7" aria-hidden="true" data-copy-icon />
-                    <CheckIcon class="hidden size-7 text-green-500" aria-hidden="true" data-copied-icon />
+                    <CopyIcon class="size-5" aria-hidden="true" data-copy-icon />
+                    <CheckIcon class="hidden size-5 text-green-500" aria-hidden="true" data-copied-icon />
                 </button>
             </div>
         </div>
