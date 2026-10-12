@@ -15,23 +15,23 @@ const T = createTranslator(locale);
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
     <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
         <div class="mx-auto w-full max-w-3xl px-6 py-16 text-left sm:px-10">
-            <h1 class="text-3xl leading-tight font-bold">
+            <h1 class="text-3xl leading-tight font-bold sm:text-4xl md:text-5xl">
                 {T("嗨！")}
             </h1>
-            <p class="mt-4 text-lg leading-tight text-muted-foreground">
+            <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
                 {T("這是元皓的網站！")}
             </p>
 
-            <div class="mt-6 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2">
-                <code class="overflow-x-auto font-mono text-sm tracking-wide" data-ssh-command>ssh t.yuanhau.com</code>
+            <div class="mt-9 flex w-fit max-w-full items-center gap-4 rounded-lg border-2 border-foreground/15 px-5 py-4 sm:gap-6 sm:px-7">
+                <code class="overflow-x-auto font-mono text-base tracking-wide sm:text-xl" data-ssh-command>ssh t.yuanhau.com</code>
                 <button
                     type="button"
                     class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
                     aria-label={T("複製指令")}
                     data-ssh-copy
                 >
-                    <CopyIcon class="size-4" aria-hidden="true" data-copy-icon />
-                    <CheckIcon class="hidden size-4 text-green-500" aria-hidden="true" data-copied-icon />
+                    <CopyIcon class="size-7" aria-hidden="true" data-copy-icon />
+                    <CheckIcon class="hidden size-7 text-green-500" aria-hidden="true" data-copied-icon />
                 </button>
             </div>
         </div>
