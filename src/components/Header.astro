@@ -13,7 +13,6 @@ import {
     HouseIcon,
     Languages,
     MenuIcon,
-    ServerIcon,
     Utensils,
 } from "@lucide/astro";
 
@@ -35,11 +34,6 @@ const tabs = [
         name: T("貢獻"),
         icon: HandHelping,
         url: localizedPath(locale, "/contributions/"),
-    },
-    {
-        name: T("主機服務"),
-        icon: ServerIcon,
-        url: localizedPath(locale, "/hosting/"),
     },
 ];
 const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";

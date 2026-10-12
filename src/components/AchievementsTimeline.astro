@@ -27,7 +27,7 @@ const { achievements = defaults } = Astro.props;
         const isLast = i === achievements.length - 1;
         return (
             <li class="ach-item">
-                <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-[#1d1f24] text-white shadow-lg">
+                <span class="ach-node flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-4 border-[#e8761f] bg-background text-foreground shadow-lg dark:bg-[#1d1f24] dark:text-white">
                     <Icon class="h-7 w-7" />
                 </span>
                 {!isLast && <span class="ach-line" aria-hidden="true" />}
@@ -35,7 +35,7 @@ const { achievements = defaults } = Astro.props;
                     <span class="text-sm font-medium text-[#e8761f]">
                         {item.date}
                     </span>
-                    <h3 class="text-xl font-bold">{item.title}</h3>
+            <h3 class="text-lg leading-snug font-bold text-balance">{item.title}</h3>
                     <p
                         class="mt-1 text-muted-foreground"
                         set:html={item.description.replaceAll("\n", "<br/>")}
@@ -53,9 +53,12 @@ const { achievements = defaults } = Astro.props;
         display: flex;
         flex-direction: row;
         gap: 1.25rem;
+        min-width: 0;
     }
 
     .ach-content {
+        width: 100%;
+        min-width: 0;
         padding-top: 0.5rem;
         padding-bottom: 3rem;
     }
