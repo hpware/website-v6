@@ -151,6 +151,12 @@
         @apply m-0 min-h-screen bg-background p-0 font-sans text-foreground antialiased transition-colors duration-200;
     }
 
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 240ms;
+        animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
     html:lang(zh-TW) body {
         font-family:
             "Huninn Traditional Chinese", Huninn, var(--font-atkinson),
@@ -167,5 +173,13 @@
         100% {
             transform: translateX(5%);
         }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 1ms !important;
     }
 }

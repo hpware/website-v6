@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.19.0"
   },
   "scripts": {
     "dev": "astro dev",
@@ -17,13 +17,20 @@
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.2",
-    "@astrojs/mdx": "^7.0.8",
-    "@astrojs/react": "^6.0.6",
+    "@astrojs/mdx": "^8.0.3",
+    "@astrojs/react": "^7.0.1",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "^11.0.13",
+    "@emnapi/core": "2.0.0-alpha.5",
+    "@emnapi/runtime": "2.0.0-alpha.5",
+    "@emnapi/wasi-threads": "2.1.0",
     "@lucide/astro": "^1.55.0",
+    "@napi-rs/wasm-runtime": "1.2.5",
+    "@rolldown/binding-linux-x64-gnu": "1.2.13",
+    "@rolldown/binding-wasm32-wasi": "1.2.13",
     "@tailwindcss/vite": "^4.3.3",
+    "@tybys/wasm-util": "0.10.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "astro": "^7.3.8",
@@ -48,7 +55,17 @@
   },
   "pnpm": {
     "overrides": {
-      "astro>sharp": "^0.35.3"
+      "astro>sharp": "^0.35.5",
+      "http-cache-semantics": "^4.3.0",
+      "source-map-js": "^1.2.2",
+      "undici": "^8.11.2"
+    },
+    "packageExtensions": {
+      "@astrojs/astro2tsx": {
+        "dependencies": {
+          "@emnapi/runtime": "1.11.3"
+        }
+      }
     }
   }
 }

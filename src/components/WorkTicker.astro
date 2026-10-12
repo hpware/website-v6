@@ -1,0 +1,147 @@
+---
+import { ArrowUpRight, FolderGit2, ShieldCheck } from "@lucide/astro";
+import contributionData from "../data/contributions.json";
+import { createTranslator, localizedPath, type Locale } from "../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const includedSections = contributionData.filter(({ id }) =>
+    ["projects", "security-and-bugs"].includes(id),
+);
+const items = includedSections.flatMap((section) =>
+    section.items.map((item, index) => ({
+        ...item,
+        title:
+            locale === "en" &&
+            "titleEn" in item &&
+            typeof item.titleEn === "string"
+                ? item.titleEn
+                : item.title,
+        description:
+            locale === "en" &&
+            "descriptionEn" in item &&
+            typeof item.descriptionEn === "string"
+                ? item.descriptionEn
+                : item.description,
+        href:
+            item.links[0]?.url ??
+            localizedPath(
+                locale,
+                `/contributions/#${section.id}-${index + 1}-${item.slug}`,
+            ),
+        kind: section.id === "projects" ? "project" : "security",
+    })),
+);
+---
+
+<section class="mx-auto w-full max-w-5xl pt-24" aria-labelledby="work-ticker-heading">
+    <h2 id="work-ticker-heading" class="mb-10 text-center text-3xl font-bold">
+        {T("專案與資安研究")}
+    </h2>
+
+    <div class="ticker-window" role="region" aria-label={T("專案與資安研究")}>
+        <ul class="ticker-track">
+            {
+                // Rendered twice so the loop can wrap around seamlessly
+                [...items, ...items].map((item, index) => {
+                    const isCopy = index >= items.length;
+                    return (
+                        <li class="ticker-item" aria-hidden={isCopy ? "true" : undefined}>
+                            <a
+                                href={item.href}
+                                tabindex={isCopy ? -1 : undefined}
+                                class="group flex h-full flex-col gap-2 rounded-lg border border-foreground/15 p-4 transition-colors hover:border-foreground/40 focus-visible:border-foreground/40"
+                            >
+                                <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    {item.kind === "project" ? (
+                                        <FolderGit2 class="size-3.5" aria-hidden="true" />
+                                    ) : (
+                                        <ShieldCheck class="size-3.5" aria-hidden="true" />
+                                    )}
+                                    {item.kind === "project" ? T("專案") : T("資安研究")}
+                                </span>
+                                <span class="flex items-start justify-between gap-3 text-lg leading-snug font-bold">
+                                    {item.title}
+                                    <ArrowUpRight
+                                        class="mt-1 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                                        aria-hidden="true"
+                                    />
+                                </span>
+                                <span class="line-clamp-2 text-sm leading-6 text-muted-foreground">
+                                    {item.description}
+                                </span>
+                            </a>
+                        </li>
+                    );
+                })
+            }
+        </ul>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a
+            href={localizedPath(locale, "/contributions/")}
+            class="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:text-foreground"
+        >
+            {T("查看全部")}
+            <ArrowUpRight class="size-4" aria-hidden="true" />
+        </a>
+    </div>
+</section>
+
+<style>
+    .ticker-window {
+        overflow: hidden;
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 3rem,
+            black calc(100% - 3rem),
+            transparent
+        );
+    }
+
+    .ticker-track {
+        display: flex;
+        gap: 1rem;
+        width: max-content;
+        padding-block: 0.25rem;
+        animation: work-ticker 90s linear infinite;
+    }
+
+    .ticker-window:hover .ticker-track,
+    .ticker-window:focus-within .ticker-track {
+        animation-play-state: paused;
+    }
+
+    .ticker-item {
+        width: min(18rem, calc(100vw - 4rem));
+    }
+
+    @keyframes work-ticker {
+        to {
+            /* One full copy of the list plus the gap between the copies */
+            transform: translateX(calc(-50% - 0.5rem));
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ticker-window {
+            overflow-x: auto;
+            mask-image: none;
+        }
+
+        .ticker-track {
+            animation: none;
+            padding-inline: 1rem;
+        }
+
+        .ticker-item[aria-hidden="true"] {
+            display: none;
+        }
+    }
+</style>

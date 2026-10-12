@@ -117,7 +117,9 @@ export const GET: APIRoute = async () => {
   );
 
   try {
-    const pages = await convex.query(api.pages.listPublished, {});
+    const pages = convex
+      ? await convex.query(api.pages.listPublished, {})
+      : [];
     entries.push(
       ...LOCALES.flatMap((locale) =>
         pages.map((page) => ({

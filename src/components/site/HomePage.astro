@@ -1,5 +1,6 @@
 ---
 import AchievementsTimeline from "../AchievementsTimeline.astro";
+import WorkTicker from "../WorkTicker.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
 import { CheckIcon, CopyIcon } from "@lucide/astro";
@@ -37,7 +38,9 @@ const T = createTranslator(locale);
         </div>
     </section>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-24">
+    <WorkTicker locale={locale} />
+
+    <section class="mx-auto w-full max-w-2xl px-4 py-24">
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
@@ -45,13 +48,17 @@ const T = createTranslator(locale);
 </Layout>
 
 <script>
-    const copyButton = document.querySelector("[data-ssh-copy]");
-    const command = document.querySelector("[data-ssh-command]");
-    const copyIcon = document.querySelector("[data-copy-icon]");
-    const copiedIcon = document.querySelector("[data-copied-icon]");
+    // Delegated so it keeps working after view-transition page swaps
+    document.addEventListener("click", async (event) => {
+        if (!(event.target instanceof Element)) return;
+        const copyButton = event.target.closest("[data-ssh-copy]");
+        if (!copyButton) return;
 
-    copyButton?.addEventListener("click", async () => {
+        const command = document.querySelector("[data-ssh-command]");
+        const copyIcon = copyButton.querySelector("[data-copy-icon]");
+        const copiedIcon = copyButton.querySelector("[data-copied-icon]");
         if (!(command instanceof HTMLElement)) return;
+
         await navigator.clipboard.writeText(command.textContent ?? "");
         copyIcon?.classList.add("hidden");
         copiedIcon?.classList.remove("hidden");

@@ -2,23 +2,15 @@ import type { APIRoute } from "astro";
 import { api } from "../../../../convex/_generated/api";
 import { convex } from "../../../lib/convex";
 
-export async function getStaticPaths() {
-  try {
-    const items = await convex.query(api.app.listMDContent, {});
-
-    return items.map((item) => ({
-      params: { slug: item.slug },
-    }));
-  } catch {
-    return [];
-  }
-}
-
 export const GET: APIRoute = async ({ params }) => {
   const { slug } = params;
 
   if (!slug) {
     return Response.json({ error: "Missing slug" }, { status: 400 });
+  }
+
+  if (!convex) {
+    return Response.json({ error: "Content service unavailable" }, { status: 503 });
   }
 
   try {
