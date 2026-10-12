@@ -95,13 +95,13 @@ const socials: Array<{
 
 export default function Socials() {
   return (
-    <div className="mt-2 flex flex-row flex-wrap gap-3">
+    <div className="mt-4 flex flex-row flex-wrap items-center gap-4">
       {socials.map((social) => (
         <a
           key={social.url}
           href={social.url}
           aria-label={social.name}
-          className="relative inline-block text-sm no-underline transition-all duration-300 after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out after:content-[''] focus-visible:after:scale-x-100 dark:hover:text-white/60 hover:-rotate-10 hover:scale-110"
+          className="inline-flex size-10 items-center justify-center rounded-full text-foreground/90 transition-[transform,color,opacity] duration-200 ease-out hover:-translate-y-1 hover:text-foreground hover:opacity-75 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none motion-reduce:hover:translate-y-0"
         >
           {social.label}
         </a>

@@ -3,6 +3,7 @@ import AchievementsTimeline from "../AchievementsTimeline.astro";
 import WorkTicker from "../WorkTicker.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
+import { CheckIcon, CopyIcon } from "@lucide/astro";
 
 interface Props {
     locale: Locale;
@@ -10,27 +11,31 @@ interface Props {
 
 const { locale } = Astro.props;
 const T = createTranslator(locale);
-const gradient =
-    "text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-amber-300 dark:from-blue-400 dark:to-amber-200";
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
-    <section class="font-sans">
-        <div class="absolute inset-0 flex min-h-screen flex-col justify-center">
-            <div class="m-auto w-full px-6 text-left md:w-fit">
-                <h1
-                    class={`text-4xl leading-[1.1] font-bold sm:text-5xl md:text-7xl ${gradient}`}
+    <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
+        <div class="mx-auto w-full max-w-3xl px-6 py-16 text-left sm:px-10">
+            <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
+                {T("嗨！")}
+            </h1>
+            <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
+                {T("這是元皓的網站！")}
+            </p>
+
+            <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
+                <code class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base" data-ssh-command>ssh t.yuanhau.com</code>
+                <button
+                    type="button"
+                    class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
+                    aria-label={T("複製指令")}
+                    data-ssh-copy
                 >
-                    {T("嗨！")}
-                </h1>
-                <h1
-                    class={`text-2xl leading-[1.1] font-bold sm:text-3xl md:text-6xl ${gradient}`}
-                >
-                    {T("這是元皓的網站！")}
-                </h1>
+                    <CopyIcon class="size-5" aria-hidden="true" data-copy-icon />
+                    <CheckIcon class="hidden size-5 text-green-500" aria-hidden="true" data-copied-icon />
+                </button>
             </div>
         </div>
-        <div class="min-h-screen" aria-hidden="true"></div>
     </section>
 
     <WorkTicker locale={locale} />
@@ -39,4 +44,27 @@ const gradient =
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
+
 </Layout>
+
+<script>
+    // Delegated so it keeps working after view-transition page swaps
+    document.addEventListener("click", async (event) => {
+        if (!(event.target instanceof Element)) return;
+        const copyButton = event.target.closest("[data-ssh-copy]");
+        if (!copyButton) return;
+
+        const command = document.querySelector("[data-ssh-command]");
+        const copyIcon = copyButton.querySelector("[data-copy-icon]");
+        const copiedIcon = copyButton.querySelector("[data-copied-icon]");
+        if (!(command instanceof HTMLElement)) return;
+
+        await navigator.clipboard.writeText(command.textContent ?? "");
+        copyIcon?.classList.add("hidden");
+        copiedIcon?.classList.remove("hidden");
+        window.setTimeout(() => {
+            copyIcon?.classList.remove("hidden");
+            copiedIcon?.classList.add("hidden");
+        }, 1500);
+    });
+</script>

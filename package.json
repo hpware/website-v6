@@ -20,36 +20,36 @@
     "@astrojs/mdx": "^8.0.3",
     "@astrojs/react": "^7.0.1",
     "@astrojs/rss": "^4.0.19",
-    "@astrojs/sitemap": "^3.7.2",
+    "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "^11.0.13",
     "@emnapi/core": "2.0.0-alpha.5",
     "@emnapi/runtime": "2.0.0-alpha.5",
     "@emnapi/wasi-threads": "2.1.0",
-    "@lucide/astro": "^1.33.0",
+    "@lucide/astro": "^1.55.0",
     "@napi-rs/wasm-runtime": "1.2.5",
     "@rolldown/binding-linux-x64-gnu": "1.2.13",
     "@rolldown/binding-wasm32-wasi": "1.2.13",
-    "@tailwindcss/vite": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.3",
     "@tybys/wasm-util": "0.10.3",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "astro": "^7.3.8",
-    "convex": "^1.45.0",
-    "lucide-react": "^1.14.0",
+    "convex": "^1.46.0",
+    "lucide-react": "^1.55.0",
     "marked-react": "^4.0.0",
     "prism-react-renderer": "^2.4.1",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "sharp": "^0.35.5",
-    "tailwindcss": "^4.3.0",
+    "tailwindcss": "^4.3.3",
     "turndown": "^7.2.4",
     "turndown-plugin-gfm": "^1.0.2",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.9",
-    "@tailwindcss/typography": "^0.5.19",
-    "@types/node": "^25.7.0",
+    "@astrojs/check": "^0.9.10",
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/node": "^25.9.9",
     "@types/turndown": "^5.0.6",
     "typescript": "^6.0.3"
   },
@@ -59,6 +59,13 @@
       "http-cache-semantics": "^4.3.0",
       "source-map-js": "^1.2.2",
       "undici": "^8.11.2"
+    },
+    "packageExtensions": {
+      "@astrojs/astro2tsx": {
+        "dependencies": {
+          "@emnapi/runtime": "1.11.3"
+        }
+      }
     }
   }
 }
