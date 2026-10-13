@@ -1,0 +1,107 @@
+---
+import { ArchiveIcon, DownloadIcon, ImagesIcon } from "@lucide/astro";
+import { api } from "../../../convex/_generated/api";
+import { convex } from "../../lib/convex";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+let unavailable = false;
+const packs = await convex.query(api.photoPacks.listPublished, {}).catch(() => {
+    unavailable = true;
+    return [];
+});
+---
+
+<Layout
+    locale={locale}
+    translationPath="/photo-packs/"
+    title={T("相片包")}
+    description={T("下載我整理好的原尺寸相片包。")}
+>
+    <section class="mx-auto w-full max-w-6xl pb-24 pt-10 sm:pt-16">
+        <div class="max-w-2xl">
+            <div class="mb-5 flex items-center gap-3 text-sm text-primary">
+                <span class="h-px w-10 bg-current"></span>
+                <span class="tracking-[0.18em] uppercase">ZIP archive</span>
+            </div>
+            <h1 class="text-4xl font-bold tracking-tight sm:text-6xl">
+                {T("相片包")}
+            </h1>
+            <p class="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
+                {T("下載我整理好的原尺寸相片包。")}
+            </p>
+        </div>
+
+        {
+            packs.length > 0 ? (
+                <ul class="mt-12 grid list-none grid-cols-1 gap-7 p-0 sm:grid-cols-2 lg:grid-cols-3">
+                    {packs.map((pack) => (
+                        <li class="group relative">
+                            <div
+                                aria-hidden="true"
+                                class="absolute inset-2 translate-x-1 translate-y-2 rounded-[2rem_1rem_2.5rem_1.25rem] border border-primary/30 bg-primary/10 transition-transform duration-300 group-hover:translate-x-2 group-hover:translate-y-3"
+                            />
+                            <a
+                                href={pack.archive_url}
+                                download
+                                class="relative block overflow-hidden rounded-[1.25rem_2.75rem_1.5rem_2rem] border border-border bg-card shadow-sm transition-transform duration-300 group-hover:-translate-y-1 focus-visible:-translate-y-1"
+                                aria-label={`${T("下載")} ${pack.title}`}
+                            >
+                                <div class="relative aspect-[4/3] overflow-hidden bg-secondary">
+                                    <img
+                                        src={pack.cover_image_url}
+                                        alt=""
+                                        loading="lazy"
+                                        decoding="async"
+                                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                    />
+                                    <span class="absolute right-4 top-4 flex size-11 items-center justify-center rounded-full bg-background/85 shadow-sm backdrop-blur-md">
+                                        <DownloadIcon class="size-5" aria-hidden="true" />
+                                    </span>
+                                </div>
+                                <div class="p-5 sm:p-6">
+                                    <h2 class="text-2xl font-bold leading-tight">{pack.title}</h2>
+                                    {pack.description && (
+                                        <p class="mt-2 line-clamp-3 leading-relaxed text-muted-foreground">
+                                            {pack.description}
+                                        </p>
+                                    )}
+                                    <div class="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
+                                        {pack.photo_count !== undefined && (
+                                            <span class="flex items-center gap-1.5">
+                                                <ImagesIcon class="size-4" aria-hidden="true" />
+                                                {pack.photo_count} {T("張相片")}
+                                            </span>
+                                        )}
+                                        {pack.archive_size && (
+                                            <span class="flex items-center gap-1.5">
+                                                <ArchiveIcon class="size-4" aria-hidden="true" />
+                                                ZIP · {pack.archive_size}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div class="mt-12 flex min-h-64 flex-col items-center justify-center rounded-[2rem_1rem_2.5rem_1.25rem] border border-dashed border-border px-6 text-center">
+                    <ArchiveIcon class="size-8 text-primary" aria-hidden="true" />
+                    <h2 class="mt-4 text-xl font-bold">
+                        {unavailable ? T("暫時無法載入相片包") : T("相片包即將推出")}
+                    </h2>
+                    <p class="mt-2 text-muted-foreground">
+                        {unavailable ? T("請稍後再試一次。") : T("新的下載內容會出現在這裡。")}
+                    </p>
+                </div>
+            )
+        }
+    </section>
+</Layout>
