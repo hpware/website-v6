@@ -3,7 +3,7 @@ import AchievementsTimeline from "../AchievementsTimeline.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
 import { CheckIcon, CopyIcon } from "@lucide/astro";
-import { birthday } from "../../data/about.json";
+import { preciseAge } from "../../lib/age";
 
 interface Props {
     locale: Locale;
@@ -11,12 +11,6 @@ interface Props {
 
 const { locale } = Astro.props;
 const T = createTranslator(locale);
-
-// Both dates are "YYYY-MM-DD", so the month-day parts compare as plain strings.
-const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(new Date());
-const hadBirthdayThisYear = today.slice(5) >= birthday.slice(5);
-const age = Number(today.slice(0, 4)) - Number(birthday.slice(0, 4)) - (hadBirthdayThisYear ? 0 : 1);
-const aboutMe = [`${age} ${T("歲")}`, T("五專生"), T("喜歡 TypeScript 和 Linux 伺服器")];
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
@@ -29,7 +23,7 @@ const aboutMe = [`${age} ${T("歲")}`, T("五專生"), T("喜歡 TypeScript 和 
                 {T("這是元皓的網站！")}
             </p>
             <p class="mt-4 text-base text-muted-foreground sm:text-lg">
-                {aboutMe.join(" · ")}
+                <span class="tabular-nums" data-age>{preciseAge()}</span> {T("歲")} · {T("五專生")}
             </p>
 
             <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
@@ -55,6 +49,15 @@ const aboutMe = [`${age} ${T("歲")}`, T("五專生"), T("喜歡 TypeScript 和 
 </Layout>
 
 <script>
+    import { preciseAge } from "../../lib/age";
+
+    const ageElement = document.querySelector("[data-age]");
+    if (ageElement) {
+        window.setInterval(() => {
+            ageElement.textContent = preciseAge();
+        }, 100);
+    }
+
     const copyButton = document.querySelector("[data-ssh-copy]");
     const command = document.querySelector("[data-ssh-command]");
     const copyIcon = document.querySelector("[data-copy-icon]");
