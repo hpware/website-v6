@@ -1,0 +1,35 @@
+---
+import PhotoPacks from "../PhotoPacks.tsx";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, type Locale } from "../../i18n";
+import { getPhotoPacks } from "../../lib/photoPacks";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const packs = await getPhotoPacks();
+---
+
+<Layout
+    locale={locale}
+    translationPath="/photos/"
+    title={T("照片包")}
+    description={T("一包一包的照片，點開來看看。")}
+>
+    <div class="mx-auto max-w-5xl pb-16">
+        <h1 class="text-2xl">{T("照片包")}</h1>
+        <p class="opacity-70">{T("一包一包的照片，點開來看看。")}</p>
+        <PhotoPacks
+            client:load
+            packs={packs}
+            labels={{
+                photos: T("張照片"),
+                close: T("關閉"),
+                empty: T("目前還沒有照片包。"),
+            }}
+        />
+    </div>
+</Layout>

@@ -169,3 +169,110 @@
         }
     }
 }
+
+/* Photo packs: blob packs that unzip into photos (src/components/PhotoPacks.tsx) */
+.photo-pack-body {
+    transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.photo-pack:hover .photo-pack-body,
+.photo-pack:focus-visible .photo-pack-body {
+    transform: rotate(-3deg) scale(1.04);
+}
+
+.photo-pack-half {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 0 4px rgb(255 255 255 / 0.25);
+    transition: transform 450ms cubic-bezier(0.5, 0, 0.2, 1) 250ms;
+}
+.photo-pack-top {
+    clip-path: inset(0 0 50% 0);
+}
+.photo-pack-bottom {
+    clip-path: inset(50% 0 0 0);
+}
+.photo-pack[data-open] .photo-pack-top {
+    transform: translateY(-22%) rotate(-8deg);
+}
+.photo-pack[data-open] .photo-pack-bottom {
+    transform: translateY(22%) rotate(5deg);
+}
+
+.photo-pack-zipper {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: calc(50% - 4px);
+    height: 8px;
+    background: repeating-linear-gradient(
+        90deg,
+        rgb(255 255 255 / 0.9) 0 3px,
+        transparent 3px 6px
+    );
+    filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.4));
+    transition: opacity 150ms linear 250ms;
+}
+.photo-pack-pull {
+    position: absolute;
+    left: 0;
+    top: -6px;
+    width: 14px;
+    height: 26px;
+    border-radius: 4px 4px 7px 7px;
+    background: white;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+    transition: left 300ms ease-in-out;
+}
+.photo-pack[data-open] .photo-pack-pull {
+    left: calc(100% - 14px);
+}
+.photo-pack[data-open] .photo-pack-zipper {
+    opacity: 0;
+}
+
+.photo-pack-peek {
+    transform: rotate(calc(-10deg + var(--n) * 20deg));
+    transition: transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.photo-pack:hover .photo-pack-peek,
+.photo-pack:focus-visible .photo-pack-peek {
+    transform: translate(calc(-30% + var(--n) * 60%), -28%)
+        rotate(calc(-14deg + var(--n) * 28deg));
+}
+.photo-pack[data-open] .photo-pack-peek {
+    transform: translate(calc(-40% + var(--n) * 80%), -60%)
+        rotate(calc(-20deg + var(--n) * 40deg));
+    opacity: 0;
+    transition-duration: 600ms;
+}
+
+.photo-pack-backdrop {
+    animation: photo-pack-fade 250ms ease-out;
+}
+.photo-pack-spill {
+    animation: photo-pack-spill 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(var(--i) * 70ms);
+}
+
+@keyframes photo-pack-fade {
+    from {
+        opacity: 0;
+    }
+}
+@keyframes photo-pack-spill {
+    from {
+        opacity: 0;
+        transform: translateY(-40vh) scale(0.3) rotate(var(--tilt));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .photo-pack *,
+    .photo-pack-spill,
+    .photo-pack-backdrop {
+        animation: none !important;
+        transition: none !important;
+    }
+}
