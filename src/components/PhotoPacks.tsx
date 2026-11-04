@@ -1,5 +1,10 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect, useState, type CSSProperties } from "react";
+import {
+    useEffect,
+    useState,
+    type CSSProperties,
+    type PointerEvent,
+} from "react";
 import type { PhotoPack } from "../lib/photoPacks";
 
 type Props = {
@@ -13,15 +18,30 @@ type Props = {
     };
 };
 
-// A few hand-picked blob outlines so the packs don't all look the same.
-const blobShapes = [
-    "62% 38% 46% 54% / 55% 44% 56% 45%",
-    "42% 58% 63% 37% / 45% 56% 44% 55%",
-    "55% 45% 38% 62% / 62% 38% 62% 38%",
-    "48% 52% 58% 42% / 38% 60% 40% 62%",
-];
+// Foil colour (oklch hue) for each pack, cycled so neighbours differ.
+const packHues = [230, 330, 60, 160, 280];
+const hueOf = (index: number) => packHues[index % packHues.length];
 
-// How long the zipper takes to open before the photos spill out.
+// Tilts a card toward the pointer and moves the holo shine with it.
+// The vars are set on the (untransformed) wrapper so the rect doesn't jitter.
+function tilt(event: PointerEvent<HTMLElement>) {
+    const el = event.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    el.style.setProperty("--rx", `${(0.5 - y) * 18}deg`);
+    el.style.setProperty("--ry", `${(x - 0.5) * 18}deg`);
+    el.style.setProperty("--mx", `${x * 100}%`);
+    el.style.setProperty("--my", `${y * 100}%`);
+}
+
+function untilt(event: PointerEvent<HTMLElement>) {
+    for (const name of ["--rx", "--ry", "--mx", "--my"]) {
+        event.currentTarget.style.removeProperty(name);
+    }
+}
+
+// How long the pack takes to tear open before the photos spill out.
 const UNZIP_MS = 550;
 
 export default function PhotoPacks({ packs, labels }: Props) {
@@ -80,17 +100,18 @@ export default function PhotoPacks({ packs, labels }: Props) {
         return <p className="mt-8 text-center opacity-70">{labels.empty}</p>;
     }
 
+    const openHue = openPack ? hueOf(packs.indexOf(openPack)) : 0;
     const viewingPhoto =
         openPack && viewing !== null ? openPack.photos[viewing] : null;
 
     return (
         <>
-            <ul className="mt-8 grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-10 grid grid-cols-1 gap-x-8 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
                 {packs.map((pack, index) => (
                     <li key={pack.id}>
-                        <PackBlob
+                        <BoosterPack
                             pack={pack}
-                            shape={blobShapes[index % blobShapes.length]}
+                            hue={hueOf(index)}
                             open={unzipping === pack.id}
                             photosLabel={labels.photos}
                             onClick={() => unzip(pack)}
@@ -128,13 +149,15 @@ export default function PhotoPacks({ packs, labels }: Props) {
                             </p>
                         )}
                         {/* Wrapping + centered so a short last row doesn't leave a gap on one side */}
-                        <div className="mt-8 flex flex-wrap justify-center gap-4">
+                        <div className="mt-10 flex flex-wrap justify-center gap-6">
                             {openPack.photos.map((photo, index) => (
                                 <button
                                     type="button"
                                     key={`${photo.src}-${index}`}
                                     onClick={() => view(index)}
-                                    className="photo-pack-spill aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
+                                    onPointerMove={tilt}
+                                    onPointerLeave={untilt}
+                                    className="photo-pack-spill w-60 shrink-0"
                                     style={
                                         {
                                             "--i": index,
@@ -142,11 +165,10 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                         } as CSSProperties
                                     }
                                 >
-                                    <img
-                                        src={photo.src}
-                                        alt={photo.alt ?? ""}
-                                        loading="lazy"
-                                        className="size-full object-cover transition-transform duration-500 hover:scale-105"
+                                    <PhotoCard
+                                        pack={openPack}
+                                        hue={openHue}
+                                        index={index}
                                     />
                                 </button>
                             ))}
@@ -214,60 +236,117 @@ export default function PhotoPacks({ packs, labels }: Props) {
     );
 }
 
-type PackBlobProps = {
+const pad = (n: number) => String(n).padStart(2, "0");
+
+type BoosterPackProps = {
     pack: PhotoPack;
-    shape: string;
+    hue: number;
     open: boolean;
     photosLabel: string;
     onClick: () => void;
 };
 
-function PackBlob({ pack, shape, open, photosLabel, onClick }: PackBlobProps) {
+function BoosterPack({ pack, hue, open, photosLabel, onClick }: BoosterPackProps) {
     const cover = pack.cover ?? pack.photos[0].src;
-    const peeks = pack.photos.slice(1, 3);
+    const peeks = pack.photos.slice(0, 3);
+    const face = (
+        <div
+            className="photo-pack-foil absolute inset-0 flex flex-col items-center overflow-hidden rounded-md px-[9%] pb-[12%] pt-[17%] text-white"
+            style={{ "--hue": hue } as CSSProperties}
+        >
+            <div className="photo-pack-crimp absolute inset-x-0 top-0 h-[6%]" />
+            <div className="photo-pack-crimp absolute inset-x-0 bottom-0 h-[6%]" />
+            <div className="absolute inset-x-[6%] top-[12%] border-t-2 border-dashed border-white/40" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-80">
+                Photo pack
+            </span>
+            <div className="mt-2 aspect-square w-full overflow-hidden rounded-xl shadow-lg ring-4 ring-white/40">
+                <img src={cover} alt="" loading="lazy" className="size-full object-cover" />
+            </div>
+            <span className="mt-auto line-clamp-2 text-center text-xl font-bold leading-tight drop-shadow-md">
+                {pack.title}
+            </span>
+            <span className="mt-1 rounded-full bg-black/30 px-3 py-0.5 text-xs">
+                {pack.photos.length} {photosLabel}
+            </span>
+        </div>
+    );
 
     return (
         <button
             type="button"
             onClick={onClick}
+            onPointerMove={tilt}
+            onPointerLeave={untilt}
             data-open={open || undefined}
             className="photo-pack group flex w-full flex-col items-center text-center"
         >
-            <div className="relative aspect-square w-full max-w-72">
-                {/* Photos peeking out from behind the pack */}
+            <div className="photo-pack-tilt relative aspect-[5/7] w-full max-w-60">
+                {/* Cards waiting inside; they rise out once the top is torn off */}
                 {peeks.map((photo, index) => (
-                    <img
-                        key={photo.src}
-                        src={photo.src}
-                        alt=""
-                        loading="lazy"
-                        className="photo-pack-peek absolute inset-[18%] size-[64%] rounded-xl object-cover shadow-md"
-                        style={{ "--n": index } as CSSProperties}
-                    />
+                    <div
+                        key={`${photo.src}-${index}`}
+                        className="photo-pack-peek absolute inset-x-[14%] top-[14%] aspect-[63/88] overflow-hidden rounded-md border-4 border-white bg-white shadow-md"
+                        style={{ "--n": index - 1 } as CSSProperties}
+                    >
+                        <img src={photo.src} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                    </div>
                 ))}
 
-                {/* The pack itself: two halves of the cover that split apart */}
-                <div className="photo-pack-body absolute inset-0">
-                    <div
-                        className="photo-pack-half photo-pack-top"
-                        style={{ backgroundImage: `url("${cover}")`, borderRadius: shape }}
-                    />
-                    <div
-                        className="photo-pack-half photo-pack-bottom"
-                        style={{ backgroundImage: `url("${cover}")`, borderRadius: shape }}
-                    />
-                    <div className="photo-pack-zipper" aria-hidden="true">
-                        <span className="photo-pack-pull" />
-                    </div>
-                </div>
-
-                <span className="absolute -bottom-2 right-[12%] rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground shadow">
-                    {pack.photos.length} {photosLabel}
-                </span>
+                {/* Same face twice, clipped at the tear line, so the top can rip off */}
+                <div className="photo-pack-half photo-pack-bottom">{face}</div>
+                <div className="photo-pack-half photo-pack-top">{face}</div>
+                <div className="photo-pack-holo rounded-md" />
             </div>
 
-            <span className="mt-5 text-xl">{pack.title}</span>
-            {pack.date && <small className="opacity-70">{pack.date}</small>}
+            {pack.date && <small className="mt-4 opacity-70">{pack.date}</small>}
         </button>
+    );
+}
+
+type PhotoCardProps = {
+    pack: PhotoPack;
+    hue: number;
+    index: number;
+};
+
+function PhotoCard({ pack, hue, index }: PhotoCardProps) {
+    const photo = pack.photos[index];
+    const number = pad(index + 1);
+
+    return (
+        <div
+            className="photo-pack-tilt photo-pack-frame relative aspect-[63/88] rounded-[14px] p-2.5 shadow-xl"
+            style={{ "--hue": hue } as CSSProperties}
+        >
+            <div className="photo-pack-card-inner flex h-full flex-col rounded-lg p-2 text-left text-neutral-900">
+                <div className="flex items-baseline justify-between gap-2 text-sm font-bold">
+                    <span className="truncate">{photo.alt ?? pack.title}</span>
+                    <span className="shrink-0 text-xs opacity-60">#{number}</span>
+                </div>
+                <div className="photo-pack-art mt-1 aspect-[4/3] overflow-hidden rounded-sm border-2">
+                    <img
+                        src={photo.src}
+                        alt={photo.alt ?? ""}
+                        loading="lazy"
+                        className="size-full object-cover"
+                    />
+                </div>
+                <div className="photo-pack-strip mt-1.5 truncate rounded-sm px-2 py-0.5 text-center text-[10px] italic">
+                    {pack.title}
+                    {pack.date && ` · ${pack.date}`}
+                </div>
+                <p className="mt-1.5 line-clamp-4 flex-1 text-xs leading-snug text-neutral-700">
+                    {pack.description}
+                </p>
+                <div className="flex justify-between text-[10px] text-neutral-500">
+                    <span>
+                        {number}/{pad(pack.photos.length)}
+                    </span>
+                    <span>★</span>
+                </div>
+            </div>
+            <div className="photo-pack-holo rounded-[14px]" />
+        </div>
     );
 }
