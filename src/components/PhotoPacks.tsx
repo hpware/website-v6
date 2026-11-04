@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import type { PhotoPack } from "../lib/photoPacks";
 
 type Props = {
@@ -74,12 +75,15 @@ export default function PhotoPacks({ packs, labels }: Props) {
                 ))}
             </ul>
 
-            {openPack && (
+            {/* Portalled to <body> so they cover the whole window (navbar included)
+                instead of being trapped inside the page layout. */}
+            {openPack &&
+                createPortal(
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label={openPack.title}
-                    className="photo-pack-backdrop fixed inset-0 z-[60] overflow-y-auto bg-background/85 px-4 py-16 backdrop-blur-xl"
+                    className="photo-pack-backdrop fixed inset-0 z-[100] overflow-y-auto bg-background/85 px-4 py-16 backdrop-blur-xl"
                     onClick={close}
                 >
                     <button
@@ -123,15 +127,19 @@ export default function PhotoPacks({ packs, labels }: Props) {
                             ))}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
 
-            {openPack && viewingPhoto && viewing !== null && (
+            {openPack &&
+                viewingPhoto &&
+                viewing !== null &&
+                createPortal(
                 <div
                     role="dialog"
                     aria-modal="true"
                     aria-label={viewingPhoto.alt ?? openPack.title}
-                    className="photo-pack-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4 sm:p-16"
+                    className="photo-pack-backdrop fixed inset-0 z-[110] flex items-center justify-center bg-black/85 p-4 sm:p-16"
                     onClick={() => setViewing(null)}
                 >
                     <img
@@ -179,7 +187,8 @@ export default function PhotoPacks({ packs, labels }: Props) {
                             </span>
                         </>
                     )}
-                </div>
+                </div>,
+                document.body,
             )}
         </>
     );
