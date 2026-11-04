@@ -1,0 +1,159 @@
+---
+import { Copy, Folder, Trash } from "@lucide/astro";
+import Admin from "../../layouts/Admin.astro";
+import { cleanPrefix, deleteObject, listFolder, missingS3Env, publicUrl } from "../../lib/admin/s3";
+import { errorMessage, text, withNotice } from "../../lib/admin/utils";
+
+let error = "";
+let prefix = "";
+try {
+    prefix = cleanPrefix(Astro.url.searchParams.get("prefix") ?? "");
+} catch (caught) {
+    error = errorMessage(caught);
+}
+const here = `/system-admin/storage?prefix=${encodeURIComponent(prefix)}`;
+
+if (Astro.request.method === "POST" && missingS3Env.length === 0) {
+    const form = await Astro.request.formData();
+    try {
+        if (text(form, "intent") === "delete") {
+            await deleteObject(text(form, "key"));
+            return Astro.redirect(withNotice(here, "File deleted."), 303);
+        }
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+let folder: Awaited<ReturnType<typeof listFolder>> | undefined;
+if (missingS3Env.length === 0 && !error) {
+    try {
+        folder = await listFolder(prefix);
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+// Breadcrumbs: "photos/tokyo/" → bucket, photos, tokyo
+const crumbs = prefix
+    .split("/")
+    .filter(Boolean)
+    .map((name, index, parts) => ({ name, prefix: `${parts.slice(0, index + 1).join("/")}/` }));
+const browse = (target: string) => `/system-admin/storage?prefix=${encodeURIComponent(target)}`;
+const isImage = (key: string) => /\.(avif|gif|jpe?g|png|svg|webp)$/i.test(key);
+const formatSize = (bytes: number) =>
+    bytes < 1024 ? `${bytes} B` : bytes < 1024 ** 2 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+---
+
+<Admin title="Storage" error={error}>
+    <h1 class="text-3xl font-bold">Storage</h1>
+    <p class="mt-1 text-sm opacity-70">Files in the S3 bucket. Uploads go straight from your browser to S3.</p>
+
+    {
+        missingS3Env.length > 0 ? (
+            <p class="admin-notice admin-notice-error mt-6">
+                Not configured yet. Missing env: {missingS3Env.join(", ")}
+            </p>
+        ) : (
+            <>
+                <nav class="mt-6 flex flex-wrap items-center gap-1 text-sm">
+                    <a href={browse("")} class="hover:underline">bucket</a>
+                    {crumbs.map((crumb) => (
+                        <>
+                            <span class="opacity-50">/</span>
+                            <a href={browse(crumb.prefix)} class="hover:underline">{crumb.name}</a>
+                        </>
+                    ))}
+                </nav>
+
+                <div class="admin-card mt-4 flex flex-col gap-3" data-upload data-prefix={prefix}>
+                    <label class="admin-label">
+                        Upload to /{prefix}
+                        <input type="file" multiple data-upload-input class="admin-input text-sm" />
+                    </label>
+                    <p class="admin-hint" data-upload-status hidden></p>
+                </div>
+
+                <ul class="mt-4 flex flex-col gap-2">
+                    {folder?.folders.map((sub) => (
+                        <li>
+                            <a href={browse(sub)} class="admin-card flex items-center gap-3 p-3 hover:bg-gray-500/10">
+                                <Folder class="size-5 shrink-0" aria-hidden="true" />
+                                <span class="truncate">{sub.slice(prefix.length)}</span>
+                            </a>
+                        </li>
+                    ))}
+                    {folder?.files.map((file) => (
+                        <li class="admin-card flex items-center gap-3 p-2">
+                            {isImage(file.key) ? (
+                                <img
+                                    src={publicUrl(file.key)}
+                                    alt=""
+                                    loading="lazy"
+                                    class="size-12 shrink-0 rounded-lg bg-gray-500/20 object-cover"
+                                />
+                            ) : (
+                                <span class="size-12 shrink-0 rounded-lg bg-gray-500/20" />
+                            )}
+                            <div class="min-w-0 flex-1">
+                                <a href={publicUrl(file.key)} target="_blank" rel="noreferrer" class="block truncate text-sm font-medium hover:underline">
+                                    {file.key.slice(prefix.length)}
+                                </a>
+                                <p class="admin-hint">{formatSize(file.size)}</p>
+                            </div>
+                            <button
+                                type="button"
+                                title="Copy URL"
+                                data-copy={publicUrl(file.key)}
+                                class="admin-btn px-2"
+                            >
+                                <Copy class="size-4" aria-hidden="true" />
+                            </button>
+                            <form method="post" data-confirm="Delete this file? Photo packs using it will show a broken image.">
+                                <input type="hidden" name="key" value={file.key} />
+                                <button name="intent" value="delete" title="Delete" class="admin-btn admin-btn-danger px-2">
+                                    <Trash class="size-4" aria-hidden="true" />
+                                </button>
+                            </form>
+                        </li>
+                    ))}
+                </ul>
+                {folder && folder.folders.length === 0 && folder.files.length === 0 && (
+                    <p class="admin-hint mt-4">Nothing here yet.</p>
+                )}
+                {folder?.truncated && <p class="admin-hint mt-4">Only the first 1000 entries are shown.</p>}
+            </>
+        )
+    }
+</Admin>
+
+<script>
+    import { uploadFiles } from "../../lib/admin/uploadFiles";
+
+    const card = document.querySelector<HTMLElement>("[data-upload]");
+    const input = document.querySelector<HTMLInputElement>("[data-upload-input]");
+    const status = document.querySelector<HTMLElement>("[data-upload-status]");
+
+    input?.addEventListener("change", async () => {
+        const files = [...(input.files ?? [])];
+        if (!card || !status || files.length === 0) return;
+        input.disabled = true;
+        status.hidden = false;
+        try {
+            await uploadFiles(files, card.dataset.prefix ?? "", (done, total) => {
+                status.textContent = `Uploading ${done} / ${total}...`;
+            });
+            window.location.reload();
+        } catch (error) {
+            status.textContent = error instanceof Error ? error.message : String(error);
+            input.disabled = false;
+        }
+    });
+
+    for (const button of document.querySelectorAll<HTMLButtonElement>("[data-copy]")) {
+        button.addEventListener("click", async () => {
+            await navigator.clipboard.writeText(button.dataset.copy ?? "");
+            button.title = "Copied!";
+        });
+    }
+</script>

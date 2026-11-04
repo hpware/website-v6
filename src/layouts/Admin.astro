@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { Font } from "astro:assets";
 import {
+    HardDrive,
     Images,
     KeyRound,
     LayoutDashboard,
@@ -27,6 +28,7 @@ const tabs = [
     { name: "Dashboard", icon: LayoutDashboard, url: "/system-admin" },
     { name: "Pages", icon: NotebookText, url: "/system-admin/pages" },
     { name: "Photos", icon: Images, url: "/system-admin/photos" },
+    { name: "Storage", icon: HardDrive, url: "/system-admin/storage" },
     { name: "Passkeys", icon: KeyRound, url: "/system-admin/passkeys" },
 ];
 const isActive = (url: string) =>

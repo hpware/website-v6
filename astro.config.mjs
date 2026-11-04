@@ -26,6 +26,15 @@ export default defineConfig({
       ADMIN_SESSION_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
       // Shared with Convex (`npx convex env set ADMIN_API_SECRET ...`) for admin-only functions.
       ADMIN_API_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
+      // S3-compatible storage (MinIO, Garage, ...) for admin uploads. Browsers upload
+      // straight to it with presigned URLs, so the bucket needs CORS for PUT from this site.
+      S3_ENDPOINT: envField.string({ context: "server", access: "secret", optional: true }),
+      S3_REGION: envField.string({ context: "server", access: "secret", default: "us-east-1" }),
+      S3_BUCKET: envField.string({ context: "server", access: "secret", optional: true }),
+      S3_ACCESS_KEY_ID: envField.string({ context: "server", access: "secret", optional: true }),
+      S3_SECRET_ACCESS_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      // Public base URL objects are served from, e.g. https://cdn.example.com/bucket
+      S3_PUBLIC_URL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
   markdown: {

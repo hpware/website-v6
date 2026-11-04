@@ -5,6 +5,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import StatusBadge from "../../../components/admin/StatusBadge.astro";
 import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
+import { missingS3Env } from "../../../lib/admin/s3";
 import {
     adminSecret,
     withNotice,
@@ -154,9 +155,26 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
     <section id="photos" class="mt-8 scroll-mt-24">
         <h2 class="text-xl font-bold">Photos</h2>
 
-        <form method="post" class="admin-card mt-4 flex flex-col gap-3">
+        <div class="admin-card mt-4 flex flex-col gap-3" data-upload data-prefix={`photos/${pack.slug}`}>
+            <h3 class="text-sm font-medium">Upload photos</h3>
+            {
+                missingS3Env.length > 0 ? (
+                    <p class="admin-hint">S3 isn't configured. Missing env: {missingS3Env.join(", ")}</p>
+                ) : (
+                    <>
+                        <input type="file" accept="image/*" multiple data-upload-input class="admin-input text-sm" />
+                        <span class="admin-hint">
+                            Goes straight from your browser to S3 (photos/{pack.slug}/), then gets added to this pack.
+                        </span>
+                        <p class="admin-hint" data-upload-status hidden></p>
+                    </>
+                )
+            }
+        </div>
+
+        <form method="post" class="admin-card mt-4 flex flex-col gap-3" data-add-photos>
             <label class="admin-label">
-                Add photos
+                Add photos by URL
                 <textarea
                     name="photos"
                     required
@@ -167,7 +185,7 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
                 <span class="admin-hint">One URL per line. Add " | alt text" after a URL to describe it.</span>
             </label>
             <div>
-                <button name="intent" value="add-photos" class="admin-btn admin-btn-primary">Add</button>
+                <button name="intent" value="add-photos" class="admin-btn admin-btn-primary" data-add-photos-submit>Add</button>
             </div>
         </form>
 
@@ -216,3 +234,33 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
         </ol>
     </section>
 </Admin>
+
+<script>
+    import { uploadFiles } from "../../../lib/admin/uploadFiles";
+
+    const card = document.querySelector<HTMLElement>("[data-upload]");
+    const input = document.querySelector<HTMLInputElement>("[data-upload-input]");
+    const status = document.querySelector<HTMLElement>("[data-upload-status]");
+    const addForm = document.querySelector<HTMLFormElement>("[data-add-photos]");
+    const addSubmit = document.querySelector<HTMLButtonElement>("[data-add-photos-submit]");
+
+    input?.addEventListener("change", async () => {
+        const files = [...(input.files ?? [])];
+        if (!card || !status || !addForm || !addSubmit || files.length === 0) return;
+        input.disabled = true;
+        status.hidden = false;
+        try {
+            const uploaded = await uploadFiles(files, card.dataset.prefix ?? "", (done, total) => {
+                status.textContent = `Uploading ${done} / ${total}...`;
+            });
+            // Hand the new URLs to the "add by URL" form, which saves them to Convex.
+            const textarea = addForm.querySelector("textarea");
+            if (textarea) textarea.value = uploaded.map((file) => file.publicUrl).join("\n");
+            status.textContent = "Uploaded, adding to the pack...";
+            addForm.requestSubmit(addSubmit);
+        } catch (error) {
+            status.textContent = error instanceof Error ? error.message : String(error);
+            input.disabled = false;
+        }
+    });
+</script>
