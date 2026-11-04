@@ -83,7 +83,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
                     role="dialog"
                     aria-modal="true"
                     aria-label={openPack.title}
-                    className="photo-pack-backdrop fixed inset-0 z-[100] overflow-y-auto bg-background/85 px-4 py-16 backdrop-blur-xl"
+                    className="photo-pack-backdrop fixed inset-0 z-[100] overflow-y-auto bg-background px-4 py-16"
                     onClick={close}
                 >
                     <button
