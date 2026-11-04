@@ -39,6 +39,10 @@ function s3() {
         region: S3_REGION,
         // Self-hosted servers usually don't do bucket.domain style addressing.
         forcePathStyle: true,
+        // Otherwise the SDK signs a checksum of an empty body into presigned URLs,
+        // which R2 (and other servers that check it) rejects for the real upload.
+        requestChecksumCalculation: "WHEN_REQUIRED",
+        responseChecksumValidation: "WHEN_REQUIRED",
         credentials: {
             accessKeyId: S3_ACCESS_KEY_ID ?? "",
             secretAccessKey: S3_SECRET_ACCESS_KEY ?? "",
