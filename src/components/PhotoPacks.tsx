@@ -29,10 +29,11 @@ export default function PhotoPacks({ packs, labels }: Props) {
     const [openPack, setOpenPack] = useState<PhotoPack | null>(null);
     // Index of the photo shown in the lightbox popup, if any.
     const [viewing, setViewing] = useState<number | null>(null);
+    // Which way the last prev/next went, so the photo slides in from that side.
+    const [direction, setDirection] = useState<-1 | 0 | 1>(0);
 
     useEffect(() => {
         if (!openPack) return;
-        const count = openPack.photos.length;
         const onKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 // Close the popup first, then the pack.
@@ -40,10 +41,8 @@ export default function PhotoPacks({ packs, labels }: Props) {
                 else close();
             }
             if (viewing === null) return;
-            if (event.key === "ArrowRight") setViewing((viewing + 1) % count);
-            if (event.key === "ArrowLeft") {
-                setViewing((viewing - 1 + count) % count);
-            }
+            if (event.key === "ArrowRight") step(1);
+            if (event.key === "ArrowLeft") step(-1);
         };
         document.addEventListener("keydown", onKey);
         document.body.style.overflow = "hidden";
@@ -57,6 +56,18 @@ export default function PhotoPacks({ packs, labels }: Props) {
         if (unzipping) return;
         setUnzipping(pack.id);
         setTimeout(() => setOpenPack(pack), UNZIP_MS);
+    }
+
+    function view(index: number) {
+        setDirection(0);
+        setViewing(index);
+    }
+
+    function step(delta: -1 | 1) {
+        if (!openPack || viewing === null) return;
+        const count = openPack.photos.length;
+        setDirection(delta);
+        setViewing((viewing + delta + count) % count);
     }
 
     function close() {
@@ -122,7 +133,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                 <button
                                     type="button"
                                     key={`${photo.src}-${index}`}
-                                    onClick={() => setViewing(index)}
+                                    onClick={() => view(index)}
                                     className="photo-pack-spill aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                                     style={
                                         {
@@ -157,6 +168,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
                         src={viewingPhoto.src}
                         alt={viewingPhoto.alt ?? ""}
                         className="photo-pack-lightbox max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+                        style={{ "--dir": direction } as CSSProperties}
                         onClick={(event) => event.stopPropagation()}
                     />
                     <button
@@ -174,10 +186,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                 aria-label={labels.previous}
                                 onClick={(event) => {
                                     event.stopPropagation();
-                                    setViewing(
-                                        (viewing - 1 + openPack.photos.length) %
-                                            openPack.photos.length,
-                                    );
+                                    step(-1);
                                 }}
                                 className="fixed left-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:left-4"
                             >
@@ -188,9 +197,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                 aria-label={labels.next}
                                 onClick={(event) => {
                                     event.stopPropagation();
-                                    setViewing(
-                                        (viewing + 1) % openPack.photos.length,
-                                    );
+                                    step(1);
                                 }}
                                 className="fixed right-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:right-4"
                             >
