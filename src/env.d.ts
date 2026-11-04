@@ -6,10 +6,6 @@ import type React from "react";
 import type { JSX as ReactJSX } from "react";
 
 declare global {
-  interface ImportMetaEnv {
-    readonly PHOTO_PACKS_URL?: string;
-  }
-
   namespace JSX {
     type ElementType = ReactJSX.ElementType;
     type Element = ReactJSX.Element;

@@ -68,6 +68,29 @@ export const getBySlugWithImages = query({
   },
 });
 
+// Published galleries with their images, for the public photo packs pages.
+export const listPublishedWithImages = query({
+  args: {},
+  handler: async (ctx) => {
+    const galleries = await ctx.db
+      .query("galleries")
+      .withIndex("by_status", (q) => q.eq("status", "published"))
+      .order("desc")
+      .collect();
+
+    return await Promise.all(
+      galleries.map(async (gallery) => ({
+        ...gallery,
+        images: await ctx.db
+          .query("gallery_images")
+          .withIndex("by_gallery_sort", (q) => q.eq("gallery_id", gallery._id))
+          .order("asc")
+          .collect(),
+      })),
+    );
+  },
+});
+
 // ============ MUTATIONS ============
 
 export const create = mutation({

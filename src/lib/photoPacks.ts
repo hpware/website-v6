@@ -1,6 +1,8 @@
-// Photo packs live outside this repo. Point PHOTO_PACKS_URL at any JSON file
-// shaped like `PhotoPacksFeed` (a gist, R2/S3 bucket, CMS endpoint, ...).
-// See photo-packs.example.json in the repo root. Without it, no packs are shown.
+// Photo packs are the published galleries in Convex (`galleries` +
+// `gallery_images`), managed from the admin panel.
+import { api } from "../../convex/_generated/api";
+import type { Doc } from "../../convex/_generated/dataModel";
+import { convex } from "./convex";
 
 export type Photo = {
     src: string;
@@ -16,64 +18,49 @@ export type PhotoPack = {
     photos: Photo[];
 };
 
-export type PhotoPacksFeed = {
-    packs: PhotoPack[];
+type GalleryWithImages = Doc<"galleries"> & {
+    images: Doc<"gallery_images">[];
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
+// created_at is a timestamp (new) or a date string (legacy PostgreSQL rows).
+function formatDate(value: number | string) {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+        ? undefined
+        : date.toISOString().slice(0, 10);
 }
 
-function optionalString(value: unknown) {
-    return typeof value === "string" ? value : undefined;
-}
-
-function parsePhoto(value: unknown): Photo | null {
-    if (typeof value === "string") return { src: value };
-    if (!isRecord(value) || typeof value.src !== "string") return null;
-    return { src: value.src, alt: optionalString(value.alt) };
-}
-
-function parsePack(value: unknown): PhotoPack | null {
-    if (!isRecord(value)) return null;
-    if (typeof value.id !== "string" || typeof value.title !== "string") {
-        return null;
-    }
-    const photos = (Array.isArray(value.photos) ? value.photos : [])
-        .map(parsePhoto)
-        .filter((photo): photo is Photo => photo !== null);
-    if (photos.length === 0) return null;
+// Galleries without images are skipped so they don't show up as empty albums.
+function toPhotoPack(gallery: GalleryWithImages): PhotoPack | null {
+    if (gallery.images.length === 0) return null;
 
     return {
-        id: value.id,
-        title: value.title,
-        description: optionalString(value.description),
-        date: optionalString(value.date),
-        cover: optionalString(value.cover),
-        photos,
+        id: gallery.slug,
+        title: gallery.name,
+        description: gallery.description || undefined,
+        date: formatDate(gallery.created_at),
+        cover: gallery.index_image || undefined,
+        photos: gallery.images.map((image) => ({
+            src: image.image_url,
+            alt: image.name || undefined,
+        })),
     };
 }
 
 export async function getPhotoPacks(): Promise<PhotoPack[]> {
-    const url = import.meta.env.PHOTO_PACKS_URL;
-    if (!url) return [];
-
-    try {
-        const response = await fetch(url, {
-            signal: AbortSignal.timeout(5000),
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const feed: unknown = await response.json();
-        const packs = isRecord(feed) && Array.isArray(feed.packs) ? feed.packs : [];
-        return packs
-            .map(parsePack)
-            .filter((pack): pack is PhotoPack => pack !== null);
-    } catch (error) {
-        console.error("Failed to load photo packs:", error);
-        return [];
-    }
+    const galleries = await convex.query(
+        api.galleries.listPublishedWithImages,
+        {},
+    );
+    return galleries
+        .map(toPhotoPack)
+        .filter((pack): pack is PhotoPack => pack !== null);
 }
 
-export async function getPhotoPack(id: string): Promise<PhotoPack | undefined> {
-    return (await getPhotoPacks()).find((pack) => pack.id === id);
+export async function getPhotoPack(slug: string): Promise<PhotoPack | null> {
+    const gallery = await convex.query(api.galleries.getBySlugWithImages, {
+        slug,
+    });
+    if (!gallery || gallery.status !== "published") return null;
+    return toPhotoPack(gallery);
 }
