@@ -1,10 +1,12 @@
 ---
+import { TriangleAlert } from "@lucide/astro";
 import { api } from "../../../convex/_generated/api";
-import PageClient from "../pages/PageClient";
+import Prose from "../Prose.astro";
 import { createTranslator, type Locale } from "../../i18n";
 import DefaultLayout from "../../layouts/Default.astro";
 import { convex } from "../../lib/convex";
-import { normalizeTimestamp, normalizeWriter } from "../../lib/normalizeWriter";
+import { normalizeWriter } from "../../lib/normalizeWriter";
+import { renderMarkdown } from "../../lib/renderMarkdown";
 import NotFoundPage from "./NotFoundPage.astro";
 
 interface Props {
@@ -13,7 +15,8 @@ interface Props {
 }
 
 const { locale, slug } = Astro.props;
-const page = await convex.query(api.pages.getPublishedBySlug, { slug });
+const T = createTranslator(locale);
+const page = await convex.query(api.pages.getPublicBySlug, { slug });
 
 Astro.response.headers.set(
     "Cache-Control",
@@ -24,30 +27,56 @@ if (!page) {
     Astro.response.status = 404;
 }
 
-const dbPage = page && {
-    uuid: page._id,
-    slug: page.slug,
-    title: page.title,
-    writer: normalizeWriter(page.writer),
-    page_type: page.page_type,
-    status: page.status,
-    markdown_content: page.markdown_content,
-    landing_image: page.landing_image || "",
-    created_at: normalizeTimestamp(page.created_at).toISOString(),
-    updated_at: normalizeTimestamp(page.updated_at).toISOString(),
-};
-const T = createTranslator(locale);
+const content = page && (await renderMarkdown(page.markdown_content));
+const isLanding = page?.page_type === "landing" && page.landing_image;
 ---
 
 {
-    dbPage ? (
+    page && content ? (
         <DefaultLayout
             locale={locale}
             translationPath={`/pages/${slug}/`}
-            title={dbPage.title}
-            description={T("歡迎來到我的網站！")}
+            title={page.title}
+            description={content.excerpt || undefined}
         >
-            <PageClient db={dbPage} locale={locale} />
+            {page.status === "archived" && (
+                <div class="mx-auto mb-6 flex max-w-4xl items-center gap-2 rounded-xl bg-red-600 px-4 py-3 text-white">
+                    <TriangleAlert class="h-5 w-5 shrink-0" />
+                    <p class="font-medium">
+                        {T("此頁面已封存，作者：")} {normalizeWriter(page.writer)}
+                    </p>
+                </div>
+            )}
+
+            {isLanding && (
+                <section class="relative -mx-4 -mt-4 h-[calc(100svh-5rem)] p-4">
+                    <img
+                        src={page.landing_image}
+                        alt={`${T("主視覺圖片：")} ${page.title}`}
+                        loading="eager"
+                        decoding="async"
+                        fetchpriority="high"
+                        class="h-full w-full rounded-2xl object-cover shadow-lg"
+                    />
+                    <div class="absolute inset-x-0 bottom-16 flex flex-col items-center gap-6 px-4 text-center">
+                        <h1 class="rounded-xl bg-black/40 px-4 py-2 text-3xl font-bold text-white backdrop-blur">
+                            {page.title}
+                        </h1>
+                        <a
+                            href="#content"
+                            class="rounded-full bg-white px-8 py-3 font-semibold text-indigo-600 shadow-lg transition-colors hover:bg-gray-50"
+                        >
+                            {T("了解更多")}
+                        </a>
+                    </div>
+                </section>
+            )}
+
+            <article id="content" class="mx-auto max-w-4xl scroll-mt-20 py-12">
+                <Prose>
+                    <Fragment set:html={content.html} />
+                </Prose>
+            </article>
         </DefaultLayout>
     ) : (
         <NotFoundPage locale={locale} />
