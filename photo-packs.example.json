@@ -1,0 +1,21 @@
+{
+  "packs": [
+    {
+      "id": "japan-2024",
+      "title": "Japan 2024",
+      "description": "Optional. Shown under the title on the album page.",
+      "date": "2024-07-01",
+      "cover": "https://example.com/photos/japan-2024/cover.jpg",
+      "photos": [
+        "https://example.com/photos/japan-2024/01.jpg",
+        { "src": "https://example.com/photos/japan-2024/02.jpg", "alt": "Shibuya crossing at night" },
+        { "src": "https://example.com/photos/japan-2024/03.jpg", "alt": "Ramen" }
+      ]
+    },
+    {
+      "id": "minimal-album",
+      "title": "Only the required fields",
+      "photos": ["https://example.com/photos/minimal/01.jpg"]
+    }
+  ]
+}
