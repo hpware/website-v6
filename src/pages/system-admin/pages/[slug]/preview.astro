@@ -1,0 +1,35 @@
+---
+import { api } from "../../../../../convex/_generated/api";
+import Prose from "../../../../components/Prose.astro";
+import StatusBadge from "../../../../components/admin/StatusBadge.astro";
+import Admin from "../../../../layouts/Admin.astro";
+import { convex } from "../../../../lib/convex";
+import { renderMarkdown } from "../../../../lib/renderMarkdown";
+
+const slug = Astro.params.slug ?? "";
+const page = await convex.query(api.pages.getBySlug, { slug });
+if (!page) return Astro.redirect("/system-admin/pages");
+const { html } = await renderMarkdown(page.markdown_content);
+---
+
+<Admin title={`Preview: ${page.title}`}>
+    <div class="flex flex-wrap items-center gap-3">
+        <a href={`/system-admin/pages/${slug}`} class="text-sm opacity-70 hover:opacity-100">‹ Back to editing</a>
+        <StatusBadge status={page.status} />
+    </div>
+    {
+        page.page_type === "landing" && page.landing_image && (
+            <img
+                src={page.landing_image}
+                alt=""
+                class="mt-6 aspect-[21/9] w-full rounded-2xl object-cover shadow-lg"
+            />
+        )
+    }
+    <h1 class="mt-6 text-3xl font-bold">{page.title}</h1>
+    <article class="mt-6">
+        <Prose>
+            <Fragment set:html={html} />
+        </Prose>
+    </article>
+</Admin>

@@ -1,0 +1,119 @@
+---
+import { Images, KeyRound, NotebookText, Plus } from "@lucide/astro";
+import { api } from "../../../convex/_generated/api";
+import StatusBadge from "../../components/admin/StatusBadge.astro";
+import Admin from "../../layouts/Admin.astro";
+import { convex } from "../../lib/convex";
+import { adminSecret, formatDate } from "../../lib/admin/utils";
+
+const [pageStats, pages, galleries, passkeys] = await Promise.all([
+    convex.query(api.pages.getStats, {}),
+    convex.query(api.pages.list, {}),
+    convex.query(api.galleries.list, {}),
+    convex.query(api.adminPasskeys.list, { secret: adminSecret() }),
+]);
+const count = (status: string) => galleries.filter((g) => g.status === status).length;
+
+const stats = [
+    {
+        label: "Pages",
+        value: pageStats.total,
+        detail: `${pageStats.published} published · ${pageStats.drafts} drafts · ${pageStats.archived} archived`,
+        url: "/system-admin/pages",
+    },
+    {
+        label: "Photo packs",
+        value: galleries.length,
+        detail: `${count("published")} published · ${count("draft")} drafts`,
+        url: "/system-admin/photos",
+    },
+    {
+        label: "Passkeys",
+        value: passkeys.length,
+        detail: passkeys.length === 0 ? "None yet. Add one!" : "Can sign in here",
+        url: "/system-admin/passkeys",
+    },
+];
+---
+
+<Admin title="Dashboard">
+    <h1 class="text-3xl font-bold">Dashboard</h1>
+
+    {
+        passkeys.length === 0 && (
+            <a href="/system-admin/passkeys" class="admin-notice admin-notice-error mt-6 flex items-center gap-2">
+                <KeyRound class="size-4 shrink-0" aria-hidden="true" />
+                You signed in with the password. Add a passkey so you can sign in with that instead.
+            </a>
+        )
+    }
+
+    <div class="mt-6 grid gap-4 sm:grid-cols-3">
+        {
+            stats.map((stat) => (
+                <a href={stat.url} class="admin-card transition-colors hover:bg-gray-500/10">
+                    <p class="text-sm opacity-70">{stat.label}</p>
+                    <p class="mt-1 text-4xl font-bold">{stat.value}</p>
+                    <p class="admin-hint mt-2">{stat.detail}</p>
+                </a>
+            ))
+        }
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+        <a href="/system-admin/pages/new" class="admin-btn admin-btn-primary">
+            <Plus class="size-4" aria-hidden="true" /> New page
+        </a>
+        <a href="/system-admin/photos/new" class="admin-btn">
+            <Plus class="size-4" aria-hidden="true" /> New photo pack
+        </a>
+    </div>
+
+    <div class="mt-8 grid gap-6 md:grid-cols-2">
+        <section class="admin-card">
+            <h2 class="flex items-center gap-2 font-bold">
+                <NotebookText class="size-4" aria-hidden="true" /> Latest pages
+            </h2>
+            <ul class="mt-3 flex flex-col gap-1">
+                {pages.length === 0 && <li class="admin-hint">No pages yet.</li>}
+                {
+                    pages.slice(0, 5).map((page) => (
+                        <li>
+                            <a
+                                href={`/system-admin/pages/${page.slug}`}
+                                class="-mx-2 flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-500/10"
+                            >
+                                <span class="truncate">{page.title}</span>
+                                <StatusBadge status={page.status} />
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </section>
+        <section class="admin-card">
+            <h2 class="flex items-center gap-2 font-bold">
+                <Images class="size-4" aria-hidden="true" /> Latest photo packs
+            </h2>
+            <ul class="mt-3 flex flex-col gap-1">
+                {galleries.length === 0 && <li class="admin-hint">No photo packs yet.</li>}
+                {
+                    galleries.slice(0, 5).map((gallery) => (
+                        <li>
+                            <a
+                                href={`/system-admin/photos/${gallery.slug}`}
+                                class="-mx-2 flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-500/10"
+                            >
+                                <span class="truncate">
+                                    {gallery.name}
+                                    <span class="admin-hint ml-1">{formatDate(gallery.created_at)}</span>
+                                </span>
+                                <StatusBadge status={gallery.status} />
+                            </a>
+                        </li>
+                    ))
+                }
+            </ul>
+        </section>
+    </div>
+</Admin>

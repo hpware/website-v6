@@ -242,3 +242,37 @@
         animation: none !important;
     }
 }
+
+/* Admin panel (src/layouts/Admin.astro and src/pages/admin/) */
+@layer components {
+    .admin-card {
+        @apply rounded-2xl border border-gray-300/30 p-5 shadow-sm;
+    }
+    .admin-label {
+        @apply flex flex-col gap-1.5 text-sm font-medium;
+    }
+    .admin-input {
+        @apply w-full rounded-lg border border-gray-300/40 bg-transparent px-3 py-2 text-base font-normal outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30;
+    }
+    .admin-hint {
+        @apply text-xs font-normal opacity-60;
+    }
+    .admin-btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gray-300/40 px-3 py-2 text-sm font-medium whitespace-nowrap transition hover:bg-gray-500/15 disabled:cursor-default disabled:opacity-50;
+    }
+    .admin-btn-primary {
+        @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/85;
+    }
+    .admin-btn-danger {
+        @apply border-red-500/40 text-red-600 hover:bg-red-500/10 dark:text-red-400;
+    }
+    .admin-notice {
+        @apply rounded-xl px-4 py-3 text-sm;
+    }
+    .admin-notice-ok {
+        @apply bg-green-500/15 text-green-800 dark:text-green-200;
+    }
+    .admin-notice-error {
+        @apply bg-red-500/15 text-red-800 dark:text-red-200;
+    }
+}

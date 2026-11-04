@@ -1,5 +1,7 @@
-import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
+import { query, mutation, type MutationCtx } from "./_generated/server";
+import { requireAdmin } from "./adminAuth";
 
 // ============ QUERIES ============
 
@@ -92,104 +94,84 @@ export const listPublishedWithImages = query({
 });
 
 // ============ MUTATIONS ============
+// All of these need ADMIN_API_SECRET (see adminAuth.ts).
+
+async function requireGallery(ctx: MutationCtx, secret: string, id: Id<"galleries">) {
+  requireAdmin(secret);
+  const gallery = await ctx.db.get(id);
+  if (!gallery) throw new ConvexError("Gallery not found");
+  return gallery;
+}
+
+function imagesOf(ctx: MutationCtx, galleryId: Id<"galleries">) {
+  return ctx.db
+    .query("gallery_images")
+    .withIndex("by_gallery_sort", (q) => q.eq("gallery_id", galleryId))
+    .order("asc")
+    .collect();
+}
 
 export const create = mutation({
   args: {
+    secret: v.string(),
     name: v.string(),
     slug: v.string(),
     description: v.optional(v.string()),
     index_image: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+  handler: async (ctx, { secret, ...args }) => {
+    requireAdmin(secret);
     // Slugs are public URLs, so enforce uniqueness before creating a draft.
     const existing = await ctx.db
       .query("galleries")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
-    if (existing) {
-      throw new Error("A gallery with this slug already exists");
-    }
+    if (existing) throw new ConvexError("A gallery with this slug already exists");
 
     const now = Date.now();
-    const id = await ctx.db.insert("galleries", {
-      name: args.name,
-      slug: args.slug,
-      description: args.description,
-      index_image: args.index_image,
+    return await ctx.db.insert("galleries", {
+      ...args,
       status: "draft",
       created_at: now,
       updated_at: now,
     });
-    return id;
   },
 });
 
 export const update = mutation({
   args: {
+    secret: v.string(),
     id: v.id("galleries"),
     name: v.string(),
     description: v.optional(v.string()),
     index_image: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const gallery = await ctx.db.get(args.id);
-    if (!gallery) throw new Error("Gallery not found");
-    await ctx.db.patch(args.id, {
-      name: args.name,
-      description: args.description,
-      index_image: args.index_image,
-      updated_at: Date.now(),
-    });
+  handler: async (ctx, { secret, id, ...fields }) => {
+    await requireGallery(ctx, secret, id);
+    await ctx.db.patch(id, { ...fields, updated_at: Date.now() });
   },
 });
 
-export const publish = mutation({
-  args: { id: v.id("galleries") },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const gallery = await ctx.db.get(args.id);
-    if (!gallery) throw new Error("Gallery not found");
-    await ctx.db.patch(args.id, {
-      status: "published",
-      updated_at: Date.now(),
-    });
+export const setStatus = mutation({
+  args: {
+    secret: v.string(),
+    id: v.id("galleries"),
+    status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
   },
-});
-
-export const unpublish = mutation({
-  args: { id: v.id("galleries") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    const gallery = await ctx.db.get(args.id);
-    if (!gallery) throw new Error("Gallery not found");
-    await ctx.db.patch(args.id, {
-      status: "draft",
-      updated_at: Date.now(),
-    });
+    await requireGallery(ctx, args.secret, args.id);
+    await ctx.db.patch(args.id, { status: args.status, updated_at: Date.now() });
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("galleries") },
+  args: { secret: v.string(), id: v.id("galleries") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    await requireGallery(ctx, args.secret, args.id);
     // Remove child images first so the gallery delete cannot leave orphaned records.
-    const images = await ctx.db
-      .query("gallery_images")
-      .withIndex("by_gallery_sort", (q) => q.eq("gallery_id", args.id))
-      .collect();
-    
-    for (const image of images) {
+    for (const image of await imagesOf(ctx, args.id)) {
       await ctx.db.delete(image._id);
     }
-
     await ctx.db.delete(args.id);
   },
 });
@@ -198,53 +180,59 @@ export const remove = mutation({
 
 export const addImage = mutation({
   args: {
+    secret: v.string(),
     gallery_id: v.id("galleries"),
     name: v.string(),
     description: v.optional(v.string()),
     image_url: v.string(),
   },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+  handler: async (ctx, { secret, ...args }) => {
+    await requireGallery(ctx, secret, args.gallery_id);
     // Append after the highest existing sort order to preserve the current sequence.
-    const lastImage = await ctx.db
-      .query("gallery_images")
-      .withIndex("by_gallery_sort", (q) => q.eq("gallery_id", args.gallery_id))
-      .order("desc")
-      .first();
-    const maxOrder = lastImage ? lastImage.sort_order : -1;
+    const images = await imagesOf(ctx, args.gallery_id);
+    const maxOrder = images.length > 0 ? images[images.length - 1].sort_order : -1;
 
-    const id = await ctx.db.insert("gallery_images", {
-      gallery_id: args.gallery_id,
-      name: args.name,
-      description: args.description,
-      image_url: args.image_url,
+    return await ctx.db.insert("gallery_images", {
+      ...args,
       sort_order: maxOrder + 1,
       created_at: Date.now(),
     });
-    return id;
   },
 });
 
 export const removeImage = mutation({
-  args: { id: v.id("gallery_images") },
+  args: { secret: v.string(), id: v.id("gallery_images") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    requireAdmin(args.secret);
     await ctx.db.delete(args.id);
   },
 });
 
-export const updateImageOrder = mutation({
+/** Swaps an image with its neighbour (one transaction, so the order never ends up half-changed). */
+export const moveImage = mutation({
   args: {
+    secret: v.string(),
     id: v.id("gallery_images"),
-    sort_order: v.number(),
+    direction: v.union(v.literal("up"), v.literal("down")),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
-    await ctx.db.patch(args.id, {
-      sort_order: args.sort_order,
-    });
+    requireAdmin(args.secret);
+    const image = await ctx.db.get(args.id);
+    if (!image) throw new ConvexError("Image not found");
+    const galleryId = ctx.db.normalizeId("galleries", image.gallery_id);
+    if (!galleryId) throw new ConvexError("Image belongs to a legacy gallery");
+
+    const images = await imagesOf(ctx, galleryId);
+    const index = images.findIndex((other) => other._id === image._id);
+    const target = args.direction === "up" ? index - 1 : index + 1;
+    if (target < 0 || target >= images.length) return;
+    [images[index], images[target]] = [images[target], images[index]];
+
+    // Renumber 0..n-1 so gaps or duplicate sort_order values get cleaned up too.
+    for (const [position, other] of images.entries()) {
+      if (other.sort_order !== position) {
+        await ctx.db.patch(other._id, { sort_order: position });
+      }
+    }
   },
 });

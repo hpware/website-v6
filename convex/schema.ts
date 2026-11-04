@@ -74,6 +74,17 @@ export default defineSchema({
     .index("by_article", ["article_id"])
     .index("by_parent", ["parent_id"]),
 
+  // Passkeys that can sign in to the website's /admin (see convex/adminPasskeys.ts).
+  admin_passkeys: defineTable({
+    name: v.string(),
+    credential_id: v.string(), // base64url
+    public_key: v.string(), // base64url
+    counter: v.number(),
+    transports: v.optional(v.array(v.string())),
+    created_at: v.number(),
+    last_used_at: v.optional(v.number()),
+  }).index("by_credential_id", ["credential_id"]),
+
   todos: defineTable({
     title: v.string(),
     content: v.string(),

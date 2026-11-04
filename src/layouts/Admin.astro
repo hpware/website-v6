@@ -1,0 +1,135 @@
+---
+import "../styles/global.css";
+import { Font } from "astro:assets";
+import {
+    ExternalLink,
+    Images,
+    KeyRound,
+    LayoutDashboard,
+    LogOut,
+    NotebookText,
+} from "@lucide/astro";
+import ThemeToggle from "../components/ThemeToggle.astro";
+import { SITE_NAME } from "../consts";
+
+interface Props {
+    title: string;
+    /** Shown as a red notice above the content. */
+    error?: string;
+    /** Login page: no tabs or sign-out button. */
+    bare?: boolean;
+}
+
+const { title, error, bare = false } = Astro.props;
+// Success messages come back as ?done=... after a form redirect.
+const done = Astro.url.searchParams.get("done");
+const path = Astro.url.pathname;
+const tabs = [
+    { name: "Dashboard", icon: LayoutDashboard, url: "/system-admin" },
+    { name: "Pages", icon: NotebookText, url: "/system-admin/pages" },
+    { name: "Photos", icon: Images, url: "/system-admin/photos" },
+    { name: "Passkeys", icon: KeyRound, url: "/system-admin/passkeys" },
+];
+const isActive = (url: string) =>
+    url === "/system-admin" ? path === "/system-admin" || path === "/system-admin/" : path.startsWith(url);
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>{title} | {SITE_NAME} admin</title>
+        <script is:inline>
+            (() => {
+                const theme =
+                    localStorage.getItem("theme") ??
+                    (window.matchMedia("(prefers-color-scheme: dark)").matches
+                        ? "dark"
+                        : "light");
+                document.documentElement.classList.toggle("dark", theme === "dark");
+                document.documentElement.dataset.theme = theme;
+            })();
+        </script>
+        <Font cssVariable="--font-atkinson" />
+    </head>
+    <body>
+        <header class="site-header sticky top-0 z-50 px-4 pt-4">
+            <nav
+                class="mx-auto flex max-w-5xl flex-row items-center justify-between gap-2 rounded-2xl border border-gray-300/30 bg-background/70 px-3 py-1 shadow-lg backdrop-blur-lg"
+            >
+                <a
+                    href={bare ? "/" : "/system-admin"}
+                    class="flex h-11 shrink-0 items-center gap-2 px-1 text-xl font-bold whitespace-nowrap"
+                >
+                    {SITE_NAME}
+                    <span class="rounded-md bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
+                        admin
+                    </span>
+                </a>
+
+                <div class="flex min-w-0 flex-row items-center gap-1">
+                    {
+                        !bare &&
+                            tabs.map((tab) => (
+                                <a
+                                    href={tab.url}
+                                    title={tab.name}
+                                    aria-current={isActive(tab.url) ? "page" : undefined}
+                                    class="flex h-11 items-center gap-1.5 rounded-lg px-2 transition-colors hover:bg-gray-500/20 aria-[current=page]:bg-gray-500/15 aria-[current=page]:font-bold"
+                                >
+                                    <tab.icon class="size-5 shrink-0" aria-hidden="true" />
+                                    <span class="hidden lg:inline">{tab.name}</span>
+                                </a>
+                            ))
+                    }
+                    {
+                        !bare && (
+                            <a
+                                href="/"
+                                title="View site"
+                                class="flex h-11 items-center rounded-lg px-2 transition-colors hover:bg-gray-500/20"
+                            >
+                                <ExternalLink class="size-5" aria-hidden="true" />
+                                <span class="sr-only">View site</span>
+                            </a>
+                        )
+                    }
+                    <ThemeToggle locale="en" />
+                    {
+                        !bare && (
+                            <form method="post" action="/system-admin/logout">
+                                <button
+                                    type="submit"
+                                    title="Sign out"
+                                    class="flex h-11 cursor-pointer items-center rounded-lg px-2 transition-colors hover:bg-gray-500/20"
+                                >
+                                    <LogOut class="size-5" aria-hidden="true" />
+                                    <span class="sr-only">Sign out</span>
+                                </button>
+                            </form>
+                        )
+                    }
+                </div>
+            </nav>
+        </header>
+
+        <main class="mx-auto max-w-5xl px-4 pt-8 pb-20">
+            {done && <p class="admin-notice admin-notice-ok mb-6">{done}</p>}
+            {error && <p class="admin-notice admin-notice-error mb-6">{error}</p>}
+            <slot />
+        </main>
+
+        <script>
+            // Forms or buttons with data-confirm="Question?" ask before submitting.
+            document.addEventListener("submit", (event) => {
+                const form = event.target instanceof HTMLElement ? event.target : null;
+                const message =
+                    event.submitter?.dataset.confirm ?? form?.dataset.confirm;
+                if (message && !window.confirm(message)) event.preventDefault();
+            });
+        </script>
+    </body>
+</html>

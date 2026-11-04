@@ -1,0 +1,53 @@
+---
+// Shared fields for creating and editing a page.
+import type { Doc } from "../../../convex/_generated/dataModel";
+
+interface Props {
+    page?: Doc<"pages">;
+}
+
+const { page } = Astro.props;
+const types = [
+    { value: "simple", label: "Simple" },
+    { value: "info", label: "Info" },
+    { value: "landing", label: "Landing (big image on top)" },
+];
+---
+
+<label class="admin-label">
+    Title
+    <input name="title" required value={page?.title} class="admin-input" />
+</label>
+<div class="grid gap-4 sm:grid-cols-2">
+    <label class="admin-label">
+        Type
+        <select name="page_type" class="admin-input">
+            {
+                types.map((type) => (
+                    <option value={type.value} selected={(page?.page_type ?? "simple") === type.value}>
+                        {type.label}
+                    </option>
+                ))
+            }
+        </select>
+    </label>
+    <label class="admin-label">
+        Landing image URL
+        <input
+            name="landing_image"
+            type="url"
+            value={page?.landing_image}
+            placeholder="https://..."
+            class="admin-input"
+        />
+        <span class="admin-hint">Required for landing pages.</span>
+    </label>
+</div>
+<label class="admin-label">
+    Content (Markdown)
+    <textarea
+        name="markdown_content"
+        required
+        class="admin-input min-h-[55vh] font-mono text-sm leading-relaxed"
+    >{page?.markdown_content}</textarea>
+</label>

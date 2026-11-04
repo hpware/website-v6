@@ -1,0 +1,218 @@
+---
+import { ArrowDown, ArrowUp, ExternalLink, Trash } from "@lucide/astro";
+import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import StatusBadge from "../../../components/admin/StatusBadge.astro";
+import Admin from "../../../layouts/Admin.astro";
+import { convex } from "../../../lib/convex";
+import {
+    adminSecret,
+    withNotice,
+    errorMessage,
+    formatDate,
+    optionalText,
+    requireHttpUrl,
+    text,
+} from "../../../lib/admin/utils";
+
+const slug = Astro.params.slug ?? "";
+const base = `/system-admin/photos/${slug}`;
+
+let error = "";
+const before = await convex.query(api.galleries.getBySlugWithImages, { slug });
+if (!before) return Astro.redirect("/system-admin/photos");
+
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    const secret = adminSecret();
+    const id = before._id;
+    // Convex checks these are real image ids.
+    const imageId = text(form, "image") as Id<"gallery_images">;
+    try {
+        switch (text(form, "intent")) {
+            case "save": {
+                const name = text(form, "name");
+                if (!name) throw new Error("Give the pack a name.");
+                const index_image = optionalText(form, "index_image");
+                if (index_image) requireHttpUrl(index_image, "Cover image");
+                await convex.mutation(api.galleries.update, {
+                    secret,
+                    id,
+                    name,
+                    description: optionalText(form, "description"),
+                    index_image,
+                });
+                return Astro.redirect(withNotice(base, "Saved."), 303);
+            }
+            case "publish":
+                await convex.mutation(api.galleries.setStatus, { secret, id, status: "published" });
+                return Astro.redirect(withNotice(base, "Published."), 303);
+            case "unpublish":
+                await convex.mutation(api.galleries.setStatus, { secret, id, status: "draft" });
+                return Astro.redirect(withNotice(base, "Moved back to drafts."), 303);
+            case "delete":
+                await convex.mutation(api.galleries.remove, { secret, id });
+                return Astro.redirect(withNotice("/system-admin/photos", "Photo pack deleted."), 303);
+            case "add-photos": {
+                // One photo per line: "URL" or "URL | alt text".
+                const lines = text(form, "photos").split("\n").map((line) => line.trim()).filter(Boolean);
+                const photos = lines.map((line) => {
+                    const [url = "", ...alt] = line.split("|");
+                    return { image_url: requireHttpUrl(url.trim(), "Each photo"), name: alt.join("|").trim() };
+                });
+                for (const photo of photos) {
+                    await convex.mutation(api.galleries.addImage, { secret, gallery_id: id, ...photo });
+                }
+                return Astro.redirect(withNotice(base, `Added ${photos.length} photo(s).`, "#photos"), 303);
+            }
+            case "move-up":
+            case "move-down":
+                await convex.mutation(api.galleries.moveImage, {
+                    secret,
+                    id: imageId,
+                    direction: text(form, "intent") === "move-up" ? "up" : "down",
+                });
+                return Astro.redirect(`${base}#photos`, 303);
+            case "remove-photo":
+                await convex.mutation(api.galleries.removeImage, { secret, id: imageId });
+                return Astro.redirect(withNotice(base, "Photo removed.", "#photos"), 303);
+        }
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?? before;
+---
+
+<Admin title={pack.name} error={error}>
+    <a href="/system-admin/photos" class="text-sm opacity-70 hover:opacity-100">‹ Photos</a>
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+        <h1 class="text-3xl font-bold">{pack.name}</h1>
+        <StatusBadge status={pack.status} />
+    </div>
+    <p class="admin-hint mt-1">
+        /photos/{pack.slug}/ · {pack.images.length} photos · created {formatDate(pack.created_at)}
+    </p>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+        {
+            pack.status === "published" ? (
+                <>
+                    <a href={`/en/photos/${pack.slug}/`} class="admin-btn">
+                        <ExternalLink class="size-4" aria-hidden="true" /> View live
+                    </a>
+                    <form method="post">
+                        <button name="intent" value="unpublish" class="admin-btn">Unpublish</button>
+                    </form>
+                </>
+            ) : (
+                <form method="post">
+                    <button name="intent" value="publish" class="admin-btn admin-btn-primary">Publish</button>
+                </form>
+            )
+        }
+        <form method="post" data-confirm="Delete this photo pack and all its photos?">
+            <button name="intent" value="delete" class="admin-btn admin-btn-danger">Delete</button>
+        </form>
+    </div>
+    {
+        pack.status === "published" && pack.images.length === 0 && (
+            <p class="admin-notice admin-notice-error mt-4">
+                Published, but it has no photos, so it's hidden on the site.
+            </p>
+        )
+    }
+
+    <form method="post" class="admin-card mt-6 flex flex-col gap-4">
+        <h2 class="font-bold">Details</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+            <label class="admin-label">
+                Name
+                <input name="name" required value={pack.name} class="admin-input" />
+            </label>
+            <label class="admin-label">
+                Cover image URL
+                <input
+                    name="index_image"
+                    type="url"
+                    value={pack.index_image}
+                    placeholder="Defaults to the first photo"
+                    class="admin-input"
+                />
+            </label>
+        </div>
+        <label class="admin-label">
+            Description
+            <input name="description" value={pack.description} class="admin-input" />
+        </label>
+        <div>
+            <button name="intent" value="save" class="admin-btn admin-btn-primary">Save details</button>
+        </div>
+    </form>
+
+    <section id="photos" class="mt-8 scroll-mt-24">
+        <h2 class="text-xl font-bold">Photos</h2>
+
+        <form method="post" class="admin-card mt-4 flex flex-col gap-3">
+            <label class="admin-label">
+                Add photos
+                <textarea
+                    name="photos"
+                    required
+                    rows="4"
+                    placeholder={"https://.../01.jpg\nhttps://.../02.jpg | Shibuya at night"}
+                    class="admin-input font-mono text-sm"
+                ></textarea>
+                <span class="admin-hint">One URL per line. Add " | alt text" after a URL to describe it.</span>
+            </label>
+            <div>
+                <button name="intent" value="add-photos" class="admin-btn admin-btn-primary">Add</button>
+            </div>
+        </form>
+
+        {pack.images.length === 0 && <p class="admin-hint mt-4">No photos yet.</p>}
+        <ol class="mt-4 flex flex-col gap-2">
+            {
+                pack.images.map((image, index) => (
+                    <li class="admin-card flex items-center gap-3 p-2">
+                        <img
+                            src={image.image_url}
+                            alt=""
+                            loading="lazy"
+                            class="size-16 shrink-0 rounded-lg bg-gray-500/20 object-cover"
+                        />
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-medium">{image.name || <span class="opacity-50">No alt text</span>}</p>
+                            <p class="admin-hint truncate">{image.image_url}</p>
+                        </div>
+                        <form method="post" class="flex shrink-0 gap-1">
+                            <input type="hidden" name="image" value={image._id} />
+                            <button name="intent" value="move-up" title="Move up" disabled={index === 0} class="admin-btn px-2">
+                                <ArrowUp class="size-4" aria-hidden="true" />
+                            </button>
+                            <button
+                                name="intent"
+                                value="move-down"
+                                title="Move down"
+                                disabled={index === pack.images.length - 1}
+                                class="admin-btn px-2"
+                            >
+                                <ArrowDown class="size-4" aria-hidden="true" />
+                            </button>
+                            <button
+                                name="intent"
+                                value="remove-photo"
+                                title="Remove"
+                                data-confirm="Remove this photo?"
+                                class="admin-btn admin-btn-danger px-2"
+                            >
+                                <Trash class="size-4" aria-hidden="true" />
+                            </button>
+                        </form>
+                    </li>
+                ))
+            }
+        </ol>
+    </section>
+</Admin>

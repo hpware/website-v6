@@ -4,7 +4,7 @@ import mdx from "@astrojs/mdx";
 import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel";
-import { defineConfig, fontProviders } from "astro/config";
+import { defineConfig, envField, fontProviders } from "astro/config";
 
 import tailwindcss from "@tailwindcss/vite";
 
@@ -17,6 +17,17 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   integrations: [mdx(), sitemap(), react()],
+  // Admin panel secrets (read at runtime on the server, never sent to the browser).
+  env: {
+    schema: {
+      // Hex SHA-512 of the admin password: `printf %s 'password' | shasum -a 512`
+      ADMIN_PASSWORD_SHA512: envField.string({ context: "server", access: "secret", optional: true }),
+      // Random string used to sign the admin session cookie.
+      ADMIN_SESSION_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
+      // Shared with Convex (`npx convex env set ADMIN_API_SECRET ...`) for admin-only functions.
+      ADMIN_API_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
+    },
+  },
   markdown: {
     processor: unified({ rehypePlugins: [rehypeImageAttributes] }),
   },
