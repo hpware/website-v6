@@ -1,0 +1,98 @@
+---
+import { Eye, ExternalLink } from "@lucide/astro";
+import { api } from "../../../../../convex/_generated/api";
+import PageFields from "../../../../components/admin/PageFields.astro";
+import StatusBadge from "../../../../components/admin/StatusBadge.astro";
+import Admin from "../../../../layouts/Admin.astro";
+import { convex } from "../../../../lib/convex";
+import { readPageForm } from "../../../../lib/admin/pageForm";
+import { adminSecret, withNotice, errorMessage, formatDate, text } from "../../../../lib/admin/utils";
+
+const slug = Astro.params.slug ?? "";
+const base = `/system-admin/pages/${slug}`;
+
+let error = "";
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    const secret = adminSecret();
+    try {
+        switch (text(form, "intent")) {
+            case "save":
+                await convex.mutation(api.pages.update, { secret, slug, ...readPageForm(form) });
+                return Astro.redirect(withNotice(base, "Saved."), 303);
+            case "publish":
+                await convex.mutation(api.pages.publish, { secret, slug });
+                return Astro.redirect(withNotice(base, "Published."), 303);
+            case "unpublish":
+                await convex.mutation(api.pages.unpublish, { secret, slug });
+                return Astro.redirect(withNotice(base, "Moved back to drafts."), 303);
+            case "archive":
+                await convex.mutation(api.pages.archive, { secret, slug });
+                return Astro.redirect(withNotice(base, "Archived (still online, with a banner)."), 303);
+            case "delete":
+                await convex.mutation(api.pages.remove, { secret, slug });
+                return Astro.redirect(withNotice("/system-admin/pages", "Page deleted."), 303);
+        }
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+const page = await convex.query(api.pages.getBySlug, { slug });
+if (!page) return Astro.redirect("/system-admin/pages");
+---
+
+<Admin title={page.title} error={error}>
+    <a href="/system-admin/pages" class="text-sm opacity-70 hover:opacity-100">‹ Pages</a>
+    <div class="mt-2 flex flex-wrap items-center gap-3">
+        <h1 class="text-3xl font-bold">{page.title}</h1>
+        <StatusBadge status={page.status} />
+    </div>
+    <p class="admin-hint mt-1">
+        /pages/{page.slug}/ · created {formatDate(page.created_at)} · updated {formatDate(page.updated_at)}
+    </p>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+        <a href={`${base}/preview`} class="admin-btn">
+            <Eye class="size-4" aria-hidden="true" /> Preview
+        </a>
+        {
+            page.status !== "draft" && (
+                <a href={`/en/pages/${page.slug}/`} class="admin-btn">
+                    <ExternalLink class="size-4" aria-hidden="true" /> View live
+                </a>
+            )
+        }
+        {
+            page.status !== "published" && (
+                <form method="post">
+                    <button name="intent" value="publish" class="admin-btn admin-btn-primary">Publish</button>
+                </form>
+            )
+        }
+        {
+            page.status !== "draft" && (
+                <form method="post">
+                    <button name="intent" value="unpublish" class="admin-btn">Unpublish</button>
+                </form>
+            )
+        }
+        {
+            page.status === "published" && (
+                <form method="post">
+                    <button name="intent" value="archive" class="admin-btn">Archive</button>
+                </form>
+            )
+        }
+        <form method="post" data-confirm="Delete this page for good?">
+            <button name="intent" value="delete" class="admin-btn admin-btn-danger">Delete</button>
+        </form>
+    </div>
+
+    <form method="post" class="mt-6 flex flex-col gap-4">
+        <PageFields page={page} />
+        <div>
+            <button name="intent" value="save" class="admin-btn admin-btn-primary">Save</button>
+        </div>
+    </form>
+</Admin>

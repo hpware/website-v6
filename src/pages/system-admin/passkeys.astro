@@ -1,0 +1,101 @@
+---
+import { KeyRound, Trash } from "@lucide/astro";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
+import Admin from "../../layouts/Admin.astro";
+import { convex } from "../../lib/convex";
+import { adminSecret, errorMessage, formatDate, text, withNotice } from "../../lib/admin/utils";
+
+let error = "";
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    try {
+        // Convex checks this is a real passkey id.
+        const id = text(form, "id") as Id<"admin_passkeys">;
+        await convex.mutation(api.adminPasskeys.remove, { secret: adminSecret(), id });
+        return Astro.redirect(withNotice("/system-admin/passkeys", "Passkey removed."), 303);
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+const passkeys = await convex.query(api.adminPasskeys.list, { secret: adminSecret() });
+---
+
+<Admin title="Passkeys" error={error}>
+    <h1 class="text-3xl font-bold">Passkeys</h1>
+    <p class="mt-1 text-sm opacity-70">
+        Passkeys only work on the domain they were added on ({Astro.url.hostname}).
+    </p>
+
+    <div class="admin-card mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label class="admin-label flex-1">
+            Name
+            <input data-passkey-name placeholder="MacBook, iPhone, YubiKey..." class="admin-input" />
+        </label>
+        <button type="button" data-passkey-add class="admin-btn admin-btn-primary py-2.5">
+            <KeyRound class="size-4" aria-hidden="true" /> Add a passkey
+        </button>
+    </div>
+    <p data-passkey-error class="mt-2 text-sm text-red-600 dark:text-red-400" hidden></p>
+
+    <ul class="mt-6 flex flex-col gap-2">
+        {passkeys.length === 0 && <li class="admin-hint">No passkeys yet.</li>}
+        {
+            passkeys.map((passkey) => (
+                <li class="admin-card flex items-center gap-3 py-3">
+                    <KeyRound class="size-5 shrink-0 opacity-60" aria-hidden="true" />
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate font-medium">{passkey.name}</p>
+                        <p class="admin-hint">
+                            Added {formatDate(passkey.created_at)} · last used{" "}
+                            {passkey.last_used_at ? formatDate(passkey.last_used_at) : "never"}
+                        </p>
+                    </div>
+                    <form method="post" data-confirm="Remove this passkey?">
+                        <input type="hidden" name="id" value={passkey._id} />
+                        <button title="Remove" class="admin-btn admin-btn-danger px-2">
+                            <Trash class="size-4" aria-hidden="true" />
+                        </button>
+                    </form>
+                </li>
+            ))
+        }
+    </ul>
+</Admin>
+
+<script>
+    import {
+        startRegistration,
+        type PublicKeyCredentialCreationOptionsJSON,
+    } from "@simplewebauthn/browser";
+    import { isCancelled, postJson } from "../../lib/admin/postJson";
+
+    const button = document.querySelector<HTMLButtonElement>("[data-passkey-add]");
+    const nameInput = document.querySelector<HTMLInputElement>("[data-passkey-name]");
+    const errorText = document.querySelector<HTMLElement>("[data-passkey-error]");
+
+    button?.addEventListener("click", async () => {
+        if (!errorText) return;
+        button.disabled = true;
+        errorText.hidden = true;
+        try {
+            const optionsJSON = await postJson<PublicKeyCredentialCreationOptionsJSON>(
+                "/system-admin/api/passkeys/options",
+            );
+            const response = await startRegistration({ optionsJSON });
+            await postJson("/system-admin/api/passkeys/verify", {
+                name: nameInput?.value,
+                response,
+            });
+            window.location.href = "/system-admin/passkeys?done=Passkey%20added.";
+        } catch (error) {
+            if (!isCancelled(error)) {
+                errorText.textContent = error instanceof Error ? error.message : String(error);
+                errorText.hidden = false;
+            }
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>

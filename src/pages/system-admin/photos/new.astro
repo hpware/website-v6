@@ -1,0 +1,72 @@
+---
+import { api } from "../../../../convex/_generated/api";
+import Admin from "../../../layouts/Admin.astro";
+import { convex } from "../../../lib/convex";
+import {
+    adminSecret,
+    withNotice,
+    errorMessage,
+    optionalText,
+    requireHttpUrl,
+    requireSlug,
+    text,
+} from "../../../lib/admin/utils";
+
+let error = "";
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    try {
+        const slug = requireSlug(text(form, "slug"));
+        const name = text(form, "name");
+        if (!name) throw new Error("Give the pack a name.");
+        const index_image = optionalText(form, "index_image");
+        if (index_image) requireHttpUrl(index_image, "Cover image");
+
+        await convex.mutation(api.galleries.create, {
+            secret: adminSecret(),
+            slug,
+            name,
+            description: optionalText(form, "description"),
+            index_image,
+        });
+        return Astro.redirect(withNotice(`/system-admin/photos/${slug}`, "Created as a draft. Add some photos!"), 303);
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+---
+
+<Admin title="New photo pack" error={error}>
+    <a href="/system-admin/photos" class="text-sm opacity-70 hover:opacity-100">‹ Photos</a>
+    <h1 class="mt-2 text-3xl font-bold">New photo pack</h1>
+
+    <form method="post" class="mt-6 flex max-w-xl flex-col gap-4">
+        <label class="admin-label">
+            Name
+            <input name="name" required class="admin-input" />
+        </label>
+        <label class="admin-label">
+            Slug
+            <input
+                name="slug"
+                required
+                pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                placeholder="japan-2024"
+                class="admin-input font-mono"
+            />
+            <span class="admin-hint">The URL: /photos/&lt;slug&gt;/. Can't be changed later.</span>
+        </label>
+        <label class="admin-label">
+            Description
+            <input name="description" class="admin-input" />
+        </label>
+        <label class="admin-label">
+            Cover image URL
+            <input name="index_image" type="url" placeholder="https://..." class="admin-input" />
+            <span class="admin-hint">Optional. Defaults to the first photo.</span>
+        </label>
+        <div>
+            <button type="submit" class="admin-btn admin-btn-primary">Create draft</button>
+        </div>
+    </form>
+</Admin>

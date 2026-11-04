@@ -1,5 +1,6 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { query, mutation, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { requireAdmin } from "./adminAuth";
 
 const pageType = v.union(v.literal("landing"), v.literal("simple"), v.literal("info"));
 
@@ -10,12 +11,11 @@ function findBySlug(ctx: QueryCtx, slug: string) {
     .first();
 }
 
-/** Mutations need a signed-in user and an existing page. */
-async function requirePage(ctx: MutationCtx, slug: string) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Unauthorized");
+/** Mutations need the admin secret and an existing page. */
+async function requirePage(ctx: MutationCtx, secret: string, slug: string) {
+  requireAdmin(secret);
   const page = await findBySlug(ctx, slug);
-  if (!page) throw new Error("Page not found");
+  if (!page) throw new ConvexError("Page not found");
   return page;
 }
 
@@ -81,13 +81,13 @@ export const create = mutation({
     markdown_content: v.string(),
     landing_image: v.optional(v.string()),
     writer: v.string(),
+    secret: v.string(),
   },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+  handler: async (ctx, { secret, ...args }) => {
+    requireAdmin(secret);
     // Slugs are public URLs, so enforce uniqueness before creating a draft.
     if (await findBySlug(ctx, args.slug)) {
-      throw new Error("A page with this slug already exists");
+      throw new ConvexError("A page with this slug already exists");
     }
 
     const now = Date.now();
@@ -107,42 +107,43 @@ export const update = mutation({
     page_type: pageType,
     markdown_content: v.string(),
     landing_image: v.optional(v.string()),
+    secret: v.string(),
   },
-  handler: async (ctx, { slug, ...fields }) => {
-    const page = await requirePage(ctx, slug);
+  handler: async (ctx, { slug, secret, ...fields }) => {
+    const page = await requirePage(ctx, secret, slug);
     await ctx.db.patch(page._id, { ...fields, updated_at: Date.now() });
   },
 });
 
 export const publish = mutation({
-  args: { slug: v.string() },
+  args: { slug: v.string(), secret: v.string() },
   handler: async (ctx, args) => {
-    const page = await requirePage(ctx, args.slug);
+    const page = await requirePage(ctx, args.secret, args.slug);
     await ctx.db.patch(page._id, { status: "published", updated_at: Date.now() });
   },
 });
 
 export const unpublish = mutation({
-  args: { slug: v.string() },
+  args: { slug: v.string(), secret: v.string() },
   handler: async (ctx, args) => {
-    const page = await requirePage(ctx, args.slug);
+    const page = await requirePage(ctx, args.secret, args.slug);
     await ctx.db.patch(page._id, { status: "draft", updated_at: Date.now() });
   },
 });
 
 /** Keeps the page online but marks it as no longer maintained. */
 export const archive = mutation({
-  args: { slug: v.string() },
+  args: { slug: v.string(), secret: v.string() },
   handler: async (ctx, args) => {
-    const page = await requirePage(ctx, args.slug);
+    const page = await requirePage(ctx, args.secret, args.slug);
     await ctx.db.patch(page._id, { status: "archived", updated_at: Date.now() });
   },
 });
 
 export const remove = mutation({
-  args: { slug: v.string() },
+  args: { slug: v.string(), secret: v.string() },
   handler: async (ctx, args) => {
-    const page = await requirePage(ctx, args.slug);
+    const page = await requirePage(ctx, args.secret, args.slug);
     await ctx.db.delete(page._id);
   },
 });

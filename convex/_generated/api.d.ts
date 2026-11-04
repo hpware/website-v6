@@ -13,6 +13,8 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as adminAuth from "../adminAuth.js";
+import type * as adminPasskeys from "../adminPasskeys.js";
 import type * as app from "../app.js";
 import type * as blog from "../blog.js";
 import type * as comments from "../comments.js";
@@ -29,6 +31,8 @@ import type * as todos from "../todos.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  adminAuth: typeof adminAuth;
+  adminPasskeys: typeof adminPasskeys;
   app: typeof app;
   blog: typeof blog;
   comments: typeof comments;

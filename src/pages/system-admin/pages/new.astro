@@ -1,0 +1,48 @@
+---
+import { api } from "../../../../convex/_generated/api";
+import PageFields from "../../../components/admin/PageFields.astro";
+import Admin from "../../../layouts/Admin.astro";
+import { convex } from "../../../lib/convex";
+import { readPageForm } from "../../../lib/admin/pageForm";
+import { adminSecret, withNotice, errorMessage, requireSlug, text } from "../../../lib/admin/utils";
+
+let error = "";
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    try {
+        const slug = requireSlug(text(form, "slug"));
+        await convex.mutation(api.pages.create, {
+            secret: adminSecret(),
+            slug,
+            writer: "Howard",
+            ...readPageForm(form),
+        });
+        return Astro.redirect(withNotice(`/system-admin/pages/${slug}`, "Page created as a draft."), 303);
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+---
+
+<Admin title="New page" error={error}>
+    <a href="/system-admin/pages" class="text-sm opacity-70 hover:opacity-100">‹ Pages</a>
+    <h1 class="mt-2 text-3xl font-bold">New page</h1>
+
+    <form method="post" class="mt-6 flex flex-col gap-4">
+        <label class="admin-label">
+            Slug
+            <input
+                name="slug"
+                required
+                pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                placeholder="my-page"
+                class="admin-input font-mono"
+            />
+            <span class="admin-hint">The URL: /pages/&lt;slug&gt;/. Can't be changed later.</span>
+        </label>
+        <PageFields />
+        <div>
+            <button type="submit" class="admin-btn admin-btn-primary">Create draft</button>
+        </div>
+    </form>
+</Admin>

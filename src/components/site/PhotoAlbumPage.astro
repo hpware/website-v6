@@ -1,0 +1,47 @@
+---
+import { ChevronLeft } from "@lucide/astro";
+import PhotoAlbum from "../PhotoAlbum.tsx";
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+import type { PhotoPack } from "../../lib/photoPacks";
+
+interface Props {
+    locale: Locale;
+    pack: PhotoPack;
+}
+
+const { locale, pack } = Astro.props;
+const T = createTranslator(locale);
+---
+
+<Layout
+    locale={locale}
+    translationPath={`/photos/${pack.id}/`}
+    title={pack.title}
+    description={pack.description}
+>
+    <div class="mx-auto max-w-5xl pb-16">
+        <a
+            href={localizedPath(locale, "/photos/")}
+            class="-ml-1 inline-flex items-center gap-1 rounded-lg py-1 pr-2 text-sm opacity-70 transition-opacity hover:opacity-100"
+        >
+            <ChevronLeft class="size-4" aria-hidden="true" />
+            {T("圖片")}
+        </a>
+        <h1 class="mt-2 text-2xl font-bold">{pack.title}</h1>
+        <p class="mt-1 text-sm opacity-70">
+            {`${pack.photos.length} ${T("張照片")}`}
+            {pack.date && ` · ${pack.date}`}
+        </p>
+        {pack.description && <p class="mt-2 opacity-80">{pack.description}</p>}
+        <PhotoAlbum
+            client:load
+            photos={pack.photos}
+            labels={{
+                close: T("關閉"),
+                previous: T("上一張"),
+                next: T("下一張"),
+            }}
+        />
+    </div>
+</Layout>

@@ -1,0 +1,114 @@
+---
+import { KeyRound } from "@lucide/astro";
+import {
+    ADMIN_API_SECRET,
+    ADMIN_PASSWORD_SHA512,
+    ADMIN_SESSION_SECRET,
+} from "astro:env/server";
+import Admin from "../../layouts/Admin.astro";
+import { checkPassword, isSignedIn, signIn } from "../../lib/admin/session";
+import { errorMessage, text } from "../../lib/admin/utils";
+
+if (isSignedIn(Astro.cookies)) return Astro.redirect("/system-admin");
+
+const missing = Object.entries({
+    ADMIN_PASSWORD_SHA512,
+    ADMIN_SESSION_SECRET,
+    ADMIN_API_SECRET,
+})
+    .filter(([, value]) => !value)
+    .map(([name]) => name);
+
+let error = "";
+if (Astro.request.method === "POST") {
+    const form = await Astro.request.formData();
+    try {
+        if (checkPassword(text(form, "password"))) {
+            signIn(Astro.cookies);
+            return Astro.redirect("/system-admin", 303);
+        }
+        // Slow down password guessing a little.
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        error = "Wrong password.";
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+---
+
+<Admin title="Sign in" error={error} bare>
+    <div class="mx-auto mt-10 max-w-sm">
+        <h1 class="text-2xl font-bold">Sign in</h1>
+        <p class="mt-1 text-sm opacity-70">Use a passkey, or the admin password.</p>
+
+        {
+            missing.length > 0 && (
+                <p class="admin-notice admin-notice-error mt-6">
+                    Not configured yet. Missing env: {missing.join(", ")}
+                </p>
+            )
+        }
+
+        <button
+            type="button"
+            data-passkey-login
+            class="admin-btn admin-btn-primary mt-6 w-full py-3 text-base"
+        >
+            <KeyRound class="size-5" aria-hidden="true" />
+            Sign in with a passkey
+        </button>
+        <p data-passkey-error class="mt-2 text-sm text-red-600 dark:text-red-400" hidden></p>
+
+        <div class="my-6 flex items-center gap-3 text-xs opacity-60">
+            <span class="h-px flex-1 bg-current"></span>
+            or
+            <span class="h-px flex-1 bg-current"></span>
+        </div>
+
+        <form method="post" class="flex flex-col gap-3">
+            <label class="admin-label">
+                Password
+                <input
+                    type="password"
+                    name="password"
+                    autocomplete="current-password"
+                    required
+                    class="admin-input"
+                />
+            </label>
+            <button type="submit" class="admin-btn">Sign in with password</button>
+        </form>
+    </div>
+</Admin>
+
+<script>
+    import {
+        startAuthentication,
+        type PublicKeyCredentialRequestOptionsJSON,
+    } from "@simplewebauthn/browser";
+    import { isCancelled, postJson } from "../../lib/admin/postJson";
+
+    const button = document.querySelector<HTMLButtonElement>("[data-passkey-login]");
+    const errorText = document.querySelector<HTMLElement>("[data-passkey-error]");
+
+    button?.addEventListener("click", async () => {
+        if (!errorText) return;
+        button.disabled = true;
+        errorText.hidden = true;
+        try {
+            const optionsJSON = await postJson<PublicKeyCredentialRequestOptionsJSON>(
+                "/system-admin/api/login/options",
+            );
+            const response = await startAuthentication({ optionsJSON });
+            await postJson("/system-admin/api/login/verify", response);
+            window.location.href = "/system-admin";
+        } catch (error) {
+            if (!isCancelled(error)) {
+                errorText.textContent = error instanceof Error ? error.message : String(error);
+                errorText.hidden = false;
+            }
+        } finally {
+            button.disabled = false;
+        }
+    });
+</script>

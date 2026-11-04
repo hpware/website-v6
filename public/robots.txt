@@ -5,6 +5,7 @@ Disallow: /
 # Content Signals
 User-agent: *
 Content-Signal: ai-train=no, search=yes, ai-input=no
+Disallow: /system-admin
 
 # Spamthropic
 User-agent: ClaudeBot

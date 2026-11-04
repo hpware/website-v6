@@ -24,6 +24,11 @@
             "permanent": false
         },
         {
+            "source": "/photos/:path*",
+            "destination": "/zh-TW/photos/:path*",
+            "permanent": false
+        },
+        {
             "source": "/pages/:path*",
             "destination": "/zh-TW/pages/:path*",
             "permanent": false

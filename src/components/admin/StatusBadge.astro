@@ -1,0 +1,16 @@
+---
+interface Props {
+    status: "draft" | "published" | "archived";
+}
+
+const { status } = Astro.props;
+const colors = {
+    published: "bg-green-500/15 text-green-700 dark:text-green-300",
+    draft: "bg-gray-500/15 text-gray-700 dark:text-gray-300",
+    archived: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+};
+---
+
+<span class={`rounded-full px-2 py-0.5 text-xs font-medium ${colors[status]}`}>
+    {status}
+</span>

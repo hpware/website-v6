@@ -1,0 +1,44 @@
+---
+import { Plus } from "@lucide/astro";
+import { api } from "../../../../convex/_generated/api";
+import StatusBadge from "../../../components/admin/StatusBadge.astro";
+import Admin from "../../../layouts/Admin.astro";
+import { convex } from "../../../lib/convex";
+import { formatDate } from "../../../lib/admin/utils";
+
+const pages = await convex.query(api.pages.list, {});
+---
+
+<Admin title="Pages">
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">Pages</h1>
+            <p class="mt-1 text-sm opacity-70">Shown at /pages/&lt;slug&gt;/ once published.</p>
+        </div>
+        <a href="/system-admin/pages/new" class="admin-btn admin-btn-primary">
+            <Plus class="size-4" aria-hidden="true" /> New page
+        </a>
+    </div>
+
+    <ul class="admin-card mt-6 flex flex-col divide-y divide-gray-300/20 p-0">
+        {pages.length === 0 && <li class="admin-hint p-5">No pages yet.</li>}
+        {
+            pages.map((page) => (
+                <li>
+                    <a
+                        href={`/system-admin/pages/${page.slug}`}
+                        class="flex items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-gray-500/10"
+                    >
+                        <span class="min-w-0">
+                            <span class="block truncate font-medium">{page.title}</span>
+                            <span class="admin-hint block truncate">
+                                /{page.slug} · {page.page_type} · updated {formatDate(page.updated_at)}
+                            </span>
+                        </span>
+                        <StatusBadge status={page.status} />
+                    </a>
+                </li>
+            ))
+        }
+    </ul>
+</Admin>
