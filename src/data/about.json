@@ -1,3 +1,35 @@
 {
-  "birthday": "2009-05-26"
+  "birthday": "2009-05-26",
+  "socials": [
+    {
+      "name": "github",
+      "url": "https://github.com/hpware",
+      "icon": "github"
+    },
+    {
+      "name": "instagram",
+      "url": "https://instagram.com/yh._.5",
+      "icon": "instagram"
+    },
+    {
+      "name": "threads",
+      "url": "https://threads.net/@yh._.5",
+      "icon": "threads"
+    },
+    {
+      "name": "Twitter",
+      "url": "https://twitter.com/ictechz",
+      "icon": "twitter"
+    },
+    {
+      "name": "Discord",
+      "url": "https://discord.com/users/918723093646684180",
+      "icon": "discord"
+    },
+    {
+      "name": "youtube",
+      "url": "https://youtube.com/@號",
+      "icon": "youtube"
+    }
+  ]
 }

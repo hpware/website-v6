@@ -4,8 +4,8 @@ export const locales = ["en", "zh-TW"] as const;
 
 export type Locale = (typeof locales)[number];
 
-export type Message = keyof typeof english;
-export type TranslationVariant = "default" | "short";
+type Message = keyof typeof english;
+type TranslationVariant = "default" | "short";
 export type Translator = (
     message: Message,
     variant?: TranslationVariant,
@@ -47,10 +47,6 @@ export function preferredLocaleFromHeader(
     }
 
     return "en";
-}
-
-export function isLocale(value: string | undefined): value is Locale {
-    return locales.some((locale) => locale === value);
 }
 
 export function localizedPath(locale: Locale, pathname = "/") {

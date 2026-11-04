@@ -2,7 +2,7 @@ import TurndownService from "turndown";
 import { gfm } from "turndown-plugin-gfm";
 
 /** Wildcards alone never opt a browser into Markdown; ties favor HTML. */
-export function prefersMarkdown(accept: string | null): boolean {
+function prefersMarkdown(accept: string | null): boolean {
     const ranges = (accept ?? "").split(",").map((part) => {
         const [type = "", ...parameters] = part.trim().toLowerCase().split(";");
         const qualityParameter = parameters.find((parameter) => parameter.trim().startsWith("q="));
@@ -19,7 +19,7 @@ export function prefersMarkdown(accept: string | null): boolean {
     return markdown > html;
 }
 
-export function htmlToMarkdown(html: string): string {
+function htmlToMarkdown(html: string): string {
     const converter = new TurndownService({
         headingStyle: "atx",
         codeBlockStyle: "fenced",

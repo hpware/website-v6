@@ -4,6 +4,9 @@ import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
 import { CheckIcon, CopyIcon } from "@lucide/astro";
 import { preciseAge } from "../../lib/age";
+import { Image } from "astro:assets";
+import ProfilePicture from "../../assets/pfp.jpg";
+import Socials from "../Socials.tsx";
 
 interface Props {
     locale: Locale;
@@ -11,52 +14,130 @@ interface Props {
 
 const { locale } = Astro.props;
 const T = createTranslator(locale);
+const age = preciseAge();
+// Each wheel is 0-9 plus a second 0, so 9 → 0 can keep rolling forward.
+const wheelDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
+const wheelOffset = (position: number | string) =>
+    `translateY(calc(-100% * ${position} / ${wheelDigits.length}))`;
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
     <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
-        <div class="mx-auto w-full max-w-3xl px-6 py-16 text-left sm:px-10">
-            <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
-                {T("嗨！")}
-            </h1>
-            <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
-                {T("這是元皓的網站！")}
-            </p>
-            <p class="mt-4 text-base text-muted-foreground sm:text-lg">
-                <span class="tabular-nums" data-age>{preciseAge()}</span> {T("歲")} · {T("五專生")}
-            </p>
+        <div
+            class="mx-auto flex w-full max-w-3xl flex-col-reverse gap-10 px-6 py-16 text-left sm:px-10 md:flex-row md:items-center md:justify-between"
+        >
+            <div>
+                <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
+                    {T("嗨！")}
+                </h1>
+                <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
+                    {T("這是元皓的網站！")}
+                </p>
+                <p class="mt-4 text-base text-muted-foreground sm:text-lg">
+                    <span class="sr-only">{age}</span>
+                    <span class="tabular-nums" aria-hidden="true" data-age>
+                        {age.split("").map((char) =>
+                            char === "." ? (
+                                <span>.</span>
+                            ) : (
+                                <span class="relative inline-block [clip-path:inset(0)]">
+                                    <span class="invisible">0</span>
+                                    <span
+                                        class="absolute inset-x-0 top-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
+                                        style={`transform: ${wheelOffset(char)}`}
+                                        data-digit={char}
+                                    >
+                                        {wheelDigits.map((digit) => (
+                                            <span>{digit}</span>
+                                        ))}
+                                    </span>
+                                </span>
+                            ),
+                        )}
+                    </span>{" "}
+                    {T("歲")}
+                    <span class="select-none"> · </span>
+                    {T("五專生")}
+                </p>
 
-            <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
-                <code class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base" data-ssh-command>ssh t.yuanhau.com</code>
-                <button
-                    type="button"
-                    class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
-                    aria-label={T("複製指令")}
-                    data-ssh-copy
-                >
-                    <CopyIcon class="size-5" aria-hidden="true" data-copy-icon />
-                    <CheckIcon class="hidden size-5 text-green-500" aria-hidden="true" data-copied-icon />
-                </button>
+                <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
+                    <code
+                        class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base"
+                        data-ssh-command
+                    >
+                        ssh t.yuanhau.com
+                    </code>
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
+                        aria-label={T("複製指令")}
+                        data-ssh-copy
+                    >
+                        <CopyIcon
+                            class="size-5"
+                            aria-hidden="true"
+                            data-copy-icon
+                        />
+                        <CheckIcon
+                            class="hidden size-5 text-green-500"
+                            aria-hidden="true"
+                            data-copied-icon
+                        />
+                    </button>
+                </div>
+                <Socials />
             </div>
+
+            <Image
+                src={ProfilePicture}
+                width={288}
+                height={288}
+                densities={[1, 2]}
+                format="webp"
+                quality="mid"
+                alt={T("Howard 的大頭貼")}
+                draggable="false"
+                loading="eager"
+                class="size-32 shrink-0 rounded-full object-cover sm:size-40 md:size-72"
+            />
         </div>
     </section>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-24">
+    <section class="mx-auto w-full max-w-2xl px-4 pb-24 md:max-w-5xl md:px-10">
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
-
 </Layout>
 
 <script>
     import { preciseAge } from "../../lib/age";
 
-    const ageElement = document.querySelector("[data-age]");
-    if (ageElement) {
-        window.setInterval(() => {
-            ageElement.textContent = preciseAge();
-        }, 100);
+    const wheels = [...document.querySelectorAll<HTMLElement>("[data-digit]")];
+
+    function rollTo(wheel: HTMLElement, position: number) {
+        wheel.style.transform = `translateY(calc(-100% * ${position} / 11))`;
     }
+
+    for (const wheel of wheels) {
+        // After rolling 9 → the extra 0 at the bottom, jump back to the top 0 without animating.
+        wheel.addEventListener("transitionend", () => {
+            if (wheel.dataset.digit !== "0") return;
+            wheel.style.transition = "none";
+            rollTo(wheel, 0);
+            void wheel.offsetHeight;
+            wheel.style.transition = "";
+        });
+    }
+
+    window.setInterval(() => {
+        const digits = preciseAge().replace(".", "");
+        wheels.forEach((wheel, index) => {
+            const digit = digits[index];
+            if (digit === undefined || digit === wheel.dataset.digit) return;
+            wheel.dataset.digit = digit;
+            rollTo(wheel, digit === "0" ? 10 : Number(digit));
+        });
+    }, 100);
 
     const copyButton = document.querySelector("[data-ssh-copy]");
     const command = document.querySelector("[data-ssh-command]");
@@ -65,7 +146,7 @@ const T = createTranslator(locale);
 
     copyButton?.addEventListener("click", async () => {
         if (!(command instanceof HTMLElement)) return;
-        await navigator.clipboard.writeText(command.textContent ?? "");
+        await navigator.clipboard.writeText(command.textContent?.trim() ?? "");
         copyIcon?.classList.add("hidden");
         copiedIcon?.classList.remove("hidden");
         window.setTimeout(() => {
