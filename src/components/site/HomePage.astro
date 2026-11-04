@@ -23,9 +23,7 @@ const wheelOffset = (position: number | string) =>
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
     <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
-        <div
-            class="mx-auto flex w-full max-w-3xl flex-col-reverse gap-10 px-6 py-16 text-left sm:px-10 md:flex-row md:items-center md:justify-between"
-        >
+        <div class="mx-auto flex w-full max-w-3xl flex-col-reverse gap-10 px-6 py-16 text-left sm:px-10 md:flex-row md:items-center md:justify-between">
             <div>
                 <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
                     {T("嗨！")}
@@ -56,6 +54,7 @@ const wheelOffset = (position: number | string) =>
                         )}
                     </span>{" "}
                     {T("歲")}
+                    {Number(age) >= 18 ? "(怎麼18了)" : ""}
                     <span class="select-none"> · </span>
                     {T("五專生")}
                 </p>
