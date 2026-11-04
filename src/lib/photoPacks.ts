@@ -108,3 +108,7 @@ export async function getPhotoPacks(): Promise<PhotoPack[]> {
         return [];
     }
 }
+
+export async function getPhotoPack(id: string): Promise<PhotoPack | undefined> {
+    return (await getPhotoPacks()).find((pack) => pack.id === id);
+}

@@ -1,7 +1,6 @@
 ---
-import PhotoPacks from "../PhotoPacks.tsx";
 import Layout from "../../layouts/Default.astro";
-import { createTranslator, type Locale } from "../../i18n";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
 import { getPhotoPacks } from "../../lib/photoPacks";
 
 interface Props {
@@ -22,16 +21,36 @@ const packs = await getPhotoPacks();
     <div class="mx-auto max-w-5xl pb-16">
         <h1 class="text-2xl">{T("圖片")}</h1>
         <p class="opacity-70">{T("一包一包的照片，點開來看看。")}</p>
-        <PhotoPacks
-            client:load
-            packs={packs}
-            labels={{
-                photos: T("張照片"),
-                close: T("關閉"),
-                previous: T("上一張"),
-                next: T("下一張"),
-                empty: T("目前還沒有圖片包。"),
-            }}
-        />
+        {
+            packs.length === 0 ? (
+                <p class="mt-8 text-center opacity-70">
+                    {T("目前還沒有圖片包。")}
+                </p>
+            ) : (
+                <ul class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+                    {packs.map((pack) => (
+                        <li>
+                            {/* Square cover with the album name over a soft gradient, like a photos app */}
+                            <a
+                                href={localizedPath(locale, `/photos/${pack.id}/`)}
+                                class="group relative block aspect-square overflow-hidden rounded-2xl bg-gray-500/20 shadow-md transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                            >
+                                <img
+                                    src={pack.cover ?? pack.photos[0].src}
+                                    alt=""
+                                    loading="lazy"
+                                    class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 pb-3 pt-10">
+                                    <span class="line-clamp-2 font-bold text-white drop-shadow">
+                                        {pack.title}
+                                    </span>
+                                </div>
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )
+        }
     </div>
 </Layout>

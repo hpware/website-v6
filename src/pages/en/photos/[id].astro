@@ -1,0 +1,14 @@
+---
+import PhotoAlbumPage from "../../../components/site/PhotoAlbumPage.astro";
+import { getPhotoPack } from "../../../lib/photoPacks";
+
+const pack = Astro.params.id
+    ? await getPhotoPack(Astro.params.id)
+    : undefined;
+
+if (!pack) {
+    return Astro.rewrite("/en/404");
+}
+---
+
+<PhotoAlbumPage locale="en" pack={pack} />

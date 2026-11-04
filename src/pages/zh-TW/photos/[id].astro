@@ -1,0 +1,14 @@
+---
+import PhotoAlbumPage from "../../../components/site/PhotoAlbumPage.astro";
+import { getPhotoPack } from "../../../lib/photoPacks";
+
+const pack = Astro.params.id
+    ? await getPhotoPack(Astro.params.id)
+    : undefined;
+
+if (!pack) {
+    return Astro.rewrite("/zh-TW/404");
+}
+---
+
+<PhotoAlbumPage locale="zh-TW" pack={pack} />

@@ -208,7 +208,7 @@
     }
 }
 
-/* Photo packs: album tiles + photo grid + popup (src/components/PhotoPacks.tsx) */
+/* Photo albums: photo grid + popup (src/components/PhotoAlbum.tsx) */
 .photo-pack-backdrop {
     animation: photo-pack-fade 200ms ease-out;
 }
