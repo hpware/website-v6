@@ -33,7 +33,7 @@ function slugify(node: ReactNode) {
 const linkClass =
   "relative inline-block text-indigo-600 no-underline after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-current after:transition-transform after:duration-300 after:ease-out after:content-[''] hover:text-indigo-800 hover:after:scale-x-100 focus-visible:after:scale-x-100 dark:text-indigo-400 dark:hover:text-indigo-300";
 
-export const renderer = {
+const renderer = {
   heading(children: ReactNode, level: number) {
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
     const id = slugify(children);
