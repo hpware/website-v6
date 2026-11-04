@@ -9,6 +9,8 @@
   "一包一包的照片，點開來看看。": "Photos, packed up. Tap one to unzip it.",
   "張照片": "photos",
   "關閉": "Close",
+  "上一張": "Previous photo",
+  "下一張": "Next photo",
   "目前還沒有照片包。": "No photo packs yet.",
   "貢獻": {
     "default": "Contributions",

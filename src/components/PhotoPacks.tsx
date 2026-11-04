@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import type { PhotoPack } from "../lib/photoPacks";
 
@@ -7,6 +7,8 @@ type Props = {
     labels: {
         photos: string;
         close: string;
+        previous: string;
+        next: string;
         empty: string;
     };
 };
@@ -25,11 +27,23 @@ const UNZIP_MS = 550;
 export default function PhotoPacks({ packs, labels }: Props) {
     const [unzipping, setUnzipping] = useState<string | null>(null);
     const [openPack, setOpenPack] = useState<PhotoPack | null>(null);
+    // Index of the photo shown in the lightbox popup, if any.
+    const [viewing, setViewing] = useState<number | null>(null);
 
     useEffect(() => {
         if (!openPack) return;
+        const count = openPack.photos.length;
         const onKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape") close();
+            if (event.key === "Escape") {
+                // Close the popup first, then the pack.
+                if (viewing !== null) setViewing(null);
+                else close();
+            }
+            if (viewing === null) return;
+            if (event.key === "ArrowRight") setViewing((viewing + 1) % count);
+            if (event.key === "ArrowLeft") {
+                setViewing((viewing - 1 + count) % count);
+            }
         };
         document.addEventListener("keydown", onKey);
         document.body.style.overflow = "hidden";
@@ -37,7 +51,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
             document.removeEventListener("keydown", onKey);
             document.body.style.overflow = "";
         };
-    }, [openPack]);
+    }, [openPack, viewing]);
 
     function unzip(pack: PhotoPack) {
         if (unzipping) return;
@@ -46,6 +60,7 @@ export default function PhotoPacks({ packs, labels }: Props) {
     }
 
     function close() {
+        setViewing(null);
         setOpenPack(null);
         setUnzipping(null);
     }
@@ -53,6 +68,9 @@ export default function PhotoPacks({ packs, labels }: Props) {
     if (packs.length === 0) {
         return <p className="mt-8 text-center opacity-70">{labels.empty}</p>;
     }
+
+    const viewingPhoto =
+        openPack && viewing !== null ? openPack.photos[viewing] : null;
 
     return (
         <>
@@ -98,14 +116,14 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                 {openPack.description}
                             </p>
                         )}
-                        <div className="mt-8 columns-1 gap-4 sm:columns-2 lg:columns-3">
+                        {/* Wrapping + centered so a short last row doesn't leave a gap on one side */}
+                        <div className="mt-8 flex flex-wrap justify-center gap-4">
                             {openPack.photos.map((photo, index) => (
-                                <a
+                                <button
+                                    type="button"
                                     key={`${photo.src}-${index}`}
-                                    href={photo.src}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="photo-pack-spill mb-4 block break-inside-avoid overflow-hidden rounded-2xl shadow-lg"
+                                    onClick={() => setViewing(index)}
+                                    className="photo-pack-spill aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-lg sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]"
                                     style={
                                         {
                                             "--i": index,
@@ -117,12 +135,72 @@ export default function PhotoPacks({ packs, labels }: Props) {
                                         src={photo.src}
                                         alt={photo.alt ?? ""}
                                         loading="lazy"
-                                        className="w-full transition-transform duration-500 hover:scale-105"
+                                        className="size-full object-cover transition-transform duration-500 hover:scale-105"
                                     />
-                                </a>
+                                </button>
                             ))}
                         </div>
                     </div>
+                </div>
+            )}
+
+            {openPack && viewingPhoto && viewing !== null && (
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={viewingPhoto.alt ?? openPack.title}
+                    className="photo-pack-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4 sm:p-16"
+                    onClick={() => setViewing(null)}
+                >
+                    <img
+                        key={viewing}
+                        src={viewingPhoto.src}
+                        alt={viewingPhoto.alt ?? ""}
+                        className="photo-pack-lightbox max-h-full max-w-full rounded-xl object-contain shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setViewing(null)}
+                        aria-label={labels.close}
+                        className="fixed right-4 top-4 flex size-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25"
+                    >
+                        <X className="size-5" />
+                    </button>
+                    {openPack.photos.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                aria-label={labels.previous}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setViewing(
+                                        (viewing - 1 + openPack.photos.length) %
+                                            openPack.photos.length,
+                                    );
+                                }}
+                                className="fixed left-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:left-4"
+                            >
+                                <ChevronLeft className="size-6" />
+                            </button>
+                            <button
+                                type="button"
+                                aria-label={labels.next}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setViewing(
+                                        (viewing + 1) % openPack.photos.length,
+                                    );
+                                }}
+                                className="fixed right-2 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/25 sm:right-4"
+                            >
+                                <ChevronRight className="size-6" />
+                            </button>
+                            <span className="fixed bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-3 py-1 text-sm text-white">
+                                {viewing + 1} / {openPack.photos.length}
+                            </span>
+                        </>
+                    )}
                 </div>
             )}
         </>
