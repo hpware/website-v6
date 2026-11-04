@@ -16,7 +16,7 @@ const T = createTranslator(locale);
 const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" }).format(new Date());
 const hadBirthdayThisYear = today.slice(5) >= birthday.slice(5);
 const age = Number(today.slice(0, 4)) - Number(birthday.slice(0, 4)) - (hadBirthdayThisYear ? 0 : 1);
-const aboutMe = [`${age} ${T("歲")}`, T("高中生"), T("喜歡 TypeScript 和 Linux 伺服器")];
+const aboutMe = [`${age} ${T("歲")}`, T("五專生"), T("喜歡 TypeScript 和 Linux 伺服器")];
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
