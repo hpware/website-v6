@@ -54,7 +54,7 @@ const wheelOffset = (position: number | string) =>
                         )}
                     </span>{" "}
                     {T("歲")}
-                    {Number(age) >= 18 ? "(怎麼18了)" : ""}
+                    {Number(age) >= 18 ? ` (${T("怎麼18了")})` : ""}
                     <span class="select-none"> · </span>
                     {T("五專生")}
                 </p>

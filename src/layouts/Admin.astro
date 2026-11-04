@@ -2,14 +2,13 @@
 import "../styles/global.css";
 import { Font } from "astro:assets";
 import {
-    ExternalLink,
     Images,
     KeyRound,
     LayoutDashboard,
     LogOut,
     NotebookText,
 } from "@lucide/astro";
-import ThemeToggle from "../components/ThemeToggle.astro";
+import Header from "../components/Header.astro";
 import { SITE_NAME } from "../consts";
 
 interface Props {
@@ -56,67 +55,36 @@ const isActive = (url: string) =>
         <Font cssVariable="--font-atkinson" />
     </head>
     <body>
-        <header class="site-header sticky top-0 z-50 px-4 pt-4">
-            <nav
-                class="mx-auto flex max-w-5xl flex-row items-center justify-between gap-2 rounded-2xl border border-gray-300/30 bg-background/70 px-3 py-1 shadow-lg backdrop-blur-lg"
-            >
-                <a
-                    href={bare ? "/" : "/system-admin"}
-                    class="flex h-11 shrink-0 items-center gap-2 px-1 text-xl font-bold whitespace-nowrap"
-                >
-                    {SITE_NAME}
-                    <span class="rounded-md bg-primary px-1.5 py-0.5 text-xs text-primary-foreground">
-                        admin
-                    </span>
-                </a>
+        <Header locale="en" />
 
-                <div class="flex min-w-0 flex-row items-center gap-1">
-                    {
-                        !bare &&
-                            tabs.map((tab) => (
-                                <a
-                                    href={tab.url}
-                                    title={tab.name}
-                                    aria-current={isActive(tab.url) ? "page" : undefined}
-                                    class="flex h-11 items-center gap-1.5 rounded-lg px-2 transition-colors hover:bg-gray-500/20 aria-[current=page]:bg-gray-500/15 aria-[current=page]:font-bold"
-                                >
-                                    <tab.icon class="size-5 shrink-0" aria-hidden="true" />
-                                    <span class="hidden lg:inline">{tab.name}</span>
-                                </a>
-                            ))
-                    }
-                    {
-                        !bare && (
+        <main class="mx-auto max-w-5xl px-4 pt-24 pb-20">
+            {
+                !bare && (
+                    <nav class="mb-8 flex flex-row flex-wrap items-center gap-1 rounded-2xl border border-gray-300/30 px-2 py-1">
+                        {tabs.map((tab) => (
                             <a
-                                href="/"
-                                title="View site"
-                                class="flex h-11 items-center rounded-lg px-2 transition-colors hover:bg-gray-500/20"
+                                href={tab.url}
+                                title={tab.name}
+                                aria-current={isActive(tab.url) ? "page" : undefined}
+                                class="flex h-10 items-center gap-1.5 rounded-lg px-2 transition-colors hover:bg-gray-500/20 aria-[current=page]:bg-gray-500/15 aria-[current=page]:font-bold"
                             >
-                                <ExternalLink class="size-5" aria-hidden="true" />
-                                <span class="sr-only">View site</span>
+                                <tab.icon class="size-5 shrink-0" aria-hidden="true" />
+                                <span class="hidden sm:inline">{tab.name}</span>
                             </a>
-                        )
-                    }
-                    <ThemeToggle locale="en" />
-                    {
-                        !bare && (
-                            <form method="post" action="/system-admin/logout">
-                                <button
-                                    type="submit"
-                                    title="Sign out"
-                                    class="flex h-11 cursor-pointer items-center rounded-lg px-2 transition-colors hover:bg-gray-500/20"
-                                >
-                                    <LogOut class="size-5" aria-hidden="true" />
-                                    <span class="sr-only">Sign out</span>
-                                </button>
-                            </form>
-                        )
-                    }
-                </div>
-            </nav>
-        </header>
-
-        <main class="mx-auto max-w-5xl px-4 pt-8 pb-20">
+                        ))}
+                        <form method="post" action="/system-admin/logout" class="ml-auto">
+                            <button
+                                type="submit"
+                                title="Sign out"
+                                class="flex h-10 cursor-pointer items-center gap-1.5 rounded-lg px-2 transition-colors hover:bg-gray-500/20"
+                            >
+                                <LogOut class="size-5" aria-hidden="true" />
+                                <span class="hidden sm:inline">Sign out</span>
+                            </button>
+                        </form>
+                    </nav>
+                )
+            }
             {done && <p class="admin-notice admin-notice-ok mb-6">{done}</p>}
             {error && <p class="admin-notice admin-notice-error mb-6">{error}</p>}
             <slot />

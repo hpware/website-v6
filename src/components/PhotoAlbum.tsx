@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import type { Photo } from "../lib/photoPacks";
 
@@ -18,6 +18,17 @@ export default function PhotoAlbum({ photos, labels }: Props) {
     const [viewing, setViewing] = useState<number | null>(null);
     // Which way the last prev/next went, so the photo slides in from that side.
     const [direction, setDirection] = useState<-1 | 0 | 1>(0);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    // The thumbnail that opened the popup, to give focus back on close.
+    const openerRef = useRef<HTMLElement | null>(null);
+    const isOpen = viewing !== null;
+
+    // Move focus into the popup when it opens and back to the thumbnail when it closes.
+    useEffect(() => {
+        if (!isOpen) return;
+        dialogRef.current?.querySelector<HTMLElement>("button")?.focus();
+        return () => openerRef.current?.focus();
+    }, [isOpen]);
 
     useEffect(() => {
         if (viewing === null) return;
@@ -25,6 +36,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
             if (event.key === "Escape") setViewing(null);
             if (event.key === "ArrowRight") step(1);
             if (event.key === "ArrowLeft") step(-1);
+            if (event.key === "Tab") trapFocus(event);
         };
         document.addEventListener("keydown", onKey);
         document.body.style.overflow = "hidden";
@@ -34,7 +46,24 @@ export default function PhotoAlbum({ photos, labels }: Props) {
         };
     }, [viewing]);
 
-    function view(index: number) {
+    // Keep Tab cycling through the popup's buttons while it's open.
+    function trapFocus(event: KeyboardEvent) {
+        const buttons = dialogRef.current?.querySelectorAll<HTMLElement>("button");
+        if (!buttons || buttons.length === 0) return;
+        const first = buttons[0];
+        const last = buttons[buttons.length - 1];
+        const inside = dialogRef.current?.contains(document.activeElement);
+        if (event.shiftKey && (document.activeElement === first || !inside)) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !inside)) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function view(index: number, opener: HTMLElement) {
+        openerRef.current = opener;
         setDirection(0);
         setViewing(index);
     }
@@ -54,7 +83,8 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                     <button
                         type="button"
                         key={`${photo.src}-${index}`}
-                        onClick={() => view(index)}
+                        onClick={(event) => view(index, event.currentTarget)}
+                        aria-label={photo.alt ?? `${index + 1} / ${photos.length}`}
                         className="photo-pack-thumb aspect-square overflow-hidden rounded-md bg-gray-500/20"
                         style={{ "--i": index } as CSSProperties}
                     >
@@ -62,7 +92,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                             src={photo.src}
                             alt={photo.alt ?? ""}
                             loading="lazy"
-                            className="size-full object-cover transition-transform duration-300 hover:scale-105"
+                            className="size-full object-cover transition-transform duration-300 hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
                         />
                     </button>
                 ))}
@@ -73,6 +103,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                 viewing !== null &&
                 createPortal(
                     <div
+                        ref={dialogRef}
                         role="dialog"
                         aria-modal="true"
                         aria-label={viewingPhoto.alt ?? `${viewing + 1} / ${photos.length}`}
