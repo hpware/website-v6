@@ -1,21 +1,21 @@
+# Content Signals & Allowlists
+User-agent: *
+Content-Signal: ai-train=no, search=yes, ai-input=no
+Disallow: /system-admin/
+Disallow: /en/photos/
+Disallow: /zh-TW/photos/
+
 # ByteSpams
 User-agent: Bytespider
 Disallow: /
-
-# Content Signals
-User-agent: *
-Content-Signal: ai-train=no, search=yes, ai-input=no
-Disallow: /system-admin
-
 # Spamthropic
 User-agent: ClaudeBot
 Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-
 # Host
 Host: https://yuanhau.com
 
 # Sitemaps
-Sitemap: https://v6.yuanhau.com/sitemap.xml
+Sitemap: https://yuanhau.com/sitemap.xml
