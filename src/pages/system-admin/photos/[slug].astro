@@ -5,7 +5,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import StatusBadge from "../../../components/admin/StatusBadge.astro";
 import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
-import { generatePhotoMeta } from "../../../lib/admin/photoMeta";
+import { startPhotoMeta } from "../../../lib/admin/photoMeta";
 import { missingS3Env } from "../../../lib/admin/s3";
 import {
     adminSecret,
@@ -48,22 +48,16 @@ if (Astro.request.method === "POST") {
                 return Astro.redirect(base, 303);
             }
             case "publish": {
-                let notice = "Published.";
-                // A failed AI request shouldn't stop the pack from being published.
-                if (!before.meta_description && before.images.length > 0) {
-                    try {
-                        await generatePhotoMeta(before);
-                    } catch (caught) {
-                        notice = `Published, but the meta tags weren't generated: ${errorMessage(caught)}`;
-                    }
-                }
                 await convex.mutation(api.galleries.setStatus, { secret, id, status: "published" });
-                setToast(Astro.cookies, notice);
+                // Publishing doesn't wait for the AI, or depend on it working.
+                const generate = !before.meta_description && !before.meta_job && before.images.length > 0;
+                if (generate) await startPhotoMeta(before, Astro.url.origin);
+                setToast(Astro.cookies, generate ? "Published. Generating the meta tags in the background." : "Published.");
                 return Astro.redirect(base, 303);
             }
             case "generate-meta":
-                await generatePhotoMeta(before);
-                setToast(Astro.cookies, "Meta tags generated.");
+                await startPhotoMeta(before, Astro.url.origin);
+                setToast(Astro.cookies, "Generating the meta tags in the background.");
                 return Astro.redirect(base, 303);
             case "unpublish":
                 await convex.mutation(api.galleries.setStatus, { secret, id, status: "draft" });
@@ -105,6 +99,7 @@ if (Astro.request.method === "POST") {
 }
 
 const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?? before;
+const metaRunning = pack.meta_job?.status === "running";
 ---
 
 <Admin title={pack.name} error={error}>
@@ -173,7 +168,7 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
         </div>
     </form>
 
-    <form method="post" class="admin-card mt-4 flex flex-col gap-3">
+    <form method="post" class="admin-card mt-4 flex flex-col gap-3" data-meta-job={metaRunning ? pack.slug : undefined}>
         <h2 class="font-bold">Meta tags</h2>
         {
             pack.meta_description ? (
@@ -182,14 +177,16 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
                     <p class="mt-1">{pack.meta_description.en}</p>
                 </div>
             ) : (
-                <p class="admin-hint">Not generated yet. This happens automatically on the first publish.</p>
+                !metaRunning && <p class="admin-hint">Not generated yet. This happens automatically on the first publish.</p>
             )
         }
+        {metaRunning && <p class="text-sm" data-meta-status>Generating in the background: {pack.meta_job?.done} / {pack.meta_job?.total} photos...</p>}
+        {pack.meta_job?.status === "failed" && <p class="admin-notice admin-notice-error">{pack.meta_job.error}</p>}
         <span class="admin-hint">
-            AI writes these from the photos, and fills in photos with no alt text. A description you typed above is used instead if there is one.
+            AI writes these from the photos, and fills in photos with no alt text. You can leave this page while it runs. A description you typed above is used instead if there is one.
         </span>
         <div>
-            <button name="intent" value="generate-meta" class="admin-btn">
+            <button name="intent" value="generate-meta" class="admin-btn" disabled={metaRunning}>
                 {pack.meta_description ? "Regenerate" : "Generate"}
             </button>
         </div>
@@ -279,7 +276,29 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
 </Admin>
 
 <script>
+    import { api } from "../../../../convex/_generated/api";
+    import { convex } from "../../../lib/convex";
     import { uploadFiles } from "../../../lib/admin/uploadFiles";
+
+    // While the meta tags are generating: show the progress, and refresh when it's done.
+    const metaSlug = document.querySelector<HTMLElement>("[data-meta-job]")?.dataset.metaJob;
+    const metaStatus = document.querySelector<HTMLElement>("[data-meta-status]");
+    if (metaSlug && metaStatus) {
+        const poll = setInterval(async () => {
+            const job = (await convex.query(api.galleries.getBySlug, { slug: metaSlug }))?.meta_job;
+            if (job?.status === "running") {
+                metaStatus.textContent = `Generating in the background: ${job.done} / ${job.total} photos...`;
+                return;
+            }
+            clearInterval(poll);
+            // Don't throw away something being typed.
+            if (document.activeElement?.matches("input, textarea")) {
+                metaStatus.textContent = "Finished. Refresh to see the results.";
+            } else {
+                window.location.reload();
+            }
+        }, 3000);
+    }
 
     const card = document.querySelector<HTMLElement>("[data-upload]");
     const input = document.querySelector<HTMLInputElement>("[data-upload-input]");

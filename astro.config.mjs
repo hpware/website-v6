@@ -73,17 +73,6 @@ export default defineConfig({
         access: "secret",
         optional: true,
       }),
-      // Writes photo pack meta tags from the admin panel. The model has to support images and JSON schemas.
-      OPENROUTER_API_KEY: envField.string({
-        context: "server",
-        access: "secret",
-        optional: true,
-      }),
-      OPENROUTER_MODEL: envField.string({
-        context: "server",
-        access: "secret",
-        default: "deepseek/deepseek-v4.1-flash-1017",
-      }),
     },
   },
   image: {

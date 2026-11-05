@@ -194,23 +194,6 @@ export const remove = mutation({
   },
 });
 
-/** Saves AI generated meta tags (see src/lib/admin/photoMeta.ts) in one transaction. */
-export const setGeneratedMeta = mutation({
-  args: {
-    secret: v.string(),
-    id: v.id("galleries"),
-    meta_description: v.object({ zh: v.string(), en: v.string() }),
-    image_names: v.array(v.object({ id: v.id("gallery_images"), name: v.string() })),
-  },
-  handler: async (ctx, args) => {
-    await requireGallery(ctx, args.secret, args.id);
-    await ctx.db.patch(args.id, { meta_description: args.meta_description, updated_at: Date.now() });
-    for (const { id, name } of args.image_names) {
-      await ctx.db.patch(id, { name });
-    }
-  },
-});
-
 // ============ IMAGE MUTATIONS ============
 
 export const addImage = mutation({
