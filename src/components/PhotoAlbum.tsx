@@ -92,7 +92,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                             src={photo.src}
                             alt={photo.alt ?? ""}
                             loading="lazy"
-                            className="size-full object-cover transition-transform duration-300 hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
+                            className="size-full object-cover"
                         />
                     </button>
                 ))}
