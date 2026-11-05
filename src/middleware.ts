@@ -1,5 +1,5 @@
 import { defineMiddleware, sequence } from "astro:middleware";
-import { isSignedIn } from "./lib/admin/session";
+import { isSignedIn, takeToast } from "./lib/admin/session";
 import { negotiateMarkdown } from "./lib/markdown";
 
 // Everything under /system-admin needs an admin session, except the login
@@ -17,6 +17,9 @@ const systemAdmin = defineMiddleware(async (context, next) => {
             : context.redirect("/system-admin/login");
     }
 
+    // Cookies have to be changed here: from the layout it would be too late, the response has started.
+    if (context.request.method === "GET") context.locals.toast = takeToast(context.cookies);
+
     const response = await next();
     // Redirect responses have immutable headers; they don't need these anyway.
     if (response.status < 300 || response.status >= 400) {
@@ -30,4 +33,25 @@ const markdown = defineMiddleware(async ({ request }, next) => {
     return negotiateMarkdown(request, await next());
 });
 
-export const onRequest = sequence(systemAdmin, markdown);
+// Lets Vercel's CDN answer repeat visits instead of running the function each time,
+// and refresh in the background. This has to be set here: headers set from inside a
+// component are too late, the response has already started. Admin pages are safe
+// because systemAdmin (which runs after this) replaces the header with no-store.
+const cdnCache = defineMiddleware(async (context, next) => {
+    const response = await next();
+    const type = response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase();
+    if (
+        ["GET", "HEAD"].includes(context.request.method) &&
+        response.status === 200 &&
+        (type === "text/html" || type === "text/markdown") &&
+        !response.headers.has("Cache-Control")
+    ) {
+        response.headers.set(
+            "Cache-Control",
+            "public, max-age=0, s-maxage=60, stale-while-revalidate=86400",
+        );
+    }
+    return response;
+});
+
+export const onRequest = sequence(systemAdmin, cdnCache, markdown);

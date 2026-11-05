@@ -6,6 +6,8 @@ import { convex } from "./convex";
 
 export type Photo = {
     src: string;
+    /** Small version for the grid; src is used if there isn't one. */
+    thumb?: string;
     alt?: string;
 };
 
@@ -13,6 +15,7 @@ export type PhotoPack = {
     id: string;
     title: string;
     description?: string;
+    metaDescription?: { zh: string; en: string };
     date?: string;
     cover?: string;
     photos: Photo[];
@@ -38,6 +41,7 @@ function toPhotoPack(gallery: GalleryWithImages): PhotoPack | null {
         id: gallery.slug,
         title: gallery.name,
         description: gallery.description || undefined,
+        metaDescription: gallery.meta_description,
         date: formatDate(gallery.created_at),
         cover: gallery.index_image || undefined,
         photos: gallery.images.map((image) => ({

@@ -41,6 +41,7 @@ export default defineSchema({
     slug: v.string(),
     description: v.optional(v.string()),
     index_image: v.optional(v.string()),
+    meta_description: v.optional(v.object({ zh: v.string(), en: v.string() })), // AI generated
     status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
     created_at: v.union(v.number(), v.string()), // Can be number (new) or string (legacy from PostgreSQL)
     updated_at: v.union(v.number(), v.string()), // Can be number (new) or string (legacy from PostgreSQL)

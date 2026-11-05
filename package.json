@@ -32,6 +32,7 @@
     "@types/react-dom": "^19.3.0",
     "astro": "^7.4.5",
     "convex": "^1.49.0",
+    "heic-to": "1.6.7",
     "lucide-react": "^1.68.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

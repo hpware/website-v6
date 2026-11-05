@@ -170,44 +170,6 @@
     }
 }
 
-/* Page transitions between site pages (native cross-document view transitions,
-   browsers without support just navigate normally). The navbar stays put while
-   the page content fades/slides. */
-@view-transition {
-    navigation: auto;
-}
-.site-header {
-    view-transition-name: site-header;
-}
-::view-transition-group(site-header) {
-    animation: none;
-}
-::view-transition-old(root) {
-    animation: page-out 150ms ease-in both;
-}
-::view-transition-new(root) {
-    animation: page-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@keyframes page-out {
-    to {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-}
-@keyframes page-in {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-}
-@media (prefers-reduced-motion: reduce) {
-    ::view-transition-group(*),
-    ::view-transition-old(*),
-    ::view-transition-new(*) {
-        animation: none !important;
-    }
-}
-
 /* Photo albums: photo grid + popup (src/components/PhotoAlbum.tsx) */
 .photo-pack-backdrop {
     animation: photo-pack-fade 200ms ease-out;
@@ -243,6 +205,44 @@
     }
 }
 
+/* Admin panel toast: slides in, then hides itself. Hovering keeps it open to read. */
+.admin-toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 100;
+    max-width: min(28rem, calc(100vw - 2rem));
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: var(--color-green-700);
+    color: white;
+    font-size: 0.875rem;
+    box-shadow: 0 10px 25px rgb(0 0 0 / 0.25);
+    animation:
+        admin-toast-in 200ms ease-out,
+        admin-toast-out 300ms ease-in 5s forwards;
+}
+.admin-toast:hover {
+    animation-play-state: paused;
+}
+@keyframes admin-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+}
+@keyframes admin-toast-out {
+    to {
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .admin-toast {
+        animation: admin-toast-out 1ms 5s forwards;
+    }
+}
+
 /* Admin panel (src/layouts/Admin.astro and src/pages/admin/) */
 @layer components {
     .admin-card {
@@ -268,9 +268,6 @@
     }
     .admin-notice {
         @apply rounded-xl px-4 py-3 text-sm;
-    }
-    .admin-notice-ok {
-        @apply bg-green-500/15 text-green-800 dark:text-green-200;
     }
     .admin-notice-error {
         @apply bg-red-500/15 text-red-800 dark:text-red-200;

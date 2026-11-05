@@ -7,8 +7,11 @@ import { ADMIN_PASSWORD_SHA512, ADMIN_SESSION_SECRET } from "astro:env/server";
 
 const SESSION_COOKIE = "admin_session";
 const CHALLENGE_COOKIE = "admin_challenge";
+const TOAST_COOKIE = "admin_toast";
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const CHALLENGE_MS = 5 * 60 * 1000;
+const TOAST_MS = 60 * 1000;
+const TOAST_MAX_LENGTH = 300; // Cookies only fit about 4 KB, and some messages include API errors.
 
 type Signed = { kind: "session" | "challenge"; exp: number; challenge?: string };
 
@@ -73,6 +76,18 @@ export function takeChallenge(cookies: AstroCookies) {
     const data = unseal(cookies.get(CHALLENGE_COOKIE)?.value, "challenge");
     cookies.delete(CHALLENGE_COOKIE, { path: "/" });
     return data?.challenge ?? null;
+}
+
+/** A message to show as a toast on the next page, usually the one being redirected to. */
+export function setToast(cookies: AstroCookies, message: string) {
+    cookies.set(TOAST_COOKIE, message.slice(0, TOAST_MAX_LENGTH), cookieOptions(TOAST_MS));
+}
+
+/** Returns the toast once, so a refresh doesn't show it again. */
+export function takeToast(cookies: AstroCookies) {
+    const toast = cookies.get(TOAST_COOKIE)?.value;
+    if (toast) cookies.delete(TOAST_COOKIE, { path: "/" });
+    return toast;
 }
 
 /** Compares the SHA-512 of the given password with ADMIN_PASSWORD_SHA512. */

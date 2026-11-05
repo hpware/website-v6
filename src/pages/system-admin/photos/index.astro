@@ -4,8 +4,14 @@ import { api } from "../../../../convex/_generated/api";
 import StatusBadge from "../../../components/admin/StatusBadge.astro";
 import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
+import { coverUrl } from "../../../lib/photoUrl";
 
-const packs = await convex.query(api.galleries.list, {});
+const packs = await Promise.all(
+    (await convex.query(api.galleries.listWithCovers, {})).map(async (pack) => ({
+        ...pack,
+        coverSrc: pack.cover && (await coverUrl(pack.cover, 600)),
+    })),
+);
 ---
 
 <Admin title="Photos">
@@ -26,9 +32,9 @@ const packs = await convex.query(api.galleries.list, {});
                 <li>
                     <a href={`/system-admin/photos/${pack.slug}`} class="block">
                         <div class="aspect-square overflow-hidden rounded-2xl bg-gray-500/20 shadow-md">
-                            {pack.index_image && (
+                            {pack.coverSrc && (
                                 <img
-                                    src={pack.index_image}
+                                    src={pack.coverSrc}
                                     alt=""
                                     loading="lazy"
                                     class="size-full object-cover"

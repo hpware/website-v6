@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 import { getPhotoPacks } from "../../lib/photoPacks";
+import { coverUrl } from "../../lib/photoUrl";
 
 interface Props {
     locale: Locale;
@@ -9,7 +10,12 @@ interface Props {
 
 const { locale } = Astro.props;
 const T = createTranslator(locale);
-const packs = await getPhotoPacks();
+const packs = await Promise.all(
+    (await getPhotoPacks()).map(async (pack) => ({
+        ...pack,
+        coverSrc: await coverUrl(pack.cover ?? pack.photos[0].src, 600),
+    })),
+);
 ---
 
 <Layout
@@ -36,7 +42,7 @@ const packs = await getPhotoPacks();
                                 class="relative block aspect-square overflow-hidden rounded-2xl bg-gray-500/20 shadow-md transition-transform duration-300 active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
                             >
                                 <img
-                                    src={pack.cover ?? pack.photos[0].src}
+                                    src={pack.coverSrc}
                                     alt=""
                                     loading="lazy"
                                     class="size-full object-cover"

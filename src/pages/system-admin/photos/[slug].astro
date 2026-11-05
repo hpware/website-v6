@@ -5,16 +5,17 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import StatusBadge from "../../../components/admin/StatusBadge.astro";
 import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
+import { generatePhotoMeta } from "../../../lib/admin/photoMeta";
 import { missingS3Env } from "../../../lib/admin/s3";
 import {
     adminSecret,
-    withNotice,
     errorMessage,
     formatDate,
     optionalText,
     requireHttpUrl,
     text,
 } from "../../../lib/admin/utils";
+import { setToast } from "../../../lib/admin/session";
 
 const slug = Astro.params.slug ?? "";
 const base = `/system-admin/photos/${slug}`;
@@ -43,17 +44,35 @@ if (Astro.request.method === "POST") {
                     description: optionalText(form, "description"),
                     index_image,
                 });
-                return Astro.redirect(withNotice(base, "Saved."), 303);
+                setToast(Astro.cookies, "Saved.");
+                return Astro.redirect(base, 303);
             }
-            case "publish":
+            case "publish": {
+                let notice = "Published.";
+                // A failed AI request shouldn't stop the pack from being published.
+                if (!before.meta_description && before.images.length > 0) {
+                    try {
+                        await generatePhotoMeta(before);
+                    } catch (caught) {
+                        notice = `Published, but the meta tags weren't generated: ${errorMessage(caught)}`;
+                    }
+                }
                 await convex.mutation(api.galleries.setStatus, { secret, id, status: "published" });
-                return Astro.redirect(withNotice(base, "Published."), 303);
+                setToast(Astro.cookies, notice);
+                return Astro.redirect(base, 303);
+            }
+            case "generate-meta":
+                await generatePhotoMeta(before);
+                setToast(Astro.cookies, "Meta tags generated.");
+                return Astro.redirect(base, 303);
             case "unpublish":
                 await convex.mutation(api.galleries.setStatus, { secret, id, status: "draft" });
-                return Astro.redirect(withNotice(base, "Moved back to drafts."), 303);
+                setToast(Astro.cookies, "Moved back to drafts.");
+                return Astro.redirect(base, 303);
             case "delete":
                 await convex.mutation(api.galleries.remove, { secret, id });
-                return Astro.redirect(withNotice("/system-admin/photos", "Photo pack deleted."), 303);
+                setToast(Astro.cookies, "Photo pack deleted.");
+                return Astro.redirect("/system-admin/photos", 303);
             case "add-photos": {
                 // One photo per line: "URL" or "URL | alt text".
                 const lines = text(form, "photos").split("\n").map((line) => line.trim()).filter(Boolean);
@@ -64,7 +83,8 @@ if (Astro.request.method === "POST") {
                 for (const photo of photos) {
                     await convex.mutation(api.galleries.addImage, { secret, gallery_id: id, ...photo });
                 }
-                return Astro.redirect(withNotice(base, `Added ${photos.length} photo(s).`, "#photos"), 303);
+                setToast(Astro.cookies, `Added ${photos.length} photo(s).`);
+                return Astro.redirect(`${base}#photos`, 303);
             }
             case "move-up":
             case "move-down":
@@ -76,7 +96,8 @@ if (Astro.request.method === "POST") {
                 return Astro.redirect(`${base}#photos`, 303);
             case "remove-photo":
                 await convex.mutation(api.galleries.removeImage, { secret, id: imageId });
-                return Astro.redirect(withNotice(base, "Photo removed.", "#photos"), 303);
+                setToast(Astro.cookies, "Photo removed.");
+                return Astro.redirect(`${base}#photos`, 303);
         }
     } catch (caught) {
         error = errorMessage(caught);
@@ -149,6 +170,28 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
         </label>
         <div>
             <button name="intent" value="save" class="admin-btn admin-btn-primary">Save details</button>
+        </div>
+    </form>
+
+    <form method="post" class="admin-card mt-4 flex flex-col gap-3">
+        <h2 class="font-bold">Meta tags</h2>
+        {
+            pack.meta_description ? (
+                <div class="text-sm">
+                    <p>{pack.meta_description.zh}</p>
+                    <p class="mt-1">{pack.meta_description.en}</p>
+                </div>
+            ) : (
+                <p class="admin-hint">Not generated yet. This happens automatically on the first publish.</p>
+            )
+        }
+        <span class="admin-hint">
+            AI writes these from the photos, and fills in photos with no alt text. A description you typed above is used instead if there is one.
+        </span>
+        <div>
+            <button name="intent" value="generate-meta" class="admin-btn">
+                {pack.meta_description ? "Regenerate" : "Generate"}
+            </button>
         </div>
     </form>
 
@@ -250,8 +293,8 @@ const pack = (await convex.query(api.galleries.getBySlugWithImages, { slug })) ?
         input.disabled = true;
         status.hidden = false;
         try {
-            const uploaded = await uploadFiles(files, card.dataset.prefix ?? "", (done, total) => {
-                status.textContent = `Uploading ${done} / ${total}...`;
+            const uploaded = await uploadFiles(files, card.dataset.prefix ?? "", (message) => {
+                status.textContent = message;
             });
             // Hand the new URLs to the "add by URL" form, which saves them to Convex.
             const textarea = addForm.querySelector("textarea");

@@ -2,7 +2,8 @@
 import { Copy, Folder, Trash } from "@lucide/astro";
 import Admin from "../../layouts/Admin.astro";
 import { cleanPrefix, deleteObject, listFolder, missingS3Env, publicUrl } from "../../lib/admin/s3";
-import { errorMessage, text, withNotice } from "../../lib/admin/utils";
+import { errorMessage, text } from "../../lib/admin/utils";
+import { setToast } from "../../lib/admin/session";
 
 let error = "";
 let prefix = "";
@@ -18,7 +19,8 @@ if (Astro.request.method === "POST" && missingS3Env.length === 0) {
     try {
         if (text(form, "intent") === "delete") {
             await deleteObject(text(form, "key"));
-            return Astro.redirect(withNotice(here, "File deleted."), 303);
+            setToast(Astro.cookies, "File deleted.");
+            return Astro.redirect(here, 303);
         }
     } catch (caught) {
         error = errorMessage(caught);
@@ -140,8 +142,8 @@ const formatSize = (bytes: number) =>
         input.disabled = true;
         status.hidden = false;
         try {
-            await uploadFiles(files, card.dataset.prefix ?? "", (done, total) => {
-                status.textContent = `Uploading ${done} / ${total}...`;
+            await uploadFiles(files, card.dataset.prefix ?? "", (message) => {
+                status.textContent = message;
             });
             window.location.reload();
         } catch (error) {

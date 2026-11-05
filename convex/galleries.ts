@@ -16,6 +16,24 @@ export const list = query({
   },
 });
 
+// Every gallery with the image to show for it, for the admin panel's list.
+export const listWithCovers = query({
+  args: {},
+  handler: async (ctx) => {
+    const galleries = await ctx.db.query("galleries").order("desc").collect();
+    return await Promise.all(
+      galleries.map(async (gallery) => {
+        const firstImage = await ctx.db
+          .query("gallery_images")
+          .withIndex("by_gallery_sort", (q) => q.eq("gallery_id", gallery._id))
+          .order("asc")
+          .first();
+        return { ...gallery, cover: gallery.index_image ?? firstImage?.image_url };
+      }),
+    );
+  },
+});
+
 export const listPublished = query({
   args: {},
   handler: async (ctx) => {
@@ -173,6 +191,23 @@ export const remove = mutation({
       await ctx.db.delete(image._id);
     }
     await ctx.db.delete(args.id);
+  },
+});
+
+/** Saves AI generated meta tags (see src/lib/admin/photoMeta.ts) in one transaction. */
+export const setGeneratedMeta = mutation({
+  args: {
+    secret: v.string(),
+    id: v.id("galleries"),
+    meta_description: v.object({ zh: v.string(), en: v.string() }),
+    image_names: v.array(v.object({ id: v.id("gallery_images"), name: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    await requireGallery(ctx, args.secret, args.id);
+    await ctx.db.patch(args.id, { meta_description: args.meta_description, updated_at: Date.now() });
+    for (const { id, name } of args.image_names) {
+      await ctx.db.patch(id, { name });
+    }
   },
 });
 

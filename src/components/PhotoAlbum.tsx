@@ -89,7 +89,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                         style={{ "--i": index } as CSSProperties}
                     >
                         <img
-                            src={photo.src}
+                            src={photo.thumb ?? photo.src}
                             alt={photo.alt ?? ""}
                             loading="lazy"
                             className="size-full object-cover"

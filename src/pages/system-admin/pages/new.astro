@@ -4,7 +4,8 @@ import PageFields from "../../../components/admin/PageFields.astro";
 import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
 import { readPageForm } from "../../../lib/admin/pageForm";
-import { adminSecret, withNotice, errorMessage, requireSlug, text } from "../../../lib/admin/utils";
+import { adminSecret, errorMessage, requireSlug, text } from "../../../lib/admin/utils";
+import { setToast } from "../../../lib/admin/session";
 
 let error = "";
 if (Astro.request.method === "POST") {
@@ -17,7 +18,8 @@ if (Astro.request.method === "POST") {
             writer: "Howard",
             ...readPageForm(form),
         });
-        return Astro.redirect(withNotice(`/system-admin/pages/${slug}`, "Page created as a draft."), 303);
+        setToast(Astro.cookies, "Page created as a draft.");
+        return Astro.redirect(`/system-admin/pages/${slug}`, 303);
     } catch (caught) {
         error = errorMessage(caught);
     }

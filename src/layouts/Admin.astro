@@ -21,8 +21,7 @@ interface Props {
 }
 
 const { title, error, bare = false } = Astro.props;
-// Success messages come back as ?done=... after a form redirect.
-const done = Astro.url.searchParams.get("done");
+const { toast } = Astro.locals;
 const path = Astro.url.pathname;
 const tabs = [
     { name: "Dashboard", icon: LayoutDashboard, url: "/system-admin" },
@@ -87,10 +86,10 @@ const isActive = (url: string) =>
                     </nav>
                 )
             }
-            {done && <p class="admin-notice admin-notice-ok mb-6">{done}</p>}
             {error && <p class="admin-notice admin-notice-error mb-6">{error}</p>}
             <slot />
         </main>
+        {toast && <p role="status" class="admin-toast">{toast}</p>}
 
         <script>
             // Forms or buttons with data-confirm="Question?" ask before submitting.

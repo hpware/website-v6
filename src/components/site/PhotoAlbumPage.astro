@@ -4,6 +4,7 @@ import PhotoAlbum from "../PhotoAlbum.tsx";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 import type { PhotoPack } from "../../lib/photoPacks";
+import { coverUrl, fitUrl } from "../../lib/photoUrl";
 
 interface Props {
     locale: Locale;
@@ -12,13 +13,20 @@ interface Props {
 
 const { locale, pack } = Astro.props;
 const T = createTranslator(locale);
+const photos = await Promise.all(
+    pack.photos.map(async (photo) => ({
+        ...photo,
+        src: await fitUrl(photo.src, 1600),
+        thumb: await coverUrl(photo.src, 400),
+    })),
+);
 ---
 
 <Layout
     locale={locale}
     translationPath={`/photos/${pack.id}/`}
     title={pack.title}
-    description={pack.description}
+    description={pack.description ?? pack.metaDescription?.[locale === "en" ? "en" : "zh"]}
 >
     <div class="mx-auto max-w-5xl pb-16">
         <a
@@ -36,7 +44,7 @@ const T = createTranslator(locale);
         {pack.description && <p class="mt-2 opacity-80">{pack.description}</p>}
         <PhotoAlbum
             client:load
-            photos={pack.photos}
+            photos={photos}
             labels={{
                 close: T("關閉"),
                 previous: T("上一張"),

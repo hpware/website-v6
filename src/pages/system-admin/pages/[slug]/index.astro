@@ -6,7 +6,8 @@ import StatusBadge from "../../../../components/admin/StatusBadge.astro";
 import Admin from "../../../../layouts/Admin.astro";
 import { convex } from "../../../../lib/convex";
 import { readPageForm } from "../../../../lib/admin/pageForm";
-import { adminSecret, withNotice, errorMessage, formatDate, text } from "../../../../lib/admin/utils";
+import { adminSecret, errorMessage, formatDate, text } from "../../../../lib/admin/utils";
+import { setToast } from "../../../../lib/admin/session";
 
 const slug = Astro.params.slug ?? "";
 const base = `/system-admin/pages/${slug}`;
@@ -19,19 +20,24 @@ if (Astro.request.method === "POST") {
         switch (text(form, "intent")) {
             case "save":
                 await convex.mutation(api.pages.update, { secret, slug, ...readPageForm(form) });
-                return Astro.redirect(withNotice(base, "Saved."), 303);
+                setToast(Astro.cookies, "Saved.");
+                return Astro.redirect(base, 303);
             case "publish":
                 await convex.mutation(api.pages.publish, { secret, slug });
-                return Astro.redirect(withNotice(base, "Published."), 303);
+                setToast(Astro.cookies, "Published.");
+                return Astro.redirect(base, 303);
             case "unpublish":
                 await convex.mutation(api.pages.unpublish, { secret, slug });
-                return Astro.redirect(withNotice(base, "Moved back to drafts."), 303);
+                setToast(Astro.cookies, "Moved back to drafts.");
+                return Astro.redirect(base, 303);
             case "archive":
                 await convex.mutation(api.pages.archive, { secret, slug });
-                return Astro.redirect(withNotice(base, "Archived (still online, with a banner)."), 303);
+                setToast(Astro.cookies, "Archived (still online, with a banner).");
+                return Astro.redirect(base, 303);
             case "delete":
                 await convex.mutation(api.pages.remove, { secret, slug });
-                return Astro.redirect(withNotice("/system-admin/pages", "Page deleted."), 303);
+                setToast(Astro.cookies, "Page deleted.");
+                return Astro.redirect("/system-admin/pages", 303);
         }
     } catch (caught) {
         error = errorMessage(caught);

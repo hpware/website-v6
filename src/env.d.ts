@@ -6,6 +6,13 @@ import type React from "react";
 import type { JSX as ReactJSX } from "react";
 
 declare global {
+  namespace App {
+    interface Locals {
+      /** Admin panel toast for this page (see src/middleware.ts). */
+      toast?: string;
+    }
+  }
+
   namespace JSX {
     type ElementType = ReactJSX.ElementType;
     type Element = ReactJSX.Element;
