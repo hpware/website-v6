@@ -39,5 +39,6 @@ const desc = Astro.props.description ?? T("歡迎來到我的網站！");
             <slot />
         </main>
         <Footer locale={locale} translationPath={translationPath} />
+        <slot name="page-end" />
     </body>
 </html>

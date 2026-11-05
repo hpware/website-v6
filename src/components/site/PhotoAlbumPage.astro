@@ -51,8 +51,8 @@ const photos = await Promise.all(
                 next: T("下一張"),
             }}
         />
-        <p class="mt-8 text-sm opacity-60">
-            {T("免責聲明：圖片包的 meta 標籤由中國 AI 模型 Deepseek V4.1 Flash 生成。")}
-        </p>
     </div>
+    <p slot="page-end" class="px-4 pb-4 text-center text-xs opacity-50">
+        {T("注意! 圖片包的 meta 標籤由 AI 模型 Deepseek V4.1 Flash 生成")}
+    </p>
 </Layout>
