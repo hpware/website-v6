@@ -4,7 +4,8 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import Admin from "../../layouts/Admin.astro";
 import { convex } from "../../lib/convex";
-import { adminSecret, errorMessage, formatDate, text, withNotice } from "../../lib/admin/utils";
+import { adminSecret, errorMessage, formatDate, text } from "../../lib/admin/utils";
+import { setToast } from "../../lib/admin/session";
 
 let error = "";
 if (Astro.request.method === "POST") {
@@ -13,7 +14,8 @@ if (Astro.request.method === "POST") {
         // Convex checks this is a real passkey id.
         const id = text(form, "id") as Id<"admin_passkeys">;
         await convex.mutation(api.adminPasskeys.remove, { secret: adminSecret(), id });
-        return Astro.redirect(withNotice("/system-admin/passkeys", "Passkey removed."), 303);
+        setToast(Astro.cookies, "Passkey removed.");
+        return Astro.redirect("/system-admin/passkeys", 303);
     } catch (caught) {
         error = errorMessage(caught);
     }
@@ -88,7 +90,7 @@ const passkeys = await convex.query(api.adminPasskeys.list, { secret: adminSecre
                 name: nameInput?.value,
                 response,
             });
-            window.location.href = "/system-admin/passkeys?done=Passkey%20added.";
+            window.location.href = "/system-admin/passkeys";
         } catch (error) {
             if (!isCancelled(error)) {
                 errorText.textContent = error instanceof Error ? error.message : String(error);

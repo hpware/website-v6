@@ -4,13 +4,13 @@ import Admin from "../../../layouts/Admin.astro";
 import { convex } from "../../../lib/convex";
 import {
     adminSecret,
-    withNotice,
     errorMessage,
     optionalText,
     requireHttpUrl,
     requireSlug,
     text,
 } from "../../../lib/admin/utils";
+import { setToast } from "../../../lib/admin/session";
 
 let error = "";
 if (Astro.request.method === "POST") {
@@ -29,7 +29,8 @@ if (Astro.request.method === "POST") {
             description: optionalText(form, "description"),
             index_image,
         });
-        return Astro.redirect(withNotice(`/system-admin/photos/${slug}`, "Created as a draft. Add some photos!"), 303);
+        setToast(Astro.cookies, "Created as a draft. Add some photos!");
+        return Astro.redirect(`/system-admin/photos/${slug}`, 303);
     } catch (caught) {
         error = errorMessage(caught);
     }

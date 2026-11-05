@@ -51,8 +51,3 @@ export function requireHttpUrl(value: string, label: string) {
     }
     throw new Error(`${label} must be an http(s) URL.`);
 }
-
-/** A URL that shows `message` as a green notice (see layouts/Admin.astro). */
-export function withNotice(path: string, message: string, hash = "") {
-    return `${path}?done=${encodeURIComponent(message)}${hash}`;
-}

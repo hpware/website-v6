@@ -9,6 +9,7 @@ import { defineConfig, envField, fontProviders } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 
 import react from "@astrojs/react";
+import { PHOTO_HOSTS } from "./src/lib/photoHosts";
 import { rehypeImageAttributes } from "./src/lib/rehypeImageAttributes";
 
 // https://astro.build/config
@@ -36,7 +37,13 @@ export default defineConfig({
       S3_SECRET_ACCESS_KEY: envField.string({ context: "server", access: "secret", optional: true }),
       // Public base URL objects are served from (R2: the bucket's custom domain or r2.dev URL)
       S3_PUBLIC_URL: envField.string({ context: "server", access: "secret", optional: true }),
+      // Writes photo pack meta tags from the admin panel. The model has to support images and JSON schemas.
+      OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      OPENROUTER_MODEL: envField.string({ context: "server", access: "secret", default: "anthropic/claude-haiku-5.5" }),
     },
+  },
+  image: {
+    domains: PHOTO_HOSTS,
   },
   markdown: {
     processor: unified({ rehypePlugins: [rehypeImageAttributes] }),
