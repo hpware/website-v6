@@ -81,12 +81,14 @@ export default function PhotoAlbum({ photos, labels }: Props) {
 
     function view(index: number, opener: HTMLElement) {
         openerRef.current = opener;
+        setFailed(null);
         setDirection(0);
         setViewing(index);
     }
 
     function step(delta: -1 | 1) {
         if (viewing === null) return;
+        setFailed(null);
         setDirection(delta);
         setViewing((viewing + delta + photos.length) % photos.length);
     }
@@ -129,9 +131,16 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                         onClick={() => setViewing(null)}
                     >
                         {failed === viewing ? (
-                            <p className="rounded-xl bg-white/10 px-4 py-3 text-white">
+                            <button
+                                type="button"
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                    setFailed(null);
+                                }}
+                                className="rounded-xl bg-white/10 px-4 py-3 text-white transition-colors hover:bg-white/25"
+                            >
                                 {labels.loadFailed}
-                            </p>
+                            </button>
                         ) : (
                             <>
                                 {loaded !== viewing && viewingPhoto.thumb && (
