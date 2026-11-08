@@ -9,6 +9,7 @@ type Props = {
         close: string;
         previous: string;
         next: string;
+        loadFailed: string;
     };
 };
 
@@ -22,6 +23,9 @@ export default function PhotoAlbum({ photos, labels }: Props) {
     // The thumbnail that opened the popup, to give focus back on close.
     const openerRef = useRef<HTMLElement | null>(null);
     const isOpen = viewing !== null;
+    // Originals can take a while, so the thumbnail stands in until this matches `viewing`.
+    const [loaded, setLoaded] = useState<number | null>(null);
+    const [failed, setFailed] = useState<number | null>(null);
     // Originals already fetched, so they're only requested once per visit.
     const preloaded = useRef(new Set<string>());
 
@@ -124,14 +128,32 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                         className="photo-pack-backdrop fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 sm:p-16"
                         onClick={() => setViewing(null)}
                     >
-                        <img
-                            key={viewing}
-                            src={viewingPhoto.src}
-                            alt={viewingPhoto.alt ?? ""}
-                            className="photo-pack-lightbox max-h-full max-w-full rounded-xl object-contain shadow-2xl"
-                            style={{ "--dir": direction } as CSSProperties}
-                            onClick={(event) => event.stopPropagation()}
-                        />
+                        {failed === viewing ? (
+                            <p className="rounded-xl bg-white/10 px-4 py-3 text-white">
+                                {labels.loadFailed}
+                            </p>
+                        ) : (
+                            <>
+                                {loaded !== viewing && viewingPhoto.thumb && (
+                                    <img
+                                        src={viewingPhoto.thumb}
+                                        alt=""
+                                        className="max-h-full max-w-full animate-pulse rounded-xl object-contain"
+                                        onClick={(event) => event.stopPropagation()}
+                                    />
+                                )}
+                                <img
+                                    key={viewing}
+                                    src={viewingPhoto.src}
+                                    alt={viewingPhoto.alt ?? ""}
+                                    className={`photo-pack-lightbox max-h-full max-w-full rounded-xl object-contain shadow-2xl ${loaded === viewing || !viewingPhoto.thumb ? "" : "hidden"}`}
+                                    style={{ "--dir": direction } as CSSProperties}
+                                    onClick={(event) => event.stopPropagation()}
+                                    onLoad={() => setLoaded(viewing)}
+                                    onError={() => setFailed(viewing)}
+                                />
+                            </>
+                        )}
                         <button
                             type="button"
                             onClick={() => setViewing(null)}
