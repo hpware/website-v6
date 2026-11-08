@@ -4,7 +4,7 @@ import PhotoAlbum from "../PhotoAlbum.tsx";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 import type { PhotoPack } from "../../lib/photoPacks";
-import { coverUrl, fitUrl } from "../../lib/photoUrl";
+import { coverUrl } from "../../lib/photoUrl";
 
 interface Props {
     locale: Locale;
@@ -15,8 +15,8 @@ const { locale, pack } = Astro.props;
 const T = createTranslator(locale);
 const photos = await Promise.all(
     pack.photos.map(async (photo) => ({
+        // The popup shows the original straight from Cloudflare; only the grid is resized.
         ...photo,
-        src: await fitUrl(photo.src, 1600),
         thumb: await coverUrl(photo.src, 400),
     })),
 );
@@ -49,6 +49,7 @@ const photos = await Promise.all(
                 close: T("關閉"),
                 previous: T("上一張"),
                 next: T("下一張"),
+                loadFailed: T("圖片載入失敗，點此重試"),
             }}
         />
     </div>
