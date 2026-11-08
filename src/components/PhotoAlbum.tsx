@@ -22,6 +22,19 @@ export default function PhotoAlbum({ photos, labels }: Props) {
     // The thumbnail that opened the popup, to give focus back on close.
     const openerRef = useRef<HTMLElement | null>(null);
     const isOpen = viewing !== null;
+    // Originals already fetched, so they're only requested once per visit.
+    const preloaded = useRef(new Set<string>());
+
+    // Fetch the photos on either side of the one being viewed, so prev/next is instant.
+    useEffect(() => {
+        if (viewing === null || photos.length < 2) return;
+        for (const delta of [-1, 1]) {
+            const { src } = photos[(viewing + delta + photos.length) % photos.length];
+            if (preloaded.current.has(src)) continue;
+            preloaded.current.add(src);
+            new Image().src = src;
+        }
+    }, [viewing, photos]);
 
     // Move focus into the popup when it opens and back to the thumbnail when it closes.
     useEffect(() => {
@@ -92,6 +105,7 @@ export default function PhotoAlbum({ photos, labels }: Props) {
                             src={photo.thumb ?? photo.src}
                             alt={photo.alt ?? ""}
                             loading="lazy"
+                            decoding="async"
                             className="size-full object-cover"
                         />
                     </button>
