@@ -75,6 +75,39 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
     )
 }
 
+<style>
+    /* The prompt slides up shortly after the page loads, and back down when it closes. */
+    [data-translation-prompt]:not([hidden]) {
+        animation: translation-in 300ms ease-out 500ms backwards;
+    }
+    [data-translation-prompt][data-closing] {
+        animation: translation-out 200ms ease-in forwards;
+    }
+    [data-translation-notice]:not([hidden]) {
+        animation: translation-in 300ms ease-out;
+    }
+    @keyframes translation-in {
+        from {
+            opacity: 0;
+            transform: translateY(1rem);
+        }
+    }
+    @keyframes translation-out {
+        to {
+            opacity: 0;
+            transform: translateY(1rem);
+        }
+    }
+    /* Kept (not removed) so closing still gets its animationend. */
+    @media (prefers-reduced-motion: reduce) {
+        [data-translation-prompt],
+        [data-translation-notice] {
+            animation-duration: 1ms !important;
+            animation-delay: 0s !important;
+        }
+    }
+</style>
+
 <script>
     type Translation =
         | { status: "none" | "running" | "failed" }
@@ -115,8 +148,20 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
         };
         prompt.hidden = storage.get();
 
+        const closePrompt = () => {
+            prompt.dataset.closing = "";
+            prompt.addEventListener(
+                "animationend",
+                () => {
+                    prompt.hidden = true;
+                    delete prompt.dataset.closing;
+                },
+                { once: true },
+            );
+        };
+
         root.querySelector("[data-translation-dismiss]")!.addEventListener("click", () => {
-            prompt.hidden = true;
+            closePrompt();
             storage.set();
         });
 
@@ -126,7 +171,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
             error.hidden = true;
             try {
                 show(await waitForTranslation());
-                prompt.hidden = true;
+                closePrompt();
             } catch {
                 error.hidden = false;
             } finally {
