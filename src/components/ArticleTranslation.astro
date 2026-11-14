@@ -1,0 +1,179 @@
+---
+// Asks readers whose language isn't the post's if they want it translated (by convex/translations.ts),
+// and swaps the translation into the page's [data-article-title] and [data-article-body] when it's ready.
+// Nothing is translated unless the reader asks.
+import { Languages } from "@lucide/astro";
+import { createTranslator, type Locale } from "../i18n";
+import { postLocale, type TranslatableCollection } from "../lib/translations";
+
+interface Props {
+    locale: Locale;
+    collection: TranslatableCollection;
+    slug: string;
+    markdown: string | undefined;
+}
+
+const { locale, collection, slug, markdown } = Astro.props;
+const T = createTranslator(locale);
+const show = markdown !== undefined && postLocale(markdown) !== locale;
+---
+
+{
+    show && (
+        <div data-article-translation data-collection={collection} data-slug={slug} data-locale={locale}>
+            <div
+                data-translation-prompt
+                hidden
+                class="fixed inset-x-4 bottom-4 z-40 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-lg sm:left-auto sm:w-96"
+            >
+                <p class="flex items-start gap-2 font-bold">
+                    <Languages class="mt-0.5 h-5 w-5 shrink-0" />
+                    {T("這篇文章是以英文撰寫的，要翻譯成中文嗎？")}
+                </p>
+                <p class="mt-2 text-sm text-muted-foreground">
+                    {T("翻譯由 AI 模型 Deepseek V4.1 Flash 處理，可能不完全正確。")}
+                </p>
+                <p data-translation-error hidden class="mt-2 text-sm text-destructive">
+                    {T("翻譯失敗，請稍後再試。")}
+                </p>
+                <div class="mt-3 flex justify-end gap-2">
+                    <button
+                        type="button"
+                        data-translation-dismiss
+                        class="rounded-lg px-3 py-1.5 text-sm hover:bg-muted"
+                    >
+                        {T("不用了")}
+                    </button>
+                    <button
+                        type="button"
+                        data-translation-start
+                        data-busy-label={T("翻譯中…")}
+                        class="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-60"
+                    >
+                        {T("翻譯")}
+                    </button>
+                </div>
+            </div>
+            <p
+                data-translation-notice
+                hidden
+                class="mb-6 flex flex-wrap items-center gap-x-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
+            >
+                <Languages class="h-4 w-4" />
+                {T("此文章由 AI 模型 Deepseek V4.1 Flash 從英文翻譯。")}
+                <button
+                    type="button"
+                    data-translation-toggle
+                    data-original-label={T("顯示原文")}
+                    data-translated-label={T("顯示翻譯")}
+                    class="text-primary hover:underline"
+                >
+                    {T("顯示原文")}
+                </button>
+            </p>
+        </div>
+    )
+}
+
+<script>
+    type Translation =
+        | { status: "none" | "running" | "failed" }
+        | { status: "done"; title: string; html: string };
+
+    const POLL_MS = 3000;
+    const GIVE_UP_MS = 5 * 60 * 1000;
+
+    const root = document.querySelector<HTMLElement>("[data-article-translation]");
+    const title = document.querySelector<HTMLElement>("[data-article-title]");
+    const body = document.querySelector<HTMLElement>("[data-article-body]");
+    if (root && title && body) setUp(root, title, body);
+
+    function setUp(root: HTMLElement, title: HTMLElement, body: HTMLElement) {
+        const { collection = "", slug = "", locale = "" } = root.dataset;
+        const prompt = root.querySelector<HTMLElement>("[data-translation-prompt]")!;
+        const error = root.querySelector<HTMLElement>("[data-translation-error]")!;
+        const start = root.querySelector<HTMLButtonElement>("[data-translation-start]")!;
+        const notice = root.querySelector<HTMLElement>("[data-translation-notice]")!;
+        const toggle = root.querySelector<HTMLButtonElement>("[data-translation-toggle]")!;
+        const startLabel = start.textContent ?? "";
+
+        // "No thanks" is remembered per post, so it doesn't ask on every visit.
+        const dismissedKey = `translation-dismissed:${collection}/${slug}:${locale}`;
+        const storage = {
+            get: () => {
+                try {
+                    return localStorage.getItem(dismissedKey) !== null;
+                } catch {
+                    return false;
+                }
+            },
+            set: () => {
+                try {
+                    localStorage.setItem(dismissedKey, "1");
+                } catch {}
+            },
+        };
+        prompt.hidden = storage.get();
+
+        root.querySelector("[data-translation-dismiss]")!.addEventListener("click", () => {
+            prompt.hidden = true;
+            storage.set();
+        });
+
+        start.addEventListener("click", async () => {
+            start.disabled = true;
+            start.textContent = start.dataset.busyLabel ?? startLabel;
+            error.hidden = true;
+            try {
+                show(await waitForTranslation());
+                prompt.hidden = true;
+            } catch {
+                error.hidden = false;
+            } finally {
+                start.disabled = false;
+                start.textContent = startLabel;
+            }
+        });
+
+        async function request(method: "GET" | "POST"): Promise<Translation> {
+            const post = { collection, slug, locale };
+            const response =
+                method === "POST"
+                    ? await fetch("/api/translate", {
+                          method,
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(post),
+                      })
+                    : await fetch(`/api/translate?${new URLSearchParams(post)}`);
+            if (!response.ok) throw new Error(`Translation request failed (${response.status}).`);
+            return response.json();
+        }
+
+        async function waitForTranslation() {
+            const giveUpAt = Date.now() + GIVE_UP_MS;
+            let translation = await request("POST");
+            while (translation.status === "running" && Date.now() < giveUpAt) {
+                await new Promise((resolve) => setTimeout(resolve, POLL_MS));
+                translation = await request("GET");
+            }
+            if (translation.status !== "done") throw new Error(`Translation ${translation.status}.`);
+            return translation;
+        }
+
+        function show(translation: { title: string; html: string }) {
+            const original = { title: title.textContent ?? "", html: body.innerHTML };
+            let showingTranslation = false;
+            const swap = () => {
+                showingTranslation = !showingTranslation;
+                const shown = showingTranslation ? translation : original;
+                title.textContent = shown.title;
+                body.innerHTML = shown.html;
+                toggle.textContent =
+                    (showingTranslation ? toggle.dataset.originalLabel : toggle.dataset.translatedLabel) ?? "";
+            };
+            swap();
+            toggle.addEventListener("click", swap);
+            notice.hidden = false;
+        }
+    }
+</script>

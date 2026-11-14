@@ -19,9 +19,11 @@ import type * as app from "../app.js";
 import type * as blog from "../blog.js";
 import type * as comments from "../comments.js";
 import type * as galleries from "../galleries.js";
+import type * as openrouter from "../openrouter.js";
 import type * as pages from "../pages.js";
 import type * as photoMeta from "../photoMeta.js";
 import type * as todos from "../todos.js";
+import type * as translations from "../translations.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -38,9 +40,11 @@ declare const fullApi: ApiFromModules<{
   blog: typeof blog;
   comments: typeof comments;
   galleries: typeof galleries;
+  openrouter: typeof openrouter;
   pages: typeof pages;
   photoMeta: typeof photoMeta;
   todos: typeof todos;
+  translations: typeof translations;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,
