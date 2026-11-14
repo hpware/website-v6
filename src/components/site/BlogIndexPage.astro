@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import FormattedDate from "../FormattedDate.astro";
+import { Rss } from "@lucide/astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
@@ -13,6 +13,11 @@ const T = createTranslator(locale);
 const posts = (await getCollection("blog"))
     .filter((post) => post.data.status === "published")
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Posts are already newest first, so years come out newest first too.
+const years = Map.groupBy(posts, (post) => post.data.pubDate.getUTCFullYear());
+const monthDay = (date: Date) =>
+    `${String(date.getUTCMonth() + 1).padStart(2, "0")}.${String(date.getUTCDate()).padStart(2, "0")}`;
 ---
 
 <Layout
@@ -21,32 +26,67 @@ const posts = (await getCollection("blog"))
     title={T("部落格")}
     description={T("歡迎來到我的網站！")}
 >
-    <div class="mx-auto max-w-3xl">
-        <h1 class="text-2xl">{T("貼文")}</h1>
-        <ul class="mt-4 flex flex-col gap-4">
-            {
-                posts.map((post) => (
-                    <li>
-                        <a
-                            href={localizedPath(
-                                locale,
-                                `/blog/${post.id}/`,
-                            )}
-                            class="block rounded-lg border border-accent p-4 transition-all duration-300 hover:bg-gray-500/10 dark:hover:bg-white/10"
-                        >
-                            <span class="text-xl">{post.data.title}</span>
-                            <br />
-                            <small>
-                                {T("發佈於")}{" "}
-                                <FormattedDate
-                                    date={post.data.pubDate}
-                                    locale={locale}
-                                />
-                            </small>
-                        </a>
-                    </li>
-                ))
-            }
-        </ul>
+    <div class="mx-auto max-w-5xl pt-8 sm:px-2 md:pt-14">
+        <header
+            class="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6"
+        >
+            <div>
+                <span class="tape tape-print">{posts.length} {T("篇文章")}</span>
+                <h1 class="mt-4 display-wide text-5xl leading-none sm:text-7xl">
+                    {T("部落格")}
+                </h1>
+            </div>
+            <a
+                href="/rss.xml"
+                class="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
+            >
+                <Rss class="size-4" aria-hidden="true" />
+                {T("RSS 訂閱")}
+            </a>
+        </header>
+
+        {
+            [...years].map(([year, yearPosts]) => (
+                <section
+                    class="grid gap-2 border-b border-border py-8 md:grid-cols-[10rem_1fr] md:gap-8"
+                    aria-labelledby={`year-${year}`}
+                >
+                    <h2
+                        id={`year-${year}`}
+                        class="display-wide text-2xl text-muted-foreground md:sticky md:top-20 md:self-start"
+                    >
+                        {year}
+                    </h2>
+                    <ul class="flex flex-col">
+                        {yearPosts.map((post) => (
+                            <li>
+                                <a
+                                    href={localizedPath(
+                                        locale,
+                                        `/blog/${post.id}/`,
+                                    )}
+                                    class="group -mx-3 grid grid-cols-[3.5rem_1fr] gap-4 rounded-md px-3 py-3 transition-colors hover:bg-card"
+                                >
+                                    <time
+                                        datetime={post.data.pubDate.toISOString()}
+                                        class="pt-1 font-mono text-xs text-muted-foreground"
+                                    >
+                                        {monthDay(post.data.pubDate)}
+                                    </time>
+                                    <span class="min-w-0">
+                                        <span class="text-lg leading-snug transition-colors group-hover:text-primary">
+                                            {post.data.title}
+                                        </span>
+                                        <span class="mt-1 line-clamp-2 block text-sm leading-6 text-muted-foreground">
+                                            {post.data.description}
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            ))
+        }
     </div>
 </Layout>
