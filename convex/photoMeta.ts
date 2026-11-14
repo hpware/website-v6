@@ -1,17 +1,15 @@
 // Writes a photo pack's meta description and missing alt text with an AI model, as a
 // background job. It runs here on Convex instead of Vercel, so it keeps going after the
 // admin page has responded and isn't limited by a Vercel function's time limit.
-// Needs OPENROUTER_API_KEY in the Convex env; OPENROUTER_MODEL is optional, and the
-// model has to support images and JSON schemas.
+// The model is asked through openrouter.ts, and has to support images and JSON schemas.
 import { ConvexError, v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalAction, internalMutation, internalQuery, mutation, type MutationCtx } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
+import { ask, errorText } from "./openrouter";
 
-const DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash-1017";
 const PARALLEL_REQUESTS = 4;
-const ATTEMPTS = 3;
 // Convex stops actions after 10 minutes, so a job still running after this has died.
 const JOB_TIMEOUT_MS = 15 * 60 * 1000;
 
@@ -178,64 +176,3 @@ async function toDataUrl(url: string) {
   return `data:${response.headers.get("content-type") ?? "image/jpeg"};base64,${btoa(binary)}`;
 }
 
-type Part = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
-
-// OpenRouter can answer 200 with an error, or with no text at all, so none of it is assumed.
-type Completion = {
-  error?: { message?: string };
-  choices?: {
-    finish_reason?: string | null;
-    error?: { message?: string };
-    message?: { content?: string | null; refusal?: string | null };
-  }[];
-};
-
-async function ask<T>(name: string, schema: object, instructions: string, content: Part[]): Promise<T> {
-  const key = process.env.OPENROUTER_API_KEY;
-  if (!key) throw new Error("OPENROUTER_API_KEY isn't set in the Convex env.");
-
-  let lastError: unknown;
-  for (let attempt = 1; attempt <= ATTEMPTS; attempt++) {
-    try {
-      return await request<T>(key, name, schema, instructions, content);
-    } catch (error) {
-      lastError = error;
-      if (attempt < ATTEMPTS) await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
-    }
-  }
-  throw lastError;
-}
-
-async function request<T>(key: string, name: string, schema: object, instructions: string, content: Part[]): Promise<T> {
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || DEFAULT_MODEL,
-      messages: [
-        { role: "system", content: instructions },
-        { role: "user", content },
-      ],
-      response_format: { type: "json_schema", json_schema: { name, strict: true, schema } },
-      // Only use providers that actually support the JSON format above.
-      provider: { require_parameters: true },
-      // Describing a photo doesn't need it, and it made these requests about 4x the price.
-      reasoning: { enabled: false },
-    }),
-  });
-  if (!response.ok) throw new Error(`OpenRouter returned ${response.status}: ${(await response.text()).slice(0, 200)}`);
-
-  const completion: Completion = await response.json();
-  const choice = completion.choices?.[0];
-  const text = choice?.message?.content;
-  if (!text) {
-    const reason =
-      completion.error?.message ?? choice?.error?.message ?? choice?.message?.refusal ?? `finish_reason: ${choice?.finish_reason}`;
-    throw new Error(`The model returned no text (${reason}).`);
-  }
-  return JSON.parse(text) as T;
-}
-
-function errorText(error: unknown) {
-  return (error instanceof Error ? error.message : String(error)).slice(0, 200);
-}

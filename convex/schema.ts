@@ -96,6 +96,21 @@ export default defineSchema({
     last_used_at: v.optional(v.number()),
   }).index("by_credential_id", ["credential_id"]),
 
+  // AI translations of the blog posts / food reviews (src/content), made when a reader asks
+  // for one (see convex/translations.ts). One per post and language.
+  translations: defineTable({
+    collection: v.union(v.literal("blog"), v.literal("food")),
+    slug: v.string(),
+    locale: v.union(v.literal("en"), v.literal("zh-TW")), // The language it's translated to
+    source_hash: v.string(), // Of the post it was translated from, so edits make it stale
+    status: v.union(v.literal("running"), v.literal("done"), v.literal("failed")),
+    started_at: v.number(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    markdown: v.optional(v.string()),
+    error: v.optional(v.string()),
+  }).index("by_post", ["collection", "slug", "locale"]),
+
   todos: defineTable({
     title: v.string(),
     content: v.string(),
