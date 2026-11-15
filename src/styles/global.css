@@ -273,3 +273,38 @@
         @apply bg-red-500/15 text-red-800 dark:text-red-200;
     }
 }
+
+/* Page-to-page navigation: the browser crossfades between pages (no JS router).
+   The navbar keeps its own name so it stays put (or morphs into its scrolled pill) instead of fading. */
+@view-transition {
+    navigation: auto;
+}
+[data-navbar] {
+    view-transition-name: site-navbar;
+}
+::view-transition-old(root) {
+    animation: page-out 150ms ease-in both;
+}
+::view-transition-new(root) {
+    animation: page-in 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+::view-transition-group(site-navbar) {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes page-out {
+    to {
+        opacity: 0;
+    }
+}
+@keyframes page-in {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}
