@@ -1,122 +1,78 @@
 ---
+import Heatmap from "../ai-usage/Heatmap";
+import ModelTable from "../ai-usage/ModelTable";
+import MonthlyChart from "../ai-usage/MonthlyChart";
+import { formatters, money, vendorColor } from "../ai-usage/shared";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
+import { getAiUsage, TOKSCALE_PROFILE_URL, vendors } from "../../lib/tokscale";
 import Link from "../Link.astro";
 
 interface Props {
     locale: Locale;
 }
 
-// Only the fields of https://tokscale.ai/api/users/<username> this page uses.
-interface TokscaleProfile {
-    stats: {
-        totalTokens: number;
-        totalCost: number;
-        inputTokens: number;
-        outputTokens: number;
-        cacheReadTokens: number;
-        cacheWriteTokens: number;
-        activeDays: number;
-        sessionCount: number;
-    };
-    chartRange: { start: string; end: string };
-    updatedAt: string;
-    modelUsage: { model: string; tokens: number; cost: number }[];
-    contributions: {
-        date: string;
-        totals: { tokens: number; cost: number };
-        clients: { client: string; cost: number }[];
-    }[];
-}
-
-const USERNAME = "hpware";
-const PROFILE_URL = `https://tokscale.ai/u/${USERNAME}`;
-
 const { locale } = Astro.props;
 const T = createTranslator(locale);
-
-let profile: TokscaleProfile | null = null;
-try {
-    const response = await fetch(
-        `https://tokscale.ai/api/users/${USERNAME}`,
-        { signal: AbortSignal.timeout(5000) },
-    );
-    if (response.ok) profile = (await response.json()) as TokscaleProfile;
-} catch {
-    // Tokscale is down or slow; the page shows a fallback message instead.
-}
-
 const numberLocale = locale === "zh-TW" ? "zh-TW" : "en-US";
-const compact = new Intl.NumberFormat(numberLocale, {
-    notation: "compact",
-    maximumFractionDigits: 1,
-});
-const usd = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-});
+const formats = formatters(numberLocale);
+const usage = await getAiUsage();
 
-// Costs keyed by day, for the heatmap and per-client totals.
-const costByDay = new Map<string, number>();
-const costByClient = new Map<string, number>();
-for (const day of profile?.contributions ?? []) {
-    costByDay.set(day.date, day.totals.cost);
-    for (const client of day.clients) {
-        costByClient.set(
-            client.client,
-            (costByClient.get(client.client) ?? 0) + client.cost,
-        );
-    }
-}
+const vendorLabels = {
+    openai: "OpenAI",
+    anthropic: "Anthropic",
+    other: T("其他（開源模型等）"),
+};
+const formatDay = (date: string) => formats.day.format(new Date(`${date}T00:00:00Z`));
+const percent = (part: number, whole: number) =>
+    `${whole === 0 ? 0 : Math.round((part / whole) * 1000) / 10}%`;
 
-const topModels = [...(profile?.modelUsage ?? [])]
-    .sort((a, b) => b.cost - a.cost)
-    .slice(0, 10);
-const topClients = [...costByClient]
-    .filter(([, cost]) => cost >= 1)
-    .sort((a, b) => b[1] - a[1]);
-
-// GitHub-style grid of the last year, one column per week (Sunday first).
-// Shades use a log scale since a few heavy days would otherwise wash out the rest.
-const weeks: { date: string; cost: number; level: number }[][] = [];
-if (profile) {
-    const end = new Date(`${profile.chartRange.end}T00:00:00Z`);
-    const cursor = new Date(`${profile.chartRange.start}T00:00:00Z`);
-    cursor.setUTCDate(cursor.getUTCDate() - cursor.getUTCDay());
-    const maxLog = Math.log1p(Math.max(0, ...costByDay.values()));
-
-    while (cursor <= end) {
-        const week = [];
-        for (let i = 0; i < 7; i++) {
-            const date = cursor.toISOString().slice(0, 10);
-            const cost = costByDay.get(date) ?? 0;
-            const level =
-                cost <= 0 || maxLog === 0
-                    ? 0
-                    : Math.max(1, Math.ceil((Math.log1p(cost) / maxLog) * 4));
-            week.push({ date, cost, level });
-            cursor.setUTCDate(cursor.getUTCDate() + 1);
-        }
-        weeks.push(week);
-    }
-}
-const levelClasses = [
-    "bg-muted-foreground/10",
-    "bg-accent/25",
-    "bg-accent/50",
-    "bg-accent/75",
-    "bg-accent",
-];
-
-const tokenBreakdown = profile
+const tiles = usage
     ? [
-          { label: T("輸入"), value: profile.stats.inputTokens },
-          { label: T("輸出"), value: profile.stats.outputTokens },
-          { label: T("快取讀取"), value: profile.stats.cacheReadTokens },
-          { label: T("快取寫入"), value: profile.stats.cacheWriteTokens },
+          { label: T("過去 30 天"), value: money(formats, usage.past30Days) },
+          {
+              label: T("平均每個活躍日"),
+              value: money(formats, usage.totals.totalCost / Math.max(1, usage.totals.activeDays)),
+          },
+          {
+              label: T("花最多的一天"),
+              value: money(formats, usage.biggestDay.cost),
+              note: formatDay(usage.biggestDay.date),
+          },
+          {
+              label: T("最長連續天數"),
+              value: T("{count} 天").replace("{count}", String(usage.longestStreak)),
+              note: T("目前連續 {count} 天").replace("{count}", String(usage.currentStreak)),
+          },
+          {
+              label: T("快取命中率"),
+              value: percent(
+                  usage.totals.cacheReadTokens,
+                  usage.totals.cacheReadTokens + usage.totals.inputTokens + usage.totals.cacheWriteTokens,
+              ),
+              note: T("輸入的 token 有多少是從快取讀的"),
+          },
+          {
+              label: T("每百萬 token"),
+              value: formats.usdCents.format((usage.totals.totalCost / Math.max(1, usage.totals.totalTokens)) * 1e6),
+          },
+          { label: T("訊息"), value: formats.number.format(usage.totals.messages) },
+          { label: T("工作階段"), value: formats.number.format(usage.totals.sessionCount) },
       ]
     : [];
+
+const tokenMix = usage
+    ? [
+          { label: T("快取讀取"), value: usage.totals.cacheReadTokens },
+          { label: T("輸入"), value: usage.totals.inputTokens },
+          { label: T("快取寫入"), value: usage.totals.cacheWriteTokens },
+          { label: T("輸出"), value: usage.totals.outputTokens },
+      ]
+    : [];
+const tokenMixTotal = tokenMix.reduce((sum, item) => sum + item.value, 0);
+
+const weekdayMax = Math.max(1, ...(usage?.weekdays ?? []));
+const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ?? []));
 ---
 
 <Layout
@@ -125,136 +81,251 @@ const tokenBreakdown = profile
     title={T("AI 使用量")}
     description={T("我用 AI 花掉的 token，以 API 價格計算。")}
 >
-    <div class="mx-auto max-w-3xl pb-16">
+    <div class="ai-usage mx-auto max-w-3xl pb-16">
         <h1 class="text-2xl">{T("AI 使用量")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("我用 AI 花掉的 token，以 API 價格計算。")}
         </p>
 
         {
-            profile === null ? (
+            usage === null ? (
                 <p class="mt-10 rounded-lg border border-accent p-4 text-sm">
                     {T("目前無法從 Tokscale 取得資料，請稍後再試。")}{" "}
-                    <Link href={PROFILE_URL}>{T("在 Tokscale 上查看")}</Link>
+                    <Link href={TOKSCALE_PROFILE_URL}>{T("在 Tokscale 上查看")}</Link>
                 </p>
             ) : (
                 <>
                     <section class="mt-10">
-                        <p class="text-sm text-muted-foreground">
-                            {T("以 API 價格計算的總花費")}
+                        <p class="text-sm text-muted-foreground">{T("以 API 價格計算的總花費")}</p>
+                        <p class="mt-1 text-5xl font-bold sm:text-6xl">
+                            {formats.usd.format(usage.totals.totalCost)}
                         </p>
-                        <p class="mt-1 text-5xl font-bold">
-                            {usd.format(profile.stats.totalCost)}
+                        <p class="mt-3 text-sm text-muted-foreground">
+                            {[
+                                T("{count} 個 token").replace("{count}", formats.compact.format(usage.totals.totalTokens)),
+                                T("{count} 個活躍日").replace("{count}", String(usage.totals.activeDays)),
+                                T("從 {date} 開始").replace("{date}", formatDay(usage.firstDay)),
+                                ...(usage.rank === null
+                                    ? []
+                                    : [T("Tokscale 排名 #{rank}").replace("{rank}", formats.number.format(usage.rank))]),
+                            ].join(" · ")}
                         </p>
-                        <dl class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                            <div class="rounded-lg border border-accent p-4">
-                                <dt class="text-xs text-muted-foreground">
-                                    {T("總 token 數")}
-                                </dt>
-                                <dd class="mt-1 text-xl">
-                                    {compact.format(profile.stats.totalTokens)}
-                                </dd>
-                            </div>
-                            <div class="rounded-lg border border-accent p-4">
-                                <dt class="text-xs text-muted-foreground">
-                                    {T("活躍天數")}
-                                </dt>
-                                <dd class="mt-1 text-xl">
-                                    {profile.stats.activeDays}
-                                </dd>
-                            </div>
-                            <div class="rounded-lg border border-accent p-4">
-                                <dt class="text-xs text-muted-foreground">
-                                    {T("工作階段")}
-                                </dt>
-                                <dd class="mt-1 text-xl">
-                                    {compact.format(profile.stats.sessionCount)}
-                                </dd>
-                            </div>
-                        </dl>
-                        <p class="mt-4 text-sm text-muted-foreground">
-                            {tokenBreakdown
-                                .map(
-                                    (item) =>
-                                        `${item.label} ${compact.format(item.value)}`,
-                                )
-                                .join(" · ")}
-                        </p>
-                    </section>
 
-                    <section class="mt-10" aria-labelledby="tokens-daily">
-                        <h2 id="tokens-daily" class="text-xl">
-                            {T("過去一年")}
-                        </h2>
-                        <div class="mt-4 overflow-x-auto pb-2">
-                            <div class="flex w-max gap-[3px]">
-                                {weeks.map((week) => (
-                                    <div class="flex flex-col gap-[3px]">
-                                        {week.map((day) => (
-                                            <div
-                                                class={`size-2.5 rounded-[2px] ${levelClasses[day.level]}`}
-                                                title={`${day.date}: ${usd.format(day.cost)}`}
-                                            />
-                                        ))}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="mt-10" aria-labelledby="tokens-models">
-                        <h2 id="tokens-models" class="text-xl">
-                            {T("花最多的模型")}
-                        </h2>
-                        <ul class="mt-4 flex flex-col gap-3">
-                            {topModels.map((model) => (
-                                <li>
-                                    <div class="flex justify-between gap-4 text-sm">
-                                        <code>{model.model}</code>
-                                        <span class="text-muted-foreground">
-                                            {usd.format(model.cost)} ·{" "}
-                                            {compact.format(model.tokens)}
-                                        </span>
-                                    </div>
-                                    <div class="mt-1 h-1.5 rounded-full bg-muted-foreground/10">
-                                        <div
-                                            class="h-full rounded-full bg-accent"
-                                            style={`width: ${(model.cost / topModels[0].cost) * 100}%`}
-                                        />
-                                    </div>
-                                </li>
+                        <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            {tiles.map((tile) => (
+                                <div class="rounded-lg border border-accent p-3">
+                                    <dt class="text-xs text-muted-foreground">{tile.label}</dt>
+                                    <dd class="mt-1 text-xl">{tile.value}</dd>
+                                    {tile.note && (
+                                        <dd class="mt-0.5 text-xs text-muted-foreground">{tile.note}</dd>
+                                    )}
+                                </div>
                             ))}
-                        </ul>
+                        </dl>
                     </section>
 
-                    <section class="mt-10" aria-labelledby="tokens-clients">
-                        <h2 id="tokens-clients" class="text-xl">
-                            {T("用的工具")}
-                        </h2>
-                        <ul class="mt-4 flex flex-wrap gap-2 text-sm">
-                            {topClients.map(([client, cost]) => (
-                                <li class="rounded-lg border border-accent px-3 py-1">
-                                    {client}{" "}
+                    <section class="mt-12" aria-labelledby="usage-vendors">
+                        <h2 id="usage-vendors" class="text-xl">{T("錢花在哪家")}</h2>
+                        <div class="mt-4 flex h-6 gap-[2px] overflow-hidden rounded-[4px]">
+                            {vendors.map((vendor) => (
+                                <div
+                                    style={`flex-grow: ${usage.vendorCost[vendor]}; background: ${vendorColor[vendor]}`}
+                                />
+                            ))}
+                        </div>
+                        <ul class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                            {vendors.map((vendor) => (
+                                <li class="flex items-center gap-1.5">
+                                    <span
+                                        class="size-2.5 rounded-[2px]"
+                                        style={`background: ${vendorColor[vendor]}`}
+                                    />
+                                    {vendorLabels[vendor]}
+                                    <strong class="font-bold">{formats.usd.format(usage.vendorCost[vendor])}</strong>
                                     <span class="text-muted-foreground">
-                                        {usd.format(cost)}
+                                        {percent(usage.vendorCost[vendor], usage.totals.totalCost)}
                                     </span>
                                 </li>
                             ))}
                         </ul>
                     </section>
 
-                    <p class="mt-10 text-xs text-muted-foreground">
+                    <section class="mt-12" aria-labelledby="usage-months">
+                        <h2 id="usage-months" class="text-xl">{T("每月花費")}</h2>
+                        <div class="mt-4">
+                            <MonthlyChart
+                                client:visible
+                                months={usage.months}
+                                locale={numberLocale}
+                                labels={{ vendors: vendorLabels, total: T("總計"), tokens: "tokens" }}
+                            />
+                        </div>
+                    </section>
+
+                    <section class="mt-12" aria-labelledby="usage-daily">
+                        <h2 id="usage-daily" class="text-xl">{T("過去一年")}</h2>
+                        <div class="mt-4">
+                            <Heatmap
+                                client:visible
+                                days={usage.days}
+                                locale={numberLocale}
+                                labels={{
+                                    cost: T("花費"),
+                                    tokens: "Tokens",
+                                    less: T("少"),
+                                    more: T("多"),
+                                    noUsage: T("這天沒用 AI"),
+                                }}
+                            />
+                        </div>
+                    </section>
+
+                    <div class="mt-12 grid gap-12 sm:grid-cols-2">
+                        <section aria-labelledby="usage-weekdays">
+                            <h2 id="usage-weekdays" class="text-xl">{T("星期幾用最多")}</h2>
+                            <ul class="mt-4 flex flex-col gap-2 text-sm">
+                                {usage.weekdays.map((cost, weekday) => (
+                                    <li class="grid grid-cols-[3rem_1fr_4.5rem] items-center gap-2">
+                                        <span class="text-muted-foreground">
+                                            {formats.weekday.format(new Date(Date.UTC(2023, 0, 1 + weekday)))}
+                                        </span>
+                                        <span class="h-2 rounded-r-[4px] bg-[var(--series-openai)]" style={`width: ${(cost / weekdayMax) * 100}%`} />
+                                        <span class="text-right">{formats.usd.format(cost)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+
+                        <section aria-labelledby="usage-mix">
+                            <h2 id="usage-mix" class="text-xl">{T("Token 組成")}</h2>
+                            <ul class="mt-4 flex flex-col gap-2 text-sm">
+                                {tokenMix.map((item) => (
+                                    <li>
+                                        <div class="flex justify-between gap-2">
+                                            <span>{item.label}</span>
+                                            <span>
+                                                {formats.compact.format(item.value)}{" "}
+                                                <span class="text-muted-foreground">{percent(item.value, tokenMixTotal)}</span>
+                                            </span>
+                                        </div>
+                                        <div class="mt-1 h-1.5 rounded-full bg-muted-foreground/10">
+                                            <div
+                                                class="h-full min-w-1 rounded-full bg-[var(--series-openai)]"
+                                                style={`width: ${(item.value / tokenMixTotal) * 100}%`}
+                                            />
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                            <p class="mt-3 text-xs text-muted-foreground">
+                                {T("另外還有 {count} 個推理 token（算在輸出裡）。").replace(
+                                    "{count}",
+                                    formats.compact.format(usage.totals.reasoningTokens),
+                                )}
+                            </p>
+                        </section>
+                    </div>
+
+                    <section class="mt-12" aria-labelledby="usage-models">
+                        <h2 id="usage-models" class="text-xl">{T("模型")}</h2>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {T("用過 {count} 個模型。").replace("{count}", String(usage.models.length))}
+                        </p>
+                        <div class="mt-4">
+                            <ModelTable
+                                client:visible
+                                models={usage.models}
+                                locale={numberLocale}
+                                labels={{
+                                    search: T("搜尋模型"),
+                                    columns: {
+                                        model: T("模型"),
+                                        cost: T("花費"),
+                                        tokens: "Tokens",
+                                        messages: T("訊息"),
+                                        days: T("天數"),
+                                        lastUsed: T("最後使用"),
+                                    },
+                                    vendors: vendorLabels,
+                                    showAll: T("顯示全部 {count} 個"),
+                                    showLess: T("收起"),
+                                    noMatch: T("沒有符合的模型"),
+                                }}
+                            />
+                        </div>
+                    </section>
+
+                    <section class="mt-12" aria-labelledby="usage-clients">
+                        <h2 id="usage-clients" class="text-xl">{T("用的工具")}</h2>
+                        <div class="mt-4 overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="border-b border-muted-foreground/30 text-muted-foreground">
+                                    <tr>
+                                        <th scope="col" class="px-2 py-2 text-left font-normal">{T("工具")}</th>
+                                        <th scope="col" class="px-2 py-2 text-right font-normal">{T("花費")}</th>
+                                        <th scope="col" class="px-2 py-2 text-right font-normal">Tokens</th>
+                                        <th scope="col" class="px-2 py-2 text-right font-normal">{T("天數")}</th>
+                                        <th scope="col" class="px-2 py-2 text-left font-normal whitespace-nowrap">{T("最常用的模型")}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usage.clients.map((client) => (
+                                        <tr class="border-b border-muted-foreground/10">
+                                            <td class="px-2 py-2 whitespace-nowrap">
+                                                {client.client}
+                                                <div class="mt-1 h-1 rounded-full bg-muted-foreground/10">
+                                                    <div
+                                                        class="h-full min-w-1 rounded-full bg-[var(--series-openai)]"
+                                                        style={`width: ${(client.cost / clientMax) * 100}%`}
+                                                    />
+                                                </div>
+                                            </td>
+                                            <td class="px-2 py-2 text-right whitespace-nowrap">{money(formats, client.cost)}</td>
+                                            <td class="px-2 py-2 text-right whitespace-nowrap">{formats.compact.format(client.tokens)}</td>
+                                            <td class="px-2 py-2 text-right">{client.days}</td>
+                                            <td class="px-2 py-2 whitespace-nowrap"><code>{client.topModel}</code></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <p class="mt-12 text-xs leading-5 text-muted-foreground">
                         {T("資料來源：")}
-                        <Link href={PROFILE_URL}>Tokscale</Link>
+                        <a href={TOKSCALE_PROFILE_URL} class="underline hover:text-foreground">Tokscale</a>
                         {" · "}
                         {T("更新於")}{" "}
-                        {new Date(profile.updatedAt).toLocaleString(
-                            numberLocale,
-                            { timeZone: "Asia/Taipei" },
-                        )}
+                        {new Date(usage.updatedAt).toLocaleString(numberLocale, { timeZone: "Asia/Taipei" })}
+                        <br />
+                        {T("花費是以各家 API 價格估算的，不是我實際付的錢。")}
                     </p>
                 </>
             )
         }
     </div>
 </Layout>
+
+<style is:global>
+    /* Chart colors: categorical by provider, and a one-hue blue ramp for the heatmap. */
+    .ai-usage {
+        --series-openai: #2a78d6;
+        --series-anthropic: #eb6834;
+        --series-other: #1baf7a;
+        --seq-0: color-mix(in oklab, var(--muted-foreground) 15%, transparent);
+        --seq-1: #b7d3f6;
+        --seq-2: #6da7ec;
+        --seq-3: #2a78d6;
+        --seq-4: #184f95;
+    }
+    .dark .ai-usage {
+        --series-openai: #3987e5;
+        --series-anthropic: #d95926;
+        --series-other: #199e70;
+        --seq-0: color-mix(in oklab, var(--muted-foreground) 15%, transparent);
+        --seq-1: #104281;
+        --seq-2: #256abf;
+        --seq-3: #3987e5;
+        --seq-4: #86b6ef;
+    }
+</style>
