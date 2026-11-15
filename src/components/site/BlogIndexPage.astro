@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import FormattedDate from "../FormattedDate.astro";
+import PostCard from "../PostCard.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
@@ -27,27 +27,14 @@ const posts = (await getCollection("blog"))
             {
                 posts.map((post) => (
                     <li>
-                        <a
-                            href={localizedPath(
-                                locale,
-                                `/blog/${post.id}/`,
-                            )}
-                            class="block rounded-lg border border-foreground/15 px-5 py-4 transition-colors duration-200 hover:bg-foreground/5"
-                        >
-                            <span class="block text-xl">{post.data.title}</span>
-                            {post.data.description && (
-                                <span class="mt-1 line-clamp-1 block text-sm text-muted-foreground">
-                                    {post.data.description}
-                                </span>
-                            )}
-                            <small class="mt-2 block text-muted-foreground">
-                                {T("發佈於")}{" "}
-                                <FormattedDate
-                                    date={post.data.pubDate}
-                                    locale={locale}
-                                />
-                            </small>
-                        </a>
+                        <PostCard
+                            href={localizedPath(locale, `/blog/${post.id}/`)}
+                            title={post.data.title}
+                            description={post.data.description}
+                            date={post.data.pubDate}
+                            locale={locale}
+                            image={post.data.heroImage}
+                        />
                     </li>
                 ))
             }

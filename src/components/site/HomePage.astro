@@ -1,8 +1,12 @@
 ---
+import type { ImageMetadata } from "astro";
+import { getCollection } from "astro:content";
 import AchievementsTimeline from "../AchievementsTimeline.astro";
+import Pill from "../Pill.astro";
+import PostCard from "../PostCard.astro";
 import Layout from "../../layouts/Default.astro";
-import { createTranslator, type Locale } from "../../i18n";
-import { CheckIcon, CopyIcon } from "@lucide/astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+import { ArrowRight, CheckIcon, CopyIcon } from "@lucide/astro";
 import { preciseAge } from "../../lib/age";
 import { Image } from "astro:assets";
 import ProfilePicture from "../../assets/pfp.jpg";
@@ -19,6 +23,46 @@ const age = preciseAge();
 const wheelDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 const wheelOffset = (position: number | string) =>
     `translateY(calc(-100% * ${position} / ${wheelDigits.length}))`;
+
+const newestFirst = <T extends { data: { status: string; pubDate: Date } }>(
+    entries: T[],
+) =>
+    entries
+        .filter((entry) => entry.data.status === "published")
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+// Food reviews also have a rating and location; blog posts leave them out.
+interface Entry {
+    href: string;
+    data: {
+        title: string;
+        description: string;
+        pubDate: Date;
+        heroImage?: ImageMetadata;
+        rating?: number;
+        location?: string;
+    };
+}
+const latest = async (collection: "blog" | "food", count: number) =>
+    newestFirst(await getCollection(collection))
+        .slice(0, count)
+        .map(
+            (entry): Entry => ({
+                href: localizedPath(locale, `/${collection}/${entry.id}/`),
+                data: entry.data,
+            }),
+        );
+const sections = [
+    {
+        title: T("最新文章"),
+        href: localizedPath(locale, "/blog/"),
+        entries: await latest("blog", 3),
+    },
+    {
+        title: T("最新食記"),
+        href: localizedPath(locale, "/food/"),
+        entries: await latest("food", 2),
+    },
+];
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
@@ -102,7 +146,46 @@ const wheelOffset = (position: number | string) =>
         </div>
     </section>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-24 md:max-w-5xl md:px-10">
+    {
+        sections.map((section) => (
+            <section class="mx-auto mb-20 w-full max-w-3xl px-2 sm:px-6">
+                <div class="mb-6 flex items-end justify-between gap-4">
+                    <h2 class="text-3xl font-bold">{section.title}</h2>
+                    <a
+                        href={section.href}
+                        class="group flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                        {T("查看全部")}
+                        <ArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
+                    </a>
+                </div>
+                <ul class="flex flex-col gap-3">
+                    {section.entries.map(({ href, data }) => (
+                        <li>
+                            <PostCard
+                                href={href}
+                                title={data.title}
+                                description={data.description}
+                                date={data.pubDate}
+                                locale={locale}
+                                image={data.heroImage}
+                            >
+                                {data.rating !== undefined && (
+                                    <Pill>
+                                        <span class="text-[#e8761f]">★</span>{" "}
+                                        {data.rating}
+                                    </Pill>
+                                )}
+                                {data.location && <Pill>{data.location}</Pill>}
+                            </PostCard>
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        ))
+    }
+
+    <section class="mx-auto w-full max-w-2xl px-4 pt-4 pb-24 md:max-w-5xl md:px-10">
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
