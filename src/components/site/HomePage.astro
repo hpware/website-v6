@@ -1,10 +1,8 @@
 ---
-import { getCollection } from "astro:content";
 import AchievementsTimeline from "../AchievementsTimeline.astro";
-import FormattedDate from "../FormattedDate.astro";
 import Layout from "../../layouts/Default.astro";
-import { createTranslator, localizedPath, type Locale } from "../../i18n";
-import { ArrowRight, CheckIcon, CopyIcon } from "@lucide/astro";
+import { createTranslator, type Locale } from "../../i18n";
+import { CheckIcon, CopyIcon } from "@lucide/astro";
 import { preciseAge } from "../../lib/age";
 import { Image } from "astro:assets";
 import ProfilePicture from "../../assets/pfp.jpg";
@@ -21,196 +19,91 @@ const age = preciseAge();
 const wheelDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 const wheelOffset = (position: number | string) =>
     `translateY(calc(-100% * ${position} / ${wheelDigits.length}))`;
-const latestPosts = (await getCollection("blog"))
-    .filter((post) => post.data.status === "published")
-    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-    .slice(0, 4);
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
-    <section class="mx-auto max-w-6xl px-0 pt-10 sm:px-2 md:pt-20">
-        <div class="grid items-end gap-10 lg:grid-cols-[1fr_26rem]">
+    <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
+        <div class="mx-auto flex w-full max-w-3xl flex-col-reverse gap-10 px-6 py-16 text-left sm:px-10 md:flex-row md:items-center md:justify-between">
             <div>
-                <span class="tape tape-print text-sm" style="--delay: 150ms">
-                    {T("五專生")}
-                </span>
-                <h1
-                    class="rise-in mt-5 display-wide text-[clamp(3.5rem,13vw,9rem)] leading-[0.85]"
-                >
-                    Howard
+                <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
+                    {T("嗨！")}
                 </h1>
-                <p
-                    class="rise-in mt-6 max-w-xl text-xl leading-snug text-muted-foreground sm:text-2xl"
-                    style="--delay: 120ms"
-                >
-                    <span class="text-foreground">{T("嗨！")}</span>{" "}
+                <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
                     {T("這是元皓的網站！")}
                 </p>
-            </div>
-
-            <!-- The faceplate: who I am, as a spec plate on a piece of gear. -->
-            <div
-                class="rise-in panel overflow-hidden shadow-[0_1px_0_rgb(0_0_0/0.04),0_12px_32px_-16px_rgb(0_0_0/0.25)]"
-                style="--delay: 240ms"
-            >
-                <div class="flex items-center gap-4 border-b border-border p-4">
-                    <Image
-                        src={ProfilePicture}
-                        width={64}
-                        height={64}
-                        densities={[1, 2]}
-                        format="webp"
-                        quality="mid"
-                        alt={T("Howard 的大頭貼")}
-                        draggable="false"
-                        loading="eager"
-                        class="size-16 shrink-0 rounded-md object-cover"
-                    />
-                    <div class="min-w-0">
-                        <p class="display-tight text-lg leading-tight">
-                            元皓 Howard
-                        </p>
-                        <p
-                            class="mt-1 flex items-center gap-2 font-mono text-[0.7rem] text-muted-foreground"
-                        >
-                            <span class="led" aria-hidden="true"></span>
-                            yuanhau.com
-                        </p>
-                    </div>
-                </div>
-
-                <dl class="divide-y divide-border">
-                    <div class="grid grid-cols-[5.5rem_1fr] items-center gap-3 px-4 py-3.5">
-                        <dt>
-                            <span class="tape tape-print" style="--delay: 450ms">
-                                {T("年齡")}
-                            </span>
-                        </dt>
-                        <dd class="font-mono text-sm">
-                            <span class="sr-only">{age}</span>
-                            <span class="tabular-nums" aria-hidden="true" data-age>
-                                {age.split("").map((char) =>
-                                    char === "." ? (
-                                        <span>.</span>
-                                    ) : (
-                                        <span class="relative inline-block [clip-path:inset(0)]">
-                                            <span class="invisible">0</span>
-                                            <span
-                                                class="absolute inset-x-0 top-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
-                                                style={`transform: ${wheelOffset(char)}`}
-                                                data-digit={char}
-                                            >
-                                                {wheelDigits.map((digit) => (
-                                                    <span>{digit}</span>
-                                                ))}
-                                            </span>
-                                        </span>
-                                    ),
-                                )}
-                            </span>
-                            <span class="text-muted-foreground"> {T("歲")}</span>
-                            {
-                                Number(age) >= 18 && (
-                                    <span class="mt-0.5 block font-sans text-xs text-muted-foreground">
-                                        ({T("怎麼18了")})
+                <p class="mt-4 text-base text-muted-foreground sm:text-lg">
+                    <span class="sr-only">{age}</span>
+                    <span class="tabular-nums" aria-hidden="true" data-age>
+                        {age.split("").map((char) =>
+                            char === "." ? (
+                                <span>.</span>
+                            ) : (
+                                <span class="relative inline-block [clip-path:inset(0)]">
+                                    <span class="invisible">0</span>
+                                    <span
+                                        class="absolute inset-x-0 top-0 flex flex-col transition-transform duration-300 ease-out motion-reduce:transition-none"
+                                        style={`transform: ${wheelOffset(char)}`}
+                                        data-digit={char}
+                                    >
+                                        {wheelDigits.map((digit) => (
+                                            <span>{digit}</span>
+                                        ))}
                                     </span>
-                                )
-                            }
-                        </dd>
-                    </div>
+                                </span>
+                            ),
+                        )}
+                    </span>{" "}
+                    {T("歲")}
+                    {Number(age) >= 18 ? ` (${T("怎麼18了")})` : ""}
+                    <span class="select-none"> · </span>
+                    {T("五專生")}
+                </p>
 
-                    <div class="grid grid-cols-[5.5rem_1fr] items-center gap-3 px-4 py-3">
-                        <dt>
-                            <span
-                                class="tape tape-print"
-                                style="--delay: 600ms"
-                                title={T("自訂 SSH 伺服器")}
-                            >
-                                SSH
-                            </span>
-                        </dt>
-                        <dd class="flex min-w-0 items-center justify-between gap-2">
-                            <code
-                                class="overflow-x-auto font-mono text-sm"
-                                data-ssh-command
-                            >
-                                ssh t.yuanhau.com
-                            </code>
-                            <button
-                                type="button"
-                                class="shrink-0 cursor-pointer rounded-md border border-border p-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                                aria-label={T("複製指令")}
-                                data-ssh-copy
-                            >
-                                <CopyIcon
-                                    class="size-4"
-                                    aria-hidden="true"
-                                    data-copy-icon
-                                />
-                                <CheckIcon
-                                    class="hidden size-4 text-led"
-                                    aria-hidden="true"
-                                    data-copied-icon
-                                />
-                            </button>
-                        </dd>
-                    </div>
-                </dl>
-
-                <div class="border-t border-border bg-background/50 px-4 pt-0 pb-4">
-                    <Socials />
+                <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
+                    <code
+                        class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base"
+                        data-ssh-command
+                    >
+                        ssh t.yuanhau.com
+                    </code>
+                    <button
+                        type="button"
+                        class="shrink-0 rounded-md p-1.5 transition-colors hover:bg-foreground/10 focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none"
+                        aria-label={T("複製指令")}
+                        data-ssh-copy
+                    >
+                        <CopyIcon
+                            class="size-5"
+                            aria-hidden="true"
+                            data-copy-icon
+                        />
+                        <CheckIcon
+                            class="hidden size-5 text-green-500"
+                            aria-hidden="true"
+                            data-copied-icon
+                        />
+                    </button>
                 </div>
+                <Socials />
             </div>
+
+            <Image
+                src={ProfilePicture}
+                width={288}
+                height={288}
+                densities={[1, 2]}
+                format="webp"
+                quality="mid"
+                alt={T("Howard 的大頭貼")}
+                draggable="false"
+                loading="eager"
+                class="size-32 shrink-0 rounded-full object-cover sm:size-40 md:size-72"
+            />
         </div>
     </section>
 
-    <section class="mx-auto mt-28 max-w-6xl sm:px-2">
-        <div class="flex items-end justify-between gap-4 border-b border-border pb-4">
-            <h2 class="display-tight text-3xl sm:text-4xl">{T("部落格")}</h2>
-            <a
-                href={localizedPath(locale, "/blog/")}
-                class="group flex items-center gap-1.5 text-sm text-primary"
-            >
-                {T("查看全部")}
-                <ArrowRight
-                    class="size-4 transition-transform group-hover:translate-x-0.5"
-                    aria-hidden="true"
-                />
-            </a>
-        </div>
-        <ul class="divide-y divide-border">
-            {
-                latestPosts.map((post) => (
-                    <li>
-                        <a
-                            href={localizedPath(locale, `/blog/${post.id}/`)}
-                            class="group grid gap-1 py-5 sm:grid-cols-[9rem_1fr] sm:gap-6"
-                        >
-                            <span class="pt-1 font-mono text-xs text-muted-foreground">
-                                <FormattedDate
-                                    date={post.data.pubDate}
-                                    locale={locale}
-                                />
-                            </span>
-                            <span>
-                                <span class="text-lg leading-snug transition-colors group-hover:text-primary">
-                                    {post.data.title}
-                                </span>
-                                <span class="mt-1 line-clamp-1 block text-sm text-muted-foreground">
-                                    {post.data.description}
-                                </span>
-                            </span>
-                        </a>
-                    </li>
-                ))
-            }
-        </ul>
-    </section>
-
-    <section class="mx-auto mt-28 max-w-6xl sm:px-2">
-        <div class="mb-12 border-b border-border pb-4">
-            <h2 class="display-tight text-3xl sm:text-4xl">{T("成就")}</h2>
-        </div>
+    <section class="mx-auto w-full max-w-2xl px-4 pb-24 md:max-w-5xl md:px-10">
+        <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
 </Layout>

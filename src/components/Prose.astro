@@ -6,17 +6,14 @@ type Props = HTMLAttributes<"div">;
 
 <div
     {...Astro.props}
-    class="prose prose-site max-w-none
-    prose-headings:font-display prose-headings:font-bold
-    prose-h1:text-3xl prose-h2:mt-12 prose-h2:text-2xl prose-h3:text-xl
-    prose-p:leading-8 prose-li:leading-7
-    prose-a:font-normal prose-a:underline prose-a:decoration-primary/40 prose-a:underline-offset-4 hover:prose-a:decoration-primary
-    prose-img:rounded-lg prose-img:border prose-img:border-border
-    prose-blockquote:border-l-4 prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-muted-foreground
-    prose-code:rounded prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:font-mono prose-code:text-[0.85em] prose-code:font-normal
-    prose-code:before:content-none prose-code:after:content-none
-    prose-pre:rounded-lg prose-pre:border prose-pre:border-border prose-pre:text-sm
-    [&_pre_code]:bg-transparent [&_pre_code]:p-0"
+    class="prose prose-slate max-w-none dark:prose-invert
+    prose-headings:font-bold prose-headings:tracking-tight prose-headings:no-underline
+    prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl
+    prose-p:text-left prose-p:leading-7
+    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+    prose-img:rounded-xl prose-img:shadow-lg
+    prose-pre:rounded-xl prose-code:before:content-none prose-code:after:content-none
+    dark:prose-a:text-primary"
 >
     <slot />
 </div>

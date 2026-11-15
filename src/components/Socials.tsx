@@ -83,13 +83,13 @@ const icons: Record<string, ReactNode> = {
 
 export default function Socials() {
   return (
-    <div className="mt-5 flex flex-row flex-wrap items-center gap-1.5">
+    <div className="mt-4 flex flex-row flex-wrap items-center gap-2">
       {socials.map((social) => (
         <a
           key={social.url}
           href={social.url}
           aria-label={social.name}
-          className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-[border-color,color,scale] duration-150 ease-out hover:border-primary hover:text-primary active:scale-90 motion-reduce:transition-none [&_svg]:size-4"
+          className="inline-flex size-10 items-center justify-center rounded-full text-foreground/70 transition-[background-color,color,scale] duration-150 ease-out hover:bg-foreground/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-foreground/50 focus-visible:outline-none active:scale-90 motion-reduce:transition-none"
         >
           {icons[social.icon]}
         </a>

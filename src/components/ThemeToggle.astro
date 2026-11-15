@@ -12,12 +12,12 @@ const T = createTranslator(locale);
 
 <button
     type="button"
-    class="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-2 transition-all duration-200 hover:cursor-pointer hover:bg-gray-500/20 dark:hover:bg-white/20"
     aria-label={T("切換深淺色主題")}
     data-theme-toggle
 >
-    <SunIcon class="hidden size-4 dark:block" data-theme-icon="sun" />
-    <MoonIcon class="size-4 dark:hidden" data-theme-icon="moon" />
+    <SunIcon class="hidden size-5 dark:block" data-theme-icon="sun" />
+    <MoonIcon class="size-5 dark:hidden" data-theme-icon="moon" />
 </button>
 
 <script>
