@@ -31,7 +31,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                     {T("這篇文章是以英文撰寫的，要翻譯成中文嗎？")}
                 </p>
                 <p class="mt-2 text-sm text-muted-foreground">
-                    {T("翻譯由 AI 模型 Deepseek V4.1 Flash 處理，可能不完全正確。")}
+                    {T("翻譯由 AI 模型 GPT6 Luna 處理，可能不完全正確。")}
                 </p>
                 <p data-translation-error hidden class="mt-2 text-sm text-destructive">
                     {T("翻譯失敗，請稍後再試。")}
@@ -63,7 +63,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                 class="mb-6 flex flex-wrap items-center gap-x-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             >
                 <Languages class="h-4 w-4" />
-                {T("此文章由 AI 模型 Deepseek V4.1 Flash 從英文翻譯。")}
+                {T("此文章由 AI 模型 GPT6 Luna 從英文翻譯。")}
                 <button
                     type="button"
                     data-translation-toggle
@@ -79,6 +79,11 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
 }
 
 <style>
+    /* Display utilities must not reveal controls before their hidden state is cleared. */
+    [data-article-translation] [hidden] {
+        display: none !important;
+    }
+
     /* The prompt slides up shortly after the page loads, and back down when it closes. */
     [data-translation-prompt]:not([hidden]) {
         animation: translation-in 300ms ease-out 500ms backwards;

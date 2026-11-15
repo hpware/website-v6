@@ -3,7 +3,7 @@
 // Needs OPENROUTER_API_KEY in the Convex env; OPENROUTER_MODEL is optional, and the
 // model has to support JSON schemas (and images, for photoMeta.ts).
 
-const DEFAULT_MODEL = "deepseek/deepseek-v4.1-flash-1017";
+const DEFAULT_MODEL = "openai/gpt-6-luna";
 const ATTEMPTS = 3;
 
 export type Part = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
