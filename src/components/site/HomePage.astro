@@ -66,8 +66,8 @@ const sections = [
 ---
 
 <Layout locale={locale} translationPath="/" title={T("首頁")}>
-    <section class="flex min-h-[calc(100vh-5rem)] items-center font-sans">
-        <div class="mx-auto flex w-full max-w-3xl flex-col-reverse gap-10 px-6 py-16 text-left sm:px-10 md:flex-row md:items-center md:justify-between">
+    <section class="font-sans">
+        <div class="mx-auto flex w-full max-w-5xl flex-col-reverse gap-10 px-2 pt-12 pb-20 text-left sm:px-6 md:flex-row md:items-center md:justify-between md:pt-20 md:pb-28">
             <div>
                 <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
                     {T("嗨！")}
@@ -146,11 +146,13 @@ const sections = [
         </div>
     </section>
 
+    <!-- Latest posts and food reviews sit side by side on wide screens. -->
+    <div class="mx-auto mb-24 grid w-full max-w-5xl gap-16 px-2 sm:px-6 lg:grid-cols-[3fr_2fr] lg:gap-10">
     {
         sections.map((section) => (
-            <section class="mx-auto mb-20 w-full max-w-3xl px-2 sm:px-6">
+            <section class="min-w-0">
                 <div class="mb-6 flex items-end justify-between gap-4">
-                    <h2 class="text-3xl font-bold">{section.title}</h2>
+                    <h2 class="text-2xl font-bold">{section.title}</h2>
                     <a
                         href={section.href}
                         class="group flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -184,8 +186,9 @@ const sections = [
             </section>
         ))
     }
+    </div>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pt-4 pb-24 md:max-w-5xl md:px-10">
+    <section class="mx-auto w-full max-w-2xl px-4 pb-24 md:max-w-5xl md:px-10">
         <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>

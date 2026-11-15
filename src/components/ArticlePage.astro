@@ -1,18 +1,12 @@
 ---
-// Shared page for a blog post or food review: header, hero image, body,
-// table of contents (wide screens), and links to the neighbouring posts.
-// Food reviews pass their own info box in the "meta" slot instead of the date line.
+// Shared page for a blog post or food review.
+// Wide screens: a sticky left column (back link, meta, table of contents) next to the article.
+// Narrow screens: everything stacks, with the meta under the title.
+// The "meta" slot holds the dates (blog) or the review info box (food).
 import type { ImageMetadata, MarkdownHeading } from "astro";
 import { Image } from "astro:assets";
-import {
-    ArrowLeft,
-    ArrowRight,
-    Calendar,
-    CalendarSync,
-    ChevronLeft,
-} from "@lucide/astro";
+import { ArrowLeft, ArrowRight, ChevronLeft } from "@lucide/astro";
 import ArticleTranslation from "./ArticleTranslation.astro";
-import FormattedDate from "./FormattedDate.astro";
 import Link from "./Link.astro";
 import Prose from "./Prose.astro";
 import Layout from "../layouts/Default.astro";
@@ -33,8 +27,6 @@ interface Props {
     backHref: string;
     title: string;
     description: string;
-    pubDate: Date;
-    updatedDate?: Date;
     heroImage?: ImageMetadata;
     headings: MarkdownHeading[];
     /** The older post. */
@@ -52,8 +44,6 @@ const {
     backHref,
     title,
     description,
-    pubDate,
-    updatedDate,
     heroImage,
     headings,
     previous,
@@ -62,6 +52,8 @@ const {
 const T = createTranslator(locale);
 const toc = headings.filter((heading) => heading.depth <= 3);
 const showToc = toc.length >= 2;
+// Rendered once, shown in two places: under the title, or in the side column.
+const meta = await Astro.slots.render("meta");
 ---
 
 <Layout
@@ -73,14 +65,48 @@ const showToc = toc.length >= 2;
     <div
         class="mx-auto max-w-3xl xl:grid xl:max-w-none xl:grid-cols-[1fr_minmax(0,48rem)_1fr] xl:gap-12"
     >
-        <article class="min-w-0 pb-3 xl:col-start-2">
+        <aside class="hidden xl:col-start-1 xl:row-start-1 xl:block xl:justify-self-end">
+            <div class="sticky top-28 flex w-56 flex-col gap-8 text-sm">
+                <Link href={backHref} class="text-muted-foreground">
+                    <ChevronLeft class="h-5 w-5" />{T("返回")}
+                </Link>
+                <div class="[&>*]:mt-0"><Fragment set:html={meta} /></div>
+                {
+                    showToc && (
+                        <nav aria-labelledby="toc-heading">
+                            <p id="toc-heading" class="mb-3 font-bold">
+                                {T("目錄")}
+                            </p>
+                            <ul class="flex flex-col border-l border-border">
+                                {toc.map((heading) => (
+                                    <li>
+                                        <a
+                                            href={`#${heading.slug}`}
+                                            data-toc-link
+                                            class:list={[
+                                                "-ml-px block border-l border-transparent py-1 pr-2 text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:border-primary aria-[current=true]:text-foreground",
+                                                heading.depth === 3 ? "pl-7" : "pl-4",
+                                            ]}
+                                        >
+                                            {heading.text}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    )
+                }
+            </div>
+        </aside>
+
+        <article class="min-w-0 pb-3 xl:col-start-2 xl:row-start-1">
             <header>
-                <Link href={backHref} class="text-sm text-muted-foreground">
+                <Link href={backHref} class="text-sm text-muted-foreground xl:hidden">
                     <ChevronLeft class="h-5 w-5" />{T("返回")}
                 </Link>
                 <h1
                     data-article-title
-                    class="mt-4 text-4xl leading-tight font-bold"
+                    class="mt-4 text-4xl leading-tight font-bold xl:mt-0"
                 >
                     {title}
                 </h1>
@@ -91,27 +117,7 @@ const showToc = toc.length >= 2;
                         </p>
                     )
                 }
-                {
-                    Astro.slots.has("meta") ? (
-                        <slot name="meta" />
-                    ) : (
-                        <div class="mt-4 flex flex-row flex-wrap gap-4 text-sm text-muted-foreground">
-                            <div class="flex flex-row items-center gap-1.5">
-                                <Calendar class="h-4 w-4" />
-                                <FormattedDate date={pubDate} locale={locale} />
-                            </div>
-                            {updatedDate && (
-                                <div class="flex flex-row items-center gap-1.5">
-                                    <CalendarSync class="h-4 w-4" />
-                                    <FormattedDate
-                                        date={updatedDate}
-                                        locale={locale}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )
-                }
+                <div class="xl:hidden"><Fragment set:html={meta} /></div>
             </header>
 
             {
@@ -171,37 +177,6 @@ const showToc = toc.length >= 2;
                 )
             }
         </article>
-
-        {
-            showToc && (
-                <aside class="hidden xl:block">
-                    <nav
-                        class="sticky top-28 max-w-60 text-sm"
-                        aria-labelledby="toc-heading"
-                    >
-                        <p id="toc-heading" class="mb-3 font-bold">
-                            {T("目錄")}
-                        </p>
-                        <ul class="flex flex-col border-l border-border">
-                            {toc.map((heading) => (
-                                <li>
-                                    <a
-                                        href={`#${heading.slug}`}
-                                        data-toc-link
-                                        class:list={[
-                                            "-ml-px block border-l border-transparent py-1 pr-2 text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:border-primary aria-[current=true]:text-foreground",
-                                            heading.depth === 3 ? "pl-7" : "pl-4",
-                                        ]}
-                                    >
-                                        {heading.text}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                </aside>
-            )
-        }
     </div>
 </Layout>
 

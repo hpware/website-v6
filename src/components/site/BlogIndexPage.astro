@@ -13,6 +13,13 @@ const T = createTranslator(locale);
 const posts = (await getCollection("blog"))
     .filter((post) => post.data.status === "published")
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Posts grouped by the year they were published, newest year first.
+const years = new Map<number, typeof posts>();
+for (const post of posts) {
+    const year = post.data.pubDate.getFullYear();
+    years.set(year, [...(years.get(year) ?? []), post]);
+}
 ---
 
 <Layout
@@ -23,21 +30,28 @@ const posts = (await getCollection("blog"))
 >
     <div class="mx-auto max-w-3xl">
         <h1 class="text-3xl font-bold">{T("貼文")}</h1>
-        <ul class="mt-6 flex flex-col gap-3">
-            {
-                posts.map((post) => (
-                    <li>
-                        <PostCard
-                            href={localizedPath(locale, `/blog/${post.id}/`)}
-                            title={post.data.title}
-                            description={post.data.description}
-                            date={post.data.pubDate}
-                            locale={locale}
-                            image={post.data.heroImage}
-                        />
-                    </li>
-                ))
-            }
-        </ul>
+        {
+            [...years].map(([year, yearPosts]) => (
+                <section class="mt-10">
+                    <h2 class="text-xl font-bold text-muted-foreground">
+                        {year}
+                    </h2>
+                    <ul class="mt-4 flex flex-col gap-3">
+                        {yearPosts.map((post) => (
+                            <li>
+                                <PostCard
+                                    href={localizedPath(locale, `/blog/${post.id}/`)}
+                                    title={post.data.title}
+                                    description={post.data.description}
+                                    date={post.data.pubDate}
+                                    locale={locale}
+                                    image={post.data.heroImage}
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            ))
+        }
     </div>
 </Layout>

@@ -1,6 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
+import { Calendar, CalendarSync } from "@lucide/astro";
 import ArticlePage from "../ArticlePage.astro";
+import FormattedDate from "../FormattedDate.astro";
 import { localizedPath, type Locale } from "../../i18n";
 
 interface Props {
@@ -32,12 +34,24 @@ const link = (entry: CollectionEntry<"blog"> | undefined) =>
     backHref={localizedPath(locale, "/blog/")}
     title={post.data.title}
     description={post.data.description}
-    pubDate={post.data.pubDate}
-    updatedDate={post.data.updatedDate}
     heroImage={post.data.heroImage}
     headings={headings}
     previous={link(posts[index + 1])}
     next={index > 0 ? link(posts[index - 1]) : undefined}
 >
+    <div slot="meta" class="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <div class="flex items-center gap-1.5">
+            <Calendar class="h-4 w-4" />
+            <FormattedDate date={post.data.pubDate} locale={locale} />
+        </div>
+        {
+            post.data.updatedDate && (
+                <div class="flex items-center gap-1.5">
+                    <CalendarSync class="h-4 w-4" />
+                    <FormattedDate date={post.data.updatedDate} locale={locale} />
+                </div>
+            )
+        }
+    </div>
     <Content />
 </ArticlePage>

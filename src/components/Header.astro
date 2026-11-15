@@ -19,9 +19,11 @@ import {
 
 interface Props {
     locale?: Locale;
+    translationPath?: string;
 }
 
-const { locale = defaultLocale } = Astro.props;
+const { locale = defaultLocale, translationPath = Astro.url.pathname } =
+    Astro.props;
 const T = createTranslator(locale);
 const tabs = [
     { name: T("首頁"), icon: HouseIcon, url: localizedPath(locale, "/") },
@@ -40,7 +42,7 @@ const tabs = [
 ];
 const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
 const languageLabel = locale === "en" ? "繁體中文" : "English";
-const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
+const languageUrl = localizedPath(otherLocale, translationPath);
 ---
 
 <header>
@@ -74,6 +76,16 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
                         </span>
                     </a>
                 ))}
+                <a
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={`${T("語言")}: ${languageLabel}`}
+                    title={languageLabel}
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/20"
+                >
+                    <Languages class="size-5" aria-hidden="true" />
+                </a>
                 <ThemeToggle locale={locale} />
             </div>
 

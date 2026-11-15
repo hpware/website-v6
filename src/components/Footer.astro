@@ -1,6 +1,5 @@
 ---
 import { Image } from "astro:assets";
-import { Languages } from "@lucide/astro";
 import ProfileImage from "../assets/pfp.jpg";
 import { SITE_NAME } from "../consts";
 import Link from "./Link.astro";
@@ -16,15 +15,10 @@ const today = new Date();
 
 interface Props {
     locale?: Locale;
-    translationPath?: string;
 }
 
-const { locale = defaultLocale, translationPath = Astro.url.pathname } =
-    Astro.props;
+const { locale = defaultLocale } = Astro.props;
 const T = createTranslator(locale);
-const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
-const languageLabel = locale === "en" ? "繁體中文" : "English";
-const languageUrl = localizedPath(otherLocale, translationPath);
 const linkColumns = [
     [
         { name: T("首頁"), href: localizedPath(locale, "/") },
@@ -81,23 +75,6 @@ const linkColumns = [
                 </i>
             </span>
             <Socials />
-
-            <div class="mt-auto pt-6">
-                <Link
-                    id="language-switcher"
-                    href={`${languageUrl}#language-switcher`}
-                    lang={otherLocale}
-                    hreflang={otherLocale}
-                    aria-label={`${T("語言")}: ${languageLabel}`}
-                    class="w-fit text-sm"
-                >
-                    <Languages
-                        aria-hidden="true"
-                        class="mr-2 size-4 text-muted-foreground"
-                    />
-                    {languageLabel}
-                </Link>
-            </div>
         </section>
 
         <section class="m-2 flex w-full flex-col p-2 md:w-[calc(50%-30px)]">
@@ -136,9 +113,3 @@ const linkColumns = [
         </div>
     </div>
 </footer>
-
-<style is:global>
-    html:has(#language-switcher:target) {
-        scroll-behavior: auto;
-    }
-</style>

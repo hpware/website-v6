@@ -22,15 +22,15 @@ const reviews = (await getCollection("food"))
     title={T("美食")}
     description={T("美食食記，記錄我吃過的東西。")}
 >
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto max-w-5xl">
         <h1 class="text-3xl font-bold">{T("食記")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("美食食記，記錄我吃過的東西。")}
         </p>
-        <ul class="mt-6 flex flex-col gap-3">
+        <ul class="mt-6 grid gap-3 md:grid-cols-2">
             {
                 reviews.map((review) => (
-                    <li>
+                    <li class="grid">
                         <PostCard
                             href={localizedPath(locale, `/food/${review.id}/`)}
                             title={review.data.title}

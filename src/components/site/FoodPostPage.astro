@@ -12,7 +12,7 @@ interface Props {
 const { locale, post } = Astro.props;
 const T = createTranslator(locale);
 const { Content, headings } = await render(post);
-const { rating, location, priceRange, pubDate, updatedDate } = post.data;
+const { rating, location, priceRange, pubDate } = post.data;
 
 // Newest first, so the review after this one in the list is the older one.
 const reviews = (await getCollection("food"))
@@ -35,8 +35,6 @@ const link = (entry: CollectionEntry<"food"> | undefined) =>
     backHref={localizedPath(locale, "/food/")}
     title={post.data.title}
     description={post.data.description}
-    pubDate={pubDate}
-    updatedDate={updatedDate}
     heroImage={post.data.heroImage}
     headings={headings}
     previous={link(reviews[index + 1])}

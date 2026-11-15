@@ -40,7 +40,7 @@ const sections = contributionData as ContributionSection[];
     title={T("貢獻")}
     description={T("Howard 的專案、資安研究、錯誤發現與其他貢獻。")}
 >
-    <div class="mx-auto max-w-3xl">
+    <div class="mx-auto max-w-5xl">
         <h1 class="text-3xl font-bold">{T("貢獻")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("我參與過的專案、研究、發現的錯誤，以及其他工作。")}
@@ -62,7 +62,7 @@ const sections = contributionData as ContributionSection[];
                         </p>
                     )}
 
-                    <ul class="mt-4 flex flex-col gap-3">
+                    <ul class="mt-4 grid gap-3 md:grid-cols-2">
                         {section.items.map((item, index) => {
                             const itemId = `${section.id}-${index + 1}-${item.slug}`;
 
