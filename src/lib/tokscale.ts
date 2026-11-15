@@ -87,7 +87,7 @@ export interface AiUsage {
     rank: number | null;
     updatedAt: string;
     firstDay: string;
-    totals: TokscaleProfile["stats"] & { messages: number };
+    totals: TokscaleProfile["stats"];
     past30Days: number;
     biggestDay: DayUsage;
     longestStreak: number;
@@ -133,7 +133,6 @@ function summarize(profile: TokscaleProfile): AiUsage {
     >();
     const weekdays = [0, 0, 0, 0, 0, 0, 0];
     const vendorCost: Record<Vendor, number> = { openai: 0, anthropic: 0, other: 0 };
-    let messages = 0;
 
     for (const day of contributions) {
         const dayModels = new Map<string, number>();
@@ -188,7 +187,6 @@ function summarize(profile: TokscaleProfile): AiUsage {
 
                 month.cost[vendor] += usage.cost;
                 vendorCost[vendor] += usage.cost;
-                messages += usage.messages;
                 dayModels.set(name, (dayModels.get(name) ?? 0) + usage.cost);
             }
         }
@@ -238,7 +236,7 @@ function summarize(profile: TokscaleProfile): AiUsage {
         rank: profile.user.rank,
         updatedAt: profile.updatedAt,
         firstDay: contributions[0]?.date ?? profile.chartRange.start,
-        totals: { ...profile.stats, messages },
+        totals: profile.stats,
         past30Days: days.slice(-30).reduce((sum, day) => sum + day.cost, 0),
         biggestDay,
         longestStreak,

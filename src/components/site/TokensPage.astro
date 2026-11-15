@@ -45,19 +45,9 @@ const tiles = usage
               note: T("目前連續 {count} 天").replace("{count}", String(usage.currentStreak)),
           },
           {
-              label: T("快取命中率"),
-              value: percent(
-                  usage.totals.cacheReadTokens,
-                  usage.totals.cacheReadTokens + usage.totals.inputTokens + usage.totals.cacheWriteTokens,
-              ),
-              note: T("輸入的 token 有多少是從快取讀的"),
-          },
-          {
               label: T("每百萬 token"),
               value: formats.usdCents.format((usage.totals.totalCost / Math.max(1, usage.totals.totalTokens)) * 1e6),
           },
-          { label: T("訊息"), value: formats.number.format(usage.totals.messages) },
-          { label: T("工作階段"), value: formats.number.format(usage.totals.sessionCount) },
       ]
     : [];
 
@@ -103,7 +93,6 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                         <p class="mt-3 text-sm text-muted-foreground">
                             {[
                                 T("{count} 個 token").replace("{count}", formats.compact.format(usage.totals.totalTokens)),
-                                T("{count} 個活躍日").replace("{count}", String(usage.totals.activeDays)),
                                 T("從 {date} 開始").replace("{date}", formatDay(usage.firstDay)),
                                 ...(usage.rank === null
                                     ? []
@@ -111,7 +100,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                             ].join(" · ")}
                         </p>
 
-                        <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
                             {tiles.map((tile) => (
                                 <div class="rounded-lg border border-accent p-3">
                                     <dt class="text-xs text-muted-foreground">{tile.label}</dt>
