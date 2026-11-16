@@ -67,7 +67,7 @@ const meta = await Astro.slots.render("meta");
     >
         <aside class="hidden xl:col-start-1 xl:row-start-1 xl:block xl:justify-self-end">
             <div class="sticky top-28 flex w-56 flex-col gap-8 text-sm">
-                <Link href={backHref} class="text-muted-foreground">
+                <Link href={backHref} class="w-fit text-muted-foreground">
                     <ChevronLeft class="h-5 w-5" />{T("返回")}
                 </Link>
                 <div class="[&>*]:mt-0"><Fragment set:html={meta} /></div>
