@@ -28,7 +28,7 @@ const photos = await Promise.all(
     title={pack.title}
     description={pack.description ?? pack.metaDescription?.[locale === "en" ? "en" : "zh"]}
 >
-    <div class="mx-auto max-w-5xl pb-16">
+    <div class="mx-auto max-w-4xl pb-16">
         <a
             href={localizedPath(locale, "/photos/")}
             class="-ml-1 inline-flex items-center gap-1 rounded-lg py-1 pr-2 text-sm opacity-70 transition-opacity hover:opacity-100"

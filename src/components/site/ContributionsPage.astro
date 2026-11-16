@@ -1,5 +1,6 @@
 ---
 import contributionData from "../../data/contributions.json";
+import Pill from "../Pill.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, type Locale } from "../../i18n";
 import Link from "../Link.astro";
@@ -40,7 +41,7 @@ const sections = contributionData as ContributionSection[];
     title={T("貢獻")}
     description={T("Howard 的專案、資安研究、錯誤發現與其他貢獻。")}
 >
-    <div class="mx-auto max-w-5xl">
+    <div class="mx-auto max-w-4xl">
         <h1 class="text-3xl font-bold">{T("貢獻")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("我參與過的專案、研究、發現的錯誤，以及其他工作。")}
@@ -70,12 +71,12 @@ const sections = contributionData as ContributionSection[];
                                 <li
                                     id={itemId}
                                     aria-labelledby={`${itemId}-heading`}
-                                    class="h-full rounded-xl bg-foreground/[0.035] px-5 py-4 ring-1 ring-foreground/[0.06] transition-colors duration-200 hover:bg-foreground/[0.06]"
+                                    class="card-soft h-full px-5 py-4"
                                 >
                                     <div class="flex flex-wrap items-start justify-between gap-2">
                                         <h3
                                             id={`${itemId}-heading`}
-                                            class="text-xl"
+                                            class="text-lg leading-snug font-medium"
                                         >
                                             {item.title}
                                         </h3>
@@ -88,9 +89,7 @@ const sections = contributionData as ContributionSection[];
                                                         ? [T("已停止維護")]
                                                         : []),
                                                 ].map((tag) => (
-                                                    <span class="rounded-full border border-foreground/15 px-2 py-0.5 text-xs text-muted-foreground">
-                                                        {tag}
-                                                    </span>
+                                                    <Pill>{tag}</Pill>
                                                 ))}
                                             </div>
                                         )}
