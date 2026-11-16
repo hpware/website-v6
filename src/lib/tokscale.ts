@@ -77,8 +77,6 @@ export interface AiUsage {
     totals: TokscaleProfile["stats"];
     past30Days: number;
     biggestDay: DayUsage;
-    longestStreak: number;
-    currentStreak: number;
     // Every day in the chart range (the past year), including ones with no usage.
     days: DayUsage[];
     months: MonthUsage[];
@@ -181,23 +179,7 @@ function summarize(profile: TokscaleProfile): AiUsage {
         });
     }
 
-    // Streaks of consecutive days with any usage.
-    let longestStreak = 0;
-    let streak = 0;
-    let previous = Number.NaN;
-    for (const day of contributions) {
-        const time = dayTime(day.date);
-        streak = time - previous === DAY_MS ? streak + 1 : 1;
-        longestStreak = Math.max(longestStreak, streak);
-        previous = time;
-    }
     const end = dayTime(profile.chartRange.end);
-    const lastActive = contributions.at(-1)?.date;
-    const currentStreak =
-        lastActive !== undefined && end - dayTime(lastActive) <= DAY_MS
-            ? streak
-            : 0;
-
     // The heatmap's year, with empty days filled in.
     const days: DayUsage[] = [];
     for (let time = dayTime(profile.chartRange.start); time <= end; time += DAY_MS) {
@@ -218,8 +200,6 @@ function summarize(profile: TokscaleProfile): AiUsage {
         totals: profile.stats,
         past30Days: days.slice(-30).reduce((sum, day) => sum + day.cost, 0),
         biggestDay,
-        longestStreak,
-        currentStreak,
         days,
         months: fillMonths(months, profile.chartRange.end),
         weekdays,

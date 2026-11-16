@@ -40,11 +40,6 @@ const tiles = usage
               note: formatDay(usage.biggestDay.date),
           },
           {
-              label: T("最長連續天數"),
-              value: T("{count} 天").replace("{count}", String(usage.longestStreak)),
-              note: T("目前連續 {count} 天").replace("{count}", String(usage.currentStreak)),
-          },
-          {
               label: T("每百萬 token"),
               value: formats.usdCents.format((usage.totals.totalCost / Math.max(1, usage.totals.totalTokens)) * 1e6),
           },
@@ -100,7 +95,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                             ].join(" · ")}
                         </p>
 
-                        <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+                        <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                             {tiles.map((tile) => (
                                 <div class="rounded-lg border border-accent p-3">
                                     <dt class="text-xs text-muted-foreground">{tile.label}</dt>
