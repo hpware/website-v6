@@ -27,7 +27,7 @@ const reviews = (await getCollection("food"))
         <p class="mt-2 text-sm text-muted-foreground">
             {T("美食食記，記錄我吃過的東西。")}
         </p>
-        <ul class="mt-6 grid gap-3 md:grid-cols-2">
+        <ul class="mt-6 grid gap-y-1 md:grid-cols-2 md:gap-x-10">
             {
                 reviews.map((review) => (
                     <li class="grid">

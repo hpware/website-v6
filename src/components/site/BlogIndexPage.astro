@@ -32,11 +32,11 @@ for (const post of posts) {
         <h1 class="text-3xl font-bold">{T("貼文")}</h1>
         {
             [...years].map(([year, yearPosts]) => (
-                <section class="mt-10">
-                    <h2 class="text-xl font-bold text-muted-foreground">
+                <section class="mt-10 border-t border-foreground/10 pt-6 md:grid md:grid-cols-[6rem_1fr] md:gap-6">
+                    <h2 class="text-lg font-semibold text-muted-foreground tabular-nums md:sticky md:top-24 md:self-start md:pt-4">
                         {year}
                     </h2>
-                    <ul class="mt-4 flex flex-col gap-3">
+                    <ul class="mt-2 flex flex-col divide-y divide-foreground/10 md:mt-0">
                         {yearPosts.map((post) => (
                             <li>
                                 <PostCard

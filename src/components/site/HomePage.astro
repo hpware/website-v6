@@ -153,7 +153,7 @@ const sections = [
     {
         sections.map((section, index) => (
             <section data-rise style={`--i: ${5 + index}`} class="min-w-0">
-                <div class="mb-6 flex items-end justify-between gap-4">
+                <div class="mb-3 flex items-end justify-between gap-4">
                     <h2 class="text-2xl font-bold">{section.title}</h2>
                     <a
                         href={section.href}
@@ -163,7 +163,7 @@ const sections = [
                         <ArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
                     </a>
                 </div>
-                <ul class="flex flex-col gap-3">
+                <ul class="flex flex-col divide-y divide-foreground/10 border-t border-foreground/10">
                     {section.entries.map(({ href, data }) => (
                         <li>
                             <PostCard
@@ -190,8 +190,8 @@ const sections = [
     }
     </div>
 
-    <section class="mx-auto w-full max-w-2xl px-4 pb-24 md:max-w-5xl md:px-10">
-        <h2 class="mb-10 text-center text-3xl font-bold">{T("成就")}</h2>
+    <section class="mx-auto w-full max-w-5xl px-2 pb-24 sm:px-6">
+        <h2 class="mb-10 text-2xl font-bold">{T("成就")}</h2>
         <AchievementsTimeline />
     </section>
 </Layout>
