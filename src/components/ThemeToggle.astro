@@ -44,7 +44,20 @@ const T = createTranslator(locale);
 
         const nextTheme = root.classList.contains("dark") ? "light" : "dark";
         localStorage.setItem(storageKey, nextTheme);
-        applyTheme(nextTheme);
+
+        // The new theme spreads out in a circle from the button (see .theme-switching in global.css).
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduceMotion) {
+            applyTheme(nextTheme);
+            return;
+        }
+        const { left, top, width, height } = button.getBoundingClientRect();
+        root.style.setProperty("--reveal-x", `${left + width / 2}px`);
+        root.style.setProperty("--reveal-y", `${top + height / 2}px`);
+        root.classList.add("theme-switching");
+        document
+            .startViewTransition(() => applyTheme(nextTheme))
+            .finished.finally(() => root.classList.remove("theme-switching"));
     });
 
     window

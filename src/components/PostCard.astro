@@ -20,10 +20,10 @@ const T = createTranslator(locale);
 
 <a
     href={href}
-    class="flex items-start gap-4 rounded-lg border border-foreground/15 px-5 py-4 transition-colors duration-200 hover:bg-foreground/5"
+    class="group flex items-start gap-4 rounded-lg border border-foreground/15 px-5 py-4 transition-[background-color,border-color,scale] duration-200 ease-out hover:border-foreground/25 hover:bg-foreground/5 active:scale-[0.99] motion-reduce:transition-none"
 >
     <div class="min-w-0 flex-1">
-        <span class="block text-xl">{title}</span>
+        <span class="block text-xl transition-colors duration-200 group-hover:text-primary">{title}</span>
         {
             description && (
                 <span class="mt-1 line-clamp-1 block text-sm text-muted-foreground">
@@ -43,13 +43,15 @@ const T = createTranslator(locale);
     </div>
     {
         image && (
-            <Image
-                src={image}
-                width={160}
-                height={160}
-                alt=""
-                class="size-20 shrink-0 rounded-md object-cover"
-            />
+            <div class="size-20 shrink-0 overflow-hidden rounded-md">
+                <Image
+                    src={image}
+                    width={160}
+                    height={160}
+                    alt=""
+                    class="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none"
+                />
+            </div>
         )
     }
 </a>

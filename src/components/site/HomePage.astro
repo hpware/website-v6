@@ -69,13 +69,13 @@ const sections = [
     <section class="font-sans">
         <div class="mx-auto flex w-full max-w-5xl flex-col-reverse gap-10 px-2 pt-12 pb-20 text-left sm:px-6 md:flex-row md:items-center md:justify-between md:pt-20 md:pb-28">
             <div>
-                <h1 class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
+                <h1 data-rise style="--i: 0" class="text-3xl leading-[1.1] font-bold sm:text-4xl md:text-5xl">
                     {T("嗨！")}
                 </h1>
-                <p class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
+                <p data-rise style="--i: 1" class="mt-6 text-xl leading-tight text-muted-foreground sm:text-2xl md:text-3xl">
                     {T("這是元皓的網站！")}
                 </p>
-                <p class="mt-4 text-base text-muted-foreground sm:text-lg">
+                <p data-rise style="--i: 2" class="mt-4 text-base text-muted-foreground sm:text-lg">
                     <span class="sr-only">{age}</span>
                     <span class="tabular-nums" aria-hidden="true" data-age>
                         {age.split("").map((char) =>
@@ -103,7 +103,7 @@ const sections = [
                     {T("五專生")}
                 </p>
 
-                <div class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
+                <div data-rise style="--i: 3" class="mt-8 flex w-fit max-w-full items-center gap-3 rounded-lg border border-foreground/15 px-4 py-2.5 sm:gap-4 sm:px-5">
                     <code
                         class="overflow-x-auto font-mono text-sm tracking-wide sm:text-base"
                         data-ssh-command
@@ -128,7 +128,7 @@ const sections = [
                         />
                     </button>
                 </div>
-                <Socials />
+                <div data-rise style="--i: 4"><Socials /></div>
             </div>
 
             <Image
@@ -141,6 +141,8 @@ const sections = [
                 alt={T("Howard 的大頭貼")}
                 draggable="false"
                 loading="eager"
+                data-rise
+                style="--i: 1"
                 class="size-32 shrink-0 rounded-full object-cover sm:size-40 md:size-72"
             />
         </div>
@@ -149,8 +151,8 @@ const sections = [
     <!-- Latest posts and food reviews sit side by side on wide screens. -->
     <div class="mx-auto mb-24 grid w-full max-w-5xl gap-16 px-2 sm:px-6 lg:grid-cols-[3fr_2fr] lg:gap-10">
     {
-        sections.map((section) => (
-            <section class="min-w-0">
+        sections.map((section, index) => (
+            <section data-rise style={`--i: ${5 + index}`} class="min-w-0">
                 <div class="mb-6 flex items-end justify-between gap-4">
                     <h2 class="text-2xl font-bold">{section.title}</h2>
                     <a
