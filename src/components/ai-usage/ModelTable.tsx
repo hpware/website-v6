@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ModelUsage, Vendor } from "../../lib/tokscale";
 import { formatters, money, vendorColor } from "./shared";
 
-type SortKey = "model" | "cost" | "tokens" | "messages" | "days" | "lastUsed";
+type SortKey = "model" | "cost" | "tokens";
 
 type Props = {
     models: ModelUsage[];
@@ -80,9 +80,6 @@ export default function ModelTable({ models, locale, labels }: Props) {
                             {header("model", "left")}
                             {header("cost", "right")}
                             {header("tokens", "right")}
-                            {header("messages", "right")}
-                            {header("days", "right")}
-                            {header("lastUsed", "right")}
                         </tr>
                     </thead>
                     <tbody>
@@ -100,16 +97,11 @@ export default function ModelTable({ models, locale, labels }: Props) {
                                 </td>
                                 <td className="px-2 py-2 text-right whitespace-nowrap">{money(formats, model.cost)}</td>
                                 <td className="px-2 py-2 text-right whitespace-nowrap">{formats.compact.format(model.tokens)}</td>
-                                <td className="px-2 py-2 text-right whitespace-nowrap">{formats.number.format(model.messages)}</td>
-                                <td className="px-2 py-2 text-right whitespace-nowrap">{model.days}</td>
-                                <td className="px-2 py-2 text-right whitespace-nowrap text-muted-foreground">
-                                    {formats.day.format(new Date(`${model.lastUsed}T00:00:00Z`))}
-                                </td>
                             </tr>
                         ))}
                         {rows.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-2 py-6 text-center text-muted-foreground">
+                                <td colSpan={3} className="px-2 py-6 text-center text-muted-foreground">
                                     {labels.noMatch}
                                 </td>
                             </tr>

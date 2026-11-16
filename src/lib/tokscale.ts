@@ -3,14 +3,6 @@
 export const TOKSCALE_USERNAME = "hpware";
 export const TOKSCALE_PROFILE_URL = `https://tokscale.ai/u/${TOKSCALE_USERNAME}`;
 
-interface TokenCounts {
-    input: number;
-    output: number;
-    cacheRead: number;
-    cacheWrite: number;
-    reasoning: number;
-}
-
 // Only the fields of https://tokscale.ai/api/users/<username> used here.
 interface TokscaleProfile {
     user: { rank: number | null };
@@ -33,10 +25,9 @@ interface TokscaleProfile {
         clients: {
             client: string;
             cost: number;
-            messages: number;
             models: Record<
                 string,
-                TokenCounts & { cost: number; tokens: number; messages: number }
+                { cost: number; tokens: number }
             >;
         }[];
     }[];
@@ -69,16 +60,12 @@ export interface ModelUsage {
     vendor: Vendor;
     cost: number;
     tokens: number;
-    messages: number;
-    days: number;
-    lastUsed: string;
 }
 
 export interface ClientUsage {
     client: string;
     cost: number;
     tokens: number;
-    messages: number;
     days: number;
     topModel: string;
 }
@@ -151,7 +138,6 @@ function summarize(profile: TokscaleProfile): AiUsage {
                 client: entry.client,
                 cost: 0,
                 tokens: 0,
-                messages: 0,
                 days: 0,
                 topModel: "",
                 modelCost: new Map(),
@@ -166,20 +152,13 @@ function summarize(profile: TokscaleProfile): AiUsage {
                     vendor,
                     cost: 0,
                     tokens: 0,
-                    messages: 0,
-                    days: 0,
-                    lastUsed: "",
                 };
                 model.cost += usage.cost;
                 model.tokens += usage.tokens;
-                model.messages += usage.messages;
-                if (model.lastUsed !== day.date) model.days += 1;
-                model.lastUsed = day.date;
                 models.set(name, model);
 
                 client.cost += usage.cost;
                 client.tokens += usage.tokens;
-                client.messages += usage.messages;
                 client.modelCost.set(
                     name,
                     (client.modelCost.get(name) ?? 0) + usage.cost,
