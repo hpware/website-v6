@@ -174,7 +174,8 @@
 .photo-pack-backdrop {
     animation: photo-pack-fade 200ms ease-out;
 }
-.photo-pack-thumb {
+/* Thumbs cascade in once per visit (see data-fresh), not on every navigation. */
+[data-fresh] .photo-pack-thumb {
     animation: photo-pack-fade 300ms ease-out both;
     animation-delay: calc(min(var(--i), 20) * 25ms);
 }
@@ -284,8 +285,11 @@
     }
 }
 
-/* Page-to-page navigation: the browser crossfades between pages (no JS router).
-   The navbar keeps its own name so it stays put (or morphs into its scrolled pill) instead of fading. */
+/* Page-to-page navigation: the browser animates between documents (no JS router).
+   The old page stays fully opaque while the new one rises over it — crossfading both
+   leaves a moment where each page is half-transparent and the background bleeds
+   through. The navbar keeps its own name so it never fades; only its position/size
+   morphs (transparent bar ↔ scrolled pill). */
 @view-transition {
     navigation: auto;
 }
@@ -293,24 +297,23 @@
     view-transition-name: site-navbar;
 }
 ::view-transition-old(root) {
-    animation: page-out 150ms ease-in both;
+    animation: none;
 }
 ::view-transition-new(root) {
-    animation: page-in 250ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: page-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+::view-transition-old(site-navbar),
+::view-transition-new(site-navbar) {
+    animation: none;
 }
 ::view-transition-group(site-navbar) {
     animation-duration: 300ms;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes page-out {
-    to {
-        opacity: 0;
-    }
-}
 @keyframes page-in {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(10px);
     }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -339,9 +342,12 @@
     }
 }
 
-/* Entrance: elements marked data-rise fade up in order of --i when the page loads. */
+/* Entrance: elements marked data-rise fade up in order of --i — but only the first
+   time a visitor arrives at a page (BaseHead marks it with data-fresh). Replaying
+   the stagger on every in-site navigation makes the incoming page snapshot arrive
+   without those elements and reassemble itself after the view transition. */
 @media (prefers-reduced-motion: no-preference) {
-    [data-rise] {
+    [data-fresh] [data-rise] {
         animation: rise-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
         animation-delay: calc(var(--i, 0) * 70ms);
     }

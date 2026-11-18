@@ -52,6 +52,20 @@ const {
     })();
 </script>
 
+<!-- Marks a page the first time it is opened in this tab, so the staggered
+     entrances (see [data-fresh] in global.css) play once instead of on every
+     in-site navigation, where the view transition already animates the page in. -->
+<script is:inline>
+    (() => {
+        try {
+            const key = `seen:${location.pathname}`;
+            if (sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, "1");
+        } catch {}
+        document.documentElement.dataset.fresh = "";
+    })();
+</script>
+
 <Font cssVariable="--font-atkinson" />
 
 <!-- Canonical URL -->
