@@ -9,6 +9,7 @@ import {
     INSTAGRAM_LIST_URL,
     igSlopList,
     instagramProfileUrl,
+    isHttpUrl,
 } from "../../lib/slopblock";
 
 interface Props {
@@ -83,9 +84,22 @@ const formatDate = (value: number) => new Date(value).toISOString().slice(0, 10)
                                 </span>
                             )}
                         </div>
-                        {entry.reason && (
-                            <p class="mt-1 text-sm text-muted-foreground">{entry.reason}</p>
-                        )}
+                        {entry.reason &&
+                            (isHttpUrl(entry.reason) ? (
+                                <a
+                                    href={entry.reason}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={entry.reason}
+                                    class="mt-1 block truncate text-sm text-muted-foreground underline"
+                                >
+                                    {entry.reason}
+                                </a>
+                            ) : (
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                    {entry.reason}
+                                </p>
+                            ))}
                     </li>
                 );
             })}

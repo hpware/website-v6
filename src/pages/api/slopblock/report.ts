@@ -54,10 +54,13 @@ const messages = (locale: "en" | "zh-TW") => {
         notUsername: zh
             ? "這看起來不是 Instagram 使用者名稱。"
             : "That doesn't look like an Instagram username.",
-        noReason: zh ? "請填寫理由。" : "Please include a reason.",
-        longReason: zh
-            ? `理由太長了，請控制在 ${MAX_REASON} 字以內。`
-            : `The reason is too long (max ${MAX_REASON} characters).`,
+        notVideo: zh
+            ? "這看起來不是影片連結，連結要以 http:// 或 https:// 開頭。"
+            : "That doesn't look like a video link — it should start with http:// or https://.",
+        noVideo: zh ? "請貼上 slop 影片的連結。" : "Please paste a link to the slop video.",
+        longVideo: zh
+            ? `連結太長了，請控制在 ${MAX_REASON} 字以內。`
+            : `The link is too long (max ${MAX_REASON} characters).`,
         generic: zh ? "回報失敗，請稍後再試。" : "The report failed. Please try again later.",
     };
 };
@@ -83,22 +86,25 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const handleInput = typeof body?.handle === "string" ? body.handle : "";
-    const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
+    // The report's reason is a video link (e.g. the slop reel) — see
+    // /slopblock/submit.
+    const video = typeof body?.reason === "string" ? body.reason.trim() : "";
     const handle = extractInstagramHandle(handleInput);
 
     if (!handle && /instagram\.com/i.test(handleInput)) {
         return badRequest(text.postLink);
     }
     if (!isInstagramHandle(handle)) return badRequest(text.notUsername);
-    if (!reason) return badRequest(text.noReason);
-    if (reason.length > MAX_REASON) return badRequest(text.longReason);
+    if (!video) return badRequest(text.noVideo);
+    if (!/^https?:\/\/\S+$/i.test(video)) return badRequest(text.notVideo);
+    if (video.length > MAX_REASON) return badRequest(text.longVideo);
 
     try {
         const result = await convex.mutation(api.slopReports.create, {
             secret: adminSecret(),
             platform: "ig",
             handle,
-            reason,
+            reason: video,
         });
         return Response.json(
             { ok: true, ...result },

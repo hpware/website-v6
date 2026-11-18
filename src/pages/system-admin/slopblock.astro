@@ -6,7 +6,7 @@ import Admin from "../../layouts/Admin.astro";
 import { convex } from "../../lib/convex";
 import { adminSecret, errorMessage, formatDate, text } from "../../lib/admin/utils";
 import { setToast } from "../../lib/admin/session";
-import { igSlopList, instagramProfileUrl } from "../../lib/slopblock";
+import { igSlopList, instagramProfileUrl, isHttpUrl } from "../../lib/slopblock";
 
 let error = "";
 if (Astro.request.method === "POST") {
@@ -57,7 +57,21 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         </a>
                         <span class="admin-hint">{formatDate(report.created_at)}</span>
                     </div>
-                    <p class="mt-1 text-sm">{report.reason}</p>
+                    <!-- The reason is a video link — make it clickable to
+                         review the slop clip. -->
+                    {isHttpUrl(report.reason) ? (
+                        <a
+                            href={report.reason}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={report.reason}
+                            class="mt-1 block truncate text-sm underline"
+                        >
+                            {report.reason}
+                        </a>
+                    ) : (
+                        <p class="mt-1 text-sm">{report.reason}</p>
+                    )}
                     <code class="mt-2 block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs whitespace-nowrap">
                         {report.handle}: {report.reason}
                     </code>

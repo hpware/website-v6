@@ -27,6 +27,9 @@ export function isInstagramHandle(handle: string): boolean {
     return INSTAGRAM_HANDLE.test(handle);
 }
 
+/** The report's reason is a video link — true for plain http(s) URLs. */
+export const isHttpUrl = (value: string) => /^https?:\/\/\S+$/i.test(value);
+
 /** One account per line: `handle: reason`. # lines are comments. */
 export function parseSlopList(text: string): SlopEntry[] {
     return text

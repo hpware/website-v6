@@ -26,13 +26,15 @@ export const create = mutation({
     // The site's API route validates and localizes errors for humans; these
     // checks are the defensive server-side backstop.
     const handle = args.handle.trim().replace(/^@+/, "").toLowerCase();
-    // One line per account in src/data/slopblock/ig.txt, so reasons must be single-line.
-    const reason = args.reason.trim().replace(/\s+/g, " ");
+    // One line per account in src/data/slopblock/ig.txt, so this must be a
+    // single-line value; reports use a video link (the slop reel, ...) as the
+    // reason.
+    const reason = args.reason.trim();
     if (args.platform !== "ig" || !INSTAGRAM_HANDLE.test(handle)) {
       throw new ConvexError("Invalid slop report.");
     }
-    if (!reason || reason.length > MAX_REASON) {
-      throw new ConvexError("Invalid reason.");
+    if (!/^https?:\/\/\S+$/i.test(reason) || reason.length > MAX_REASON) {
+      throw new ConvexError("Invalid video link.");
     }
 
     // Skip reports that are already waiting for review with the same reason.
