@@ -121,7 +121,7 @@ const languageUrl = localizedPath(otherLocale, translationPath);
             id="mobile-menu"
             data-mobile-menu
             inert
-            class="invisible mx-3 mt-2 flex origin-top -translate-y-2 scale-95 flex-col overflow-hidden rounded-2xl border border-foreground/10 bg-background/90 p-2 opacity-0 shadow-lg backdrop-blur-lg transition-[opacity,translate,scale,visibility] duration-200 ease-out data-open:visible data-open:translate-y-0 data-open:scale-100 data-open:opacity-100 motion-reduce:transition-none md:hidden"
+            class="invisible mx-3 mt-2 flex max-h-[calc(100dvh-6rem)] origin-top -translate-y-2 scale-95 flex-col overflow-y-auto rounded-2xl border border-foreground/10 bg-background/90 p-2 opacity-0 shadow-lg backdrop-blur-lg transition-[opacity,translate,scale,visibility] duration-200 ease-out data-open:visible data-open:translate-y-0 data-open:scale-100 data-open:opacity-100 motion-reduce:transition-none md:hidden"
         >
             {tabs.map((tab) => (
                 <a
@@ -171,7 +171,11 @@ const languageUrl = localizedPath(otherLocale, translationPath);
         setMenuOpen(!mobileMenu?.hasAttribute("data-open")),
     );
     document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") setMenuOpen(false);
+        if (event.key !== "Escape") return;
+        // If focus is inside the open menu, hand it back to the toggle so it isn't lost.
+        const focusInside = mobileMenu?.contains(document.activeElement) ?? false;
+        setMenuOpen(false);
+        if (focusInside && menuToggle instanceof HTMLElement) menuToggle.focus();
     });
     document.addEventListener("click", (event) => {
         const target = event.target as Node;

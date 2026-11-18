@@ -38,6 +38,10 @@ const T = createTranslator(locale);
 
     applyTheme(getTheme());
 
+    // Counts theme reveals: a newer one skips the older transition, but the older
+    // transition's finished promise still settles — only the newest still owns .theme-switching.
+    let revealCount = 0;
+
     document.addEventListener("click", (event) => {
         const button = (event.target as HTMLElement).closest("[data-theme-toggle]");
         if (!button) return;
@@ -55,9 +59,14 @@ const T = createTranslator(locale);
         root.style.setProperty("--reveal-x", `${left + width / 2}px`);
         root.style.setProperty("--reveal-y", `${top + height / 2}px`);
         root.classList.add("theme-switching");
+        const reveal = ++revealCount;
         document
             .startViewTransition(() => applyTheme(nextTheme))
-            .finished.finally(() => root.classList.remove("theme-switching"));
+            .finished.catch(() => {})
+            .finally(() => {
+                if (reveal === revealCount)
+                    root.classList.remove("theme-switching");
+            });
     });
 
     window

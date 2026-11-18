@@ -215,6 +215,8 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                 body.innerHTML = shown.html;
                 toggle.textContent =
                     (showingTranslation ? toggle.dataset.originalLabel : toggle.dataset.translatedLabel) ?? "";
+                // Tells ArticlePage's table of contents to watch the headings now in the body.
+                body.dispatchEvent(new CustomEvent("article-body-swap"));
             };
             swap();
             toggle.addEventListener("click", swap);

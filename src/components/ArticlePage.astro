@@ -200,8 +200,17 @@ const meta = await Astro.slots.render("meta");
         { rootMargin: "-96px 0px -70% 0px" },
     );
 
-    for (const id of linkFor.keys()) {
-        const heading = document.getElementById(id);
-        if (heading) observer.observe(heading);
-    }
+    // ArticleTranslation swaps the body's innerHTML, replacing every heading the observer
+    // was watching — observe the headings now in the body again after each swap.
+    const observeHeadings = () => {
+        observer.disconnect();
+        for (const id of linkFor.keys()) {
+            const heading = document.getElementById(id);
+            if (heading) observer.observe(heading);
+        }
+    };
+    observeHeadings();
+    document
+        .querySelector("[data-article-body]")
+        ?.addEventListener("article-body-swap", observeHeadings);
 </script>
