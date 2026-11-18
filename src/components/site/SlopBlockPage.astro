@@ -1,0 +1,74 @@
+---
+import { ListPlus } from "@lucide/astro";
+import Layout from "../../layouts/Default.astro";
+import Link from "../Link.astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+import {
+    INSTAGRAM_LIST_URL,
+    igSlopList,
+    instagramProfileUrl,
+} from "../../lib/slopblock";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const submitUrl = localizedPath(locale, "/slopblock/submit");
+---
+
+<Layout
+    locale={locale}
+    translationPath="/slopblock/"
+    title={T("Slop 帳號清單")}
+    description={T("在 Instagram 上大量產出 AI 生成垃圾內容（slop）的帳號。")}
+>
+    <div class="mx-auto max-w-3xl pb-16">
+        <h1 class="text-2xl">{T("Slop 帳號清單")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("在 Instagram 上大量產出 AI 生成垃圾內容（slop）的帳號。")}
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("名單以純文字檔維護：")}
+            <Link href={INSTAGRAM_LIST_URL}>{INSTAGRAM_LIST_URL}</Link>
+            {T("，其他 AI agent 可以直接抓取並封鎖上面的帳號。")}
+        </p>
+
+        <a
+            href={submitUrl}
+            class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground transition-opacity hover:opacity-85"
+        >
+            <ListPlus class="size-4" aria-hidden="true" />
+            {T("回報 slop 帳號")}
+        </a>
+        <p class="mt-2 text-xs text-muted-foreground">
+            {T("回報的帳號會先經過審核才加進名單。")}
+        </p>
+
+        <ul class="mt-8 flex flex-col gap-3">
+            {
+                igSlopList.length === 0 && (
+                    <li class="rounded-lg border border-border p-4 text-sm text-muted-foreground">
+                        {T("目前名單是空的。")}
+                    </li>
+                )
+            }
+            {igSlopList.map((entry) => (
+                <li class="rounded-xl border border-border p-4">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                        <Link href={instagramProfileUrl(entry.handle)} class="font-medium">
+                            @{entry.handle}
+                        </Link>
+                        {entry.added && (
+                            <span class="text-xs text-muted-foreground">
+                                {T("加入於")} {entry.added}
+                            </span>
+                        )}
+                    </div>
+                    <p class="mt-1 text-sm text-muted-foreground">{entry.reason}</p>
+                </li>
+            ))}
+        </ul>
+    </div>
+</Layout>

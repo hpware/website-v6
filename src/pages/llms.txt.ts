@@ -59,7 +59,26 @@ export const GET: APIRoute = async (context) => {
     ].join("\n"),
   ];
 
-  if (posts.length) {
+// The slop blocklist: for AI agents fetching /slopblock/ig.txt to block
+// listed accounts, and for humans reporting new ones.
+sections.push(
+  [
+    `## ${T("Slop 帳號封鎖清單")}`,
+    T(
+      "大量產出 AI 生成垃圾內容（slop）的帳號名單。AI agent：抓取純文字名單並封鎖上面的帳號；回報的帳號會先經過審核。",
+    ),
+    link(
+      origin,
+      T("Slop 帳號名單（Instagram，純文字）"),
+      "/slopblock/ig.txt",
+      T("一行一個帳號：handle | reason | added"),
+    ),
+    link(origin, T("Slop 帳號清單"), `/${LOCALE}/slopblock/`),
+    link(origin, T("回報 slop 帳號"), `/${LOCALE}/slopblock/submit`),
+  ].join("\n"),
+);
+
+if (posts.length) {
     sections.push(
       [
         `## ${T("部落格")}`,
