@@ -64,9 +64,22 @@ export const list = query({
   args: { secret: v.string() },
   handler: async (ctx, args) => {
     requireAdmin(args.secret);
-    // Bounded and newest-first, so the admin page can't be broken by Convex
-    // read/return limits as the history grows.
-    return await ctx.db.query("slop_reports").order("desc").take(200);
+    // Bounded and newest-first per status, so pending reports can never be
+    // crowded out by reviewed history, and Convex read/return limits can't
+    // break the admin page as the table grows.
+    const statuses = ["pending", "listed", "dismissed"] as const;
+    const batches = await Promise.all(
+      statuses.map((status) =>
+        ctx.db
+          .query("slop_reports")
+          .withIndex("by_platform_status", (q) =>
+            q.eq("platform", "ig").eq("status", status),
+          )
+          .order("desc")
+          .take(200),
+      ),
+    );
+    return batches.flat();
   },
 });
 

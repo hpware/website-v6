@@ -13,9 +13,38 @@ export const prerender = false;
 
 const MAX_REASON = 500;
 
+// Best-effort anonymous throttle: at most MAX_PER_WINDOW reports per IP per
+// minute. Vercel serverless instances don't share memory, so this is friction
+// rather than a hard quota — combined with the exact-duplicate suppression in
+// Convex it bounds what a caller can do to the moderation queue.
+const WINDOW_MS = 60_000;
+const MAX_PER_WINDOW = 3;
+const hits = new Map<string, number[]>();
+
+function rateLimited(request: Request) {
+    const ip =
+        request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+        "unknown";
+    const now = Date.now();
+    const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
+    recent.push(now);
+    hits.set(ip, recent);
+    if (recent.length > MAX_PER_WINDOW) return true;
+    if (hits.size > 10_000) {
+        // Don't let the map grow forever on a long-lived instance.
+        for (const [key, times] of hits) {
+            if (times.every((time) => now - time >= WINDOW_MS)) hits.delete(key);
+        }
+    }
+    return false;
+}
+
 const messages = (locale: "en" | "zh-TW") => {
     const zh = locale === "zh-TW";
     return {
+        throttled: zh
+            ? "回報太頻繁了，請一分鐘後再試。"
+            : "Too many reports — try again in a minute.",
         postLink: zh
             ? "這個連結不是帳號的個檔，請貼帳號的個檔連結或 @使用者名稱。"
             : "That link doesn't point to an account — paste the account's profile link or @username.",
@@ -37,6 +66,18 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.json().catch(() => ({}));
     const locale = body?.locale === "zh-TW" ? "zh-TW" : "en";
     const text = messages(locale);
+
+    // Before any validation or Convex work, so over-quota requests only cost
+    // the JSON parse above.
+    if (rateLimited(request)) {
+        return Response.json(
+            { error: text.throttled },
+            {
+                status: 429,
+                headers: { "Cache-Control": "no-store", "Retry-After": "60" },
+            },
+        );
+    }
 
     const handleInput = typeof body?.handle === "string" ? body.handle : "";
     const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
