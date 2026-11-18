@@ -3,6 +3,9 @@ import rss from "@astrojs/rss";
 import type { APIRoute } from "astro";
 import { SITE_DESCRIPTION, SITE_NAME } from "../consts";
 
+// The feed is generated at build time from the content collections.
+export const prerender = true;
+
 export const GET: APIRoute = async (context) => {
   const posts = await getCollection(
     "blog",

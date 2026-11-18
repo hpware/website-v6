@@ -1,14 +1,21 @@
 ---
-import { getEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import BlogPostPage from "../../../components/site/BlogPostPage.astro";
 
-const post = Astro.params.slug
-    ? await getEntry("blog", Astro.params.slug)
-    : undefined;
+export const prerender = true;
 
-if (!post || post.data.status !== "published") {
-    return Astro.rewrite("/zh-TW/404");
+export async function getStaticPaths() {
+    const posts = await getCollection(
+        "blog",
+        ({ data }) => data.status === "published",
+    );
+    return posts.map((post) => ({
+        params: { slug: post.id },
+        props: { post },
+    }));
 }
+
+const { post } = Astro.props;
 ---
 
 <BlogPostPage locale="zh-TW" post={post} />
