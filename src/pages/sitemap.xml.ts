@@ -95,6 +95,16 @@ export const GET: APIRoute = async () => {
       changefreq: "daily" as const,
       priority: 0.5,
     },
+    {
+      url: absoluteUrl(`/${locale}/slopblock/`),
+      changefreq: "weekly" as const,
+      priority: 0.5,
+    },
+    {
+      url: absoluteUrl(`/${locale}/slopblock/submit`),
+      changefreq: "yearly" as const,
+      priority: 0.4,
+    },
   ]);
 
   const posts = await getCollection("blog", ({ data }) => data.status === "published");

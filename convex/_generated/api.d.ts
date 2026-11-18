@@ -22,6 +22,7 @@ import type * as galleries from "../galleries.js";
 import type * as openrouter from "../openrouter.js";
 import type * as pages from "../pages.js";
 import type * as photoMeta from "../photoMeta.js";
+import type * as slopReports from "../slopReports.js";
 import type * as todos from "../todos.js";
 import type * as translations from "../translations.js";
 
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   openrouter: typeof openrouter;
   pages: typeof pages;
   photoMeta: typeof photoMeta;
+  slopReports: typeof slopReports;
   todos: typeof todos;
   translations: typeof translations;
 }>;

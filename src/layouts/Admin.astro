@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import { Font } from "astro:assets";
 import {
+    Ban,
     HardDrive,
     Images,
     KeyRound,
@@ -29,6 +30,7 @@ const tabs = [
     { name: "Photos", icon: Images, url: "/system-admin/photos" },
     { name: "Storage", icon: HardDrive, url: "/system-admin/storage" },
     { name: "Passkeys", icon: KeyRound, url: "/system-admin/passkeys" },
+    { name: "Slopblock", icon: Ban, url: "/system-admin/slopblock" },
 ];
 const isActive = (url: string) =>
     url === "/system-admin" ? path === "/system-admin" || path === "/system-admin/" : path.startsWith(url);

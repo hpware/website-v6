@@ -1,0 +1,139 @@
+---
+import Layout from "../../layouts/Default.astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const listUrl = localizedPath(locale, "/slopblock/");
+---
+
+<Layout
+    locale={locale}
+    translationPath="/slopblock/submit"
+    title={T("回報 slop 帳號")}
+    description={T("把 Instagram 上的 slop 帳號跟影片連結丟過來，審核通過的才會加進封鎖名單。")}
+>
+    <div class="mx-auto max-w-xl pb-16">
+        <h1 class="text-2xl">{T("回報 slop 帳號")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("在 Instagram 上看到大量產出 AI 生成垃圾內容（slop）的帳號？把帳號跟影片連結丟過來；審核通過的帳號會加進")}
+            <!-- Link.astro renders a div inside its anchor, which would close
+                 this paragraph — use a native anchor here. -->
+            <a href={listUrl} class="underline">{T("slop 帳號清單")}</a>
+            {T("，沒有通過就不會。")}
+        </p>
+
+        <form data-slop-report class="mt-6 flex flex-col gap-4">
+            <label class="flex flex-col gap-1 text-sm">
+                {T("Instagram 帳號")}
+                <input
+                    data-slop-handle
+                    type="text"
+                    required
+                    autocomplete="off"
+                    placeholder="@username"
+                    class="rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
+                />
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                {T("影片連結")}
+                <input
+                    data-slop-video
+                    type="url"
+                    required
+                    placeholder="https://www.instagram.com/reel/…"
+                    class="rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
+                />
+            </label>
+            <p class="text-xs text-muted-foreground">
+                {T("帳號可以貼 @使用者名稱或個檔連結；影片欄請貼上 slop 影片（例如 reel）的連結。")}
+            </p>
+            <button
+                type="submit"
+                data-slop-submit
+                data-busy-label={T("送出中…")}
+                class="w-fit rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+            >
+                {T("送出")}
+            </button>
+        </form>
+
+        <!-- Present (and empty) from page load, so assistive tech announces the
+             update when the request finishes (WAI-ARIA ARIA22); invisible
+             while empty. -->
+        <p
+            data-slop-status
+            data-received={T("已收到！審核通過的帳號才會加進名單，謝謝。")}
+            data-duplicate={T("這個帳號已經有人回報過了。")}
+            data-error={T("回報失敗，請稍後再試。")}
+            role="status"
+            class="mt-3 text-sm empty:hidden"
+        ></p>
+    </div>
+</Layout>
+
+<script>
+    const form = document.querySelector<HTMLFormElement>("[data-slop-report]");
+    if (form) {
+        const button = form.querySelector<HTMLButtonElement>("[data-slop-submit]")!;
+        const handleInput = form.querySelector<HTMLInputElement>("[data-slop-handle]")!;
+        const videoInput = form.querySelector<HTMLInputElement>("[data-slop-video]")!;
+        const status = document.querySelector<HTMLElement>("[data-slop-status]")!;
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const submitLabel = button.textContent ?? "";
+            button.disabled = true;
+            button.textContent = button.dataset.busyLabel ?? submitLabel;
+            // Read-only while the report is in flight, so form.reset() can only
+            // ever clear the values that were actually submitted.
+            handleInput.readOnly = true;
+            videoInput.readOnly = true;
+
+            try {
+                const response = await fetch("/api/slopblock/report", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        handle: handleInput.value,
+                        reason: videoInput.value,
+                        locale: document.documentElement.lang,
+                    }),
+                });
+                const result = await response.json().catch(() => ({}));
+                // Only an explicit acknowledgment counts — anything else (an
+                // HTML error page, an unexpected shape, ...) keeps the draft.
+                if (
+                    !response.ok ||
+                    result.ok !== true ||
+                    (result.created !== true && result.duplicate !== true)
+                ) {
+                    throw new Error(
+                        typeof result.error === "string" ? result.error : "",
+                    );
+                }
+                status.textContent =
+                    result.duplicate === true
+                        ? (status.dataset.duplicate ?? "")
+                        : (status.dataset.received ?? "");
+                status.classList.remove("text-destructive");
+                form.reset();
+            } catch (error) {
+                status.textContent =
+                    error instanceof Error && error.message
+                        ? error.message
+                        : (status.dataset.error ?? "");
+                status.classList.add("text-destructive");
+            } finally {
+                handleInput.readOnly = false;
+                videoInput.readOnly = false;
+                button.disabled = false;
+                button.textContent = submitLabel;
+            }
+        });
+    }
+</script>

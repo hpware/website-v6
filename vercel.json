@@ -48,6 +48,16 @@
             "permanent": false
         },
         {
+            "source": "/slopblock",
+            "destination": "/zh-TW/slopblock/",
+            "permanent": false
+        },
+        {
+            "source": "/slopblock/submit",
+            "destination": "/zh-TW/slopblock/submit",
+            "permanent": false
+        },
+        {
             "source": "/contributions",
             "destination": "/zh-TW/contributions/",
             "permanent": false
