@@ -181,36 +181,44 @@ const meta = await Astro.slots.render("meta");
 </Layout>
 
 <script>
-    // Highlight the table of contents entry for the section being read.
-    const links = [
-        ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
-    ];
-    const linkFor = new Map(
-        links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]),
-    );
+    // Highlight the table of contents entry for the section being read. The
+    // client router swaps the page on every navigation, so this is (re)set up
+    // on each page load and the previous page's observer is dropped.
+    let observer: IntersectionObserver | null = null;
+    const setupToc = () => {
+        observer?.disconnect();
+        const links = [
+            ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
+        ];
+        const linkFor = new Map(
+            links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]),
+        );
+        const pageObserver = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    links.forEach((link) => link.removeAttribute("aria-current"));
+                    linkFor.get(entry.target.id)?.setAttribute("aria-current", "true");
+                }
+            },
+            { rootMargin: "-96px 0px -70% 0px" },
+        );
+        observer = pageObserver;
 
-    const observer = new IntersectionObserver(
-        (entries) => {
-            for (const entry of entries) {
-                if (!entry.isIntersecting) continue;
-                links.forEach((link) => link.removeAttribute("aria-current"));
-                linkFor.get(entry.target.id)?.setAttribute("aria-current", "true");
+        // ArticleTranslation swaps the body's innerHTML, replacing every heading
+        // the observer was watching — observe the headings now in the body again
+        // after each swap.
+        const observeHeadings = () => {
+            pageObserver.disconnect();
+            for (const id of linkFor.keys()) {
+                const heading = document.getElementById(id);
+                if (heading) pageObserver.observe(heading);
             }
-        },
-        { rootMargin: "-96px 0px -70% 0px" },
-    );
-
-    // ArticleTranslation swaps the body's innerHTML, replacing every heading the observer
-    // was watching — observe the headings now in the body again after each swap.
-    const observeHeadings = () => {
-        observer.disconnect();
-        for (const id of linkFor.keys()) {
-            const heading = document.getElementById(id);
-            if (heading) observer.observe(heading);
-        }
+        };
+        observeHeadings();
+        document
+            .querySelector("[data-article-body]")
+            ?.addEventListener("article-body-swap", observeHeadings);
     };
-    observeHeadings();
-    document
-        .querySelector("[data-article-body]")
-        ?.addEventListener("article-body-swap", observeHeadings);
+    document.addEventListener("astro:page-load", setupToc);
 </script>

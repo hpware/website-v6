@@ -151,25 +151,35 @@ const languageUrl = localizedPath(otherLocale, translationPath);
 </header>
 
 <script>
-    const navbar = document.querySelector("[data-navbar]");
+    // The client router replaces the <body> on every navigation, so the elements
+    // are re-queried on each page load. The window/document listeners outlive the
+    // pages and are registered exactly once.
+    let navbar: Element | null = null;
+    let menuToggle: Element | null = null;
+    let mobileMenu: Element | null = null;
+
     const handleScroll = () => {
         navbar?.toggleAttribute("data-scrolled", window.scrollY > 10);
     };
-    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Mobile menu: the toggle, Escape, a click outside, or picking a link closes it.
-    const menuToggle = document.querySelector("[data-menu-toggle]");
-    const mobileMenu = document.querySelector("[data-mobile-menu]");
     const setMenuOpen = (open: boolean) => {
         if (!(mobileMenu instanceof HTMLElement)) return;
         mobileMenu.toggleAttribute("data-open", open);
         mobileMenu.inert = !open;
         menuToggle?.setAttribute("aria-expanded", String(open));
     };
-    menuToggle?.addEventListener("click", () =>
-        setMenuOpen(!mobileMenu?.hasAttribute("data-open")),
-    );
+    document.addEventListener("click", (event) => {
+        const target = event.target as Node;
+        if (menuToggle?.contains(target)) {
+            setMenuOpen(!mobileMenu?.hasAttribute("data-open"));
+            return;
+        }
+        if (mobileMenu?.contains(target) && !(target as Element).closest("a"))
+            return;
+        setMenuOpen(false);
+    });
     document.addEventListener("keydown", (event) => {
         if (event.key !== "Escape") return;
         // If focus is inside the open menu, hand it back to the toggle so it isn't lost.
@@ -177,10 +187,15 @@ const languageUrl = localizedPath(otherLocale, translationPath);
         setMenuOpen(false);
         if (focusInside && menuToggle instanceof HTMLElement) menuToggle.focus();
     });
-    document.addEventListener("click", (event) => {
-        const target = event.target as Node;
-        if (menuToggle?.contains(target)) return;
-        if (mobileMenu?.contains(target) && !(target as Element).closest("a")) return;
-        setMenuOpen(false);
-    });
+
+    // Pages without the router (the admin layout) never fire astro:page-load,
+    // so the elements are also bound right away.
+    const bindPage = () => {
+        navbar = document.querySelector("[data-navbar]");
+        menuToggle = document.querySelector("[data-menu-toggle]");
+        mobileMenu = document.querySelector("[data-mobile-menu]");
+        handleScroll();
+    };
+    bindPage();
+    document.addEventListener("astro:page-load", bindPage);
 </script>

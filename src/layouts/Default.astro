@@ -3,6 +3,7 @@ import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import Header from "../components/Header.astro";
 import { SITE_NAME } from "../consts";
+import { ClientRouter } from "astro:transitions";
 import {
     createTranslator,
     defaultLocale,
@@ -32,6 +33,10 @@ const desc = Astro.props.description ?? T("歡迎來到我的網站！");
             locale={locale}
             translationPath={translationPath}
         />
+        {/* Client-side routing through same-document view transitions, so the
+            page-to-page animation also plays in Firefox (which supports
+            same-document, but not cross-document, view transitions). */}
+        <ClientRouter />
     </head>
     <body>
         <Header locale={locale} translationPath={translationPath} />

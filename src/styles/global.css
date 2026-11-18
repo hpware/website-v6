@@ -285,11 +285,13 @@
     }
 }
 
-/* Page-to-page navigation: the browser animates between documents (no JS router).
-   The old page stays fully opaque while the new one rises over it — crossfading both
-   leaves a moment where each page is half-transparent and the background bleeds
-   through. The navbar keeps its own name so it never fades; only its position/size
-   morphs (transparent bar ↔ scrolled pill). */
+/* Page-to-page navigation: Astro's client router swaps the page inside one
+   same-document view transition — which Firefox supports (cross-document ones,
+   the @view-transition rule below, are Chrome/Safari only for now). The old
+   page stays fully opaque while the new one rises over it — crossfading both
+   leaves a moment where each page is half-transparent and the background
+   bleeds through. The navbar keeps its own name so it never fades; only its
+   position/size morphs (transparent bar ↔ scrolled pill). */
 @view-transition {
     navigation: auto;
 }
