@@ -27,13 +27,16 @@ function rateLimited(request: Request) {
         "unknown";
     const now = Date.now();
     const recent = (hits.get(ip) ?? []).filter((time) => now - time < WINDOW_MS);
+    // Rejected requests are not recorded, so a burst can't grow this IP's
+    // array (and its per-request filter work) beyond MAX_PER_WINDOW.
+    if (recent.length >= MAX_PER_WINDOW) return true;
     recent.push(now);
     hits.set(ip, recent);
-    if (recent.length > MAX_PER_WINDOW) return true;
     if (hits.size > 10_000) {
-        // Don't let the map grow forever on a long-lived instance.
+        // Amortized cleanup, so IPs that never return don't pile up on a
+        // long-lived instance. Entries hold at most MAX_PER_WINDOW timestamps.
         for (const [key, times] of hits) {
-            if (times.every((time) => now - time >= WINDOW_MS)) hits.delete(key);
+            if (now - times[times.length - 1] >= WINDOW_MS) hits.delete(key);
         }
     }
     return false;
