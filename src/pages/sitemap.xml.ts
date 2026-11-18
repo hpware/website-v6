@@ -90,6 +90,11 @@ export const GET: APIRoute = async () => {
       changefreq: "monthly" as const,
       priority: 0.8,
     },
+    {
+      url: absoluteUrl(`/${locale}/tokens/`),
+      changefreq: "daily" as const,
+      priority: 0.5,
+    },
   ]);
 
   const posts = await getCollection("blog", ({ data }) => data.status === "published");

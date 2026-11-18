@@ -24,14 +24,14 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
             <div
                 data-translation-prompt
                 hidden
-                class="fixed inset-x-4 bottom-4 z-40 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-lg sm:left-auto sm:w-96"
+                class="fixed inset-x-4 bottom-4 z-40 overflow-hidden rounded-xl border border-border bg-card p-4 text-card-foreground shadow-lg sm:left-auto sm:w-96"
             >
                 <p class="flex items-start gap-2 font-bold">
                     <Languages class="mt-0.5 h-5 w-5 shrink-0" />
                     {T("這篇文章是以英文撰寫的，要翻譯成中文嗎？")}
                 </p>
                 <p class="mt-2 text-sm text-muted-foreground">
-                    {T("翻譯由 AI 模型 Deepseek V4.1 Flash 處理，可能不完全正確。")}
+                    {T("翻譯由 AI 模型 GPT6 Luna 處理，可能不完全正確。")}
                 </p>
                 <p data-translation-error hidden class="mt-2 text-sm text-destructive">
                     {T("翻譯失敗，請稍後再試。")}
@@ -40,7 +40,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                     <button
                         type="button"
                         data-translation-dismiss
-                        class="rounded-lg px-3 py-1.5 text-sm hover:bg-muted"
+                        class="rounded-lg px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50 disabled:hover:bg-transparent"
                     >
                         {T("不用了")}
                     </button>
@@ -53,6 +53,9 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                         {T("翻譯")}
                     </button>
                 </div>
+                <div data-translation-progress hidden class="absolute inset-x-0 bottom-0 h-1 bg-primary/20">
+                    <div class="h-full w-1/3 bg-primary"></div>
+                </div>
             </div>
             <p
                 data-translation-notice
@@ -60,7 +63,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                 class="mb-6 flex flex-wrap items-center gap-x-2 rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground"
             >
                 <Languages class="h-4 w-4" />
-                {T("此文章由 AI 模型 Deepseek V4.1 Flash 從英文翻譯。")}
+                {T("此文章由 AI 模型 GPT6 Luna 從英文翻譯。")}
                 <button
                     type="button"
                     data-translation-toggle
@@ -76,6 +79,11 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
 }
 
 <style>
+    /* Display utilities must not reveal controls before their hidden state is cleared. */
+    [data-article-translation] [hidden] {
+        display: none !important;
+    }
+
     /* The prompt slides up shortly after the page loads, and back down when it closes. */
     [data-translation-prompt]:not([hidden]) {
         animation: translation-in 300ms ease-out 500ms backwards;
@@ -85,6 +93,26 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
     }
     [data-translation-notice]:not([hidden]) {
         animation: translation-in 300ms ease-out;
+    }
+    /* While translating, the article is blocked out and the prompt shows a progress bar. */
+    :global([data-translating]) {
+        opacity: 0.35;
+        filter: blur(2px);
+        user-select: none;
+        transition:
+            opacity 300ms,
+            filter 300ms;
+    }
+    [data-translation-progress] > div {
+        animation: translation-progress 1.2s ease-in-out infinite;
+    }
+    @keyframes translation-progress {
+        from {
+            transform: translateX(-100%);
+        }
+        to {
+            transform: translateX(300%);
+        }
     }
     @keyframes translation-in {
         from {
@@ -104,6 +132,12 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
         [data-translation-notice] {
             animation-duration: 1ms !important;
             animation-delay: 0s !important;
+        }
+        :global([data-translating]) {
+            filter: none;
+        }
+        [data-translation-progress] > div {
+            animation-duration: 3s !important;
         }
     }
 </style>
@@ -128,6 +162,8 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
         const start = root.querySelector<HTMLButtonElement>("[data-translation-start]")!;
         const notice = root.querySelector<HTMLElement>("[data-translation-notice]")!;
         const toggle = root.querySelector<HTMLButtonElement>("[data-translation-toggle]")!;
+        const dismiss = root.querySelector<HTMLButtonElement>("[data-translation-dismiss]")!;
+        const progress = root.querySelector<HTMLElement>("[data-translation-progress]")!;
         const startLabel = start.textContent ?? "";
 
         // "No thanks" is remembered per post, so it doesn't ask on every visit.
@@ -150,24 +186,35 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
 
         const closePrompt = () => {
             prompt.dataset.closing = "";
-            prompt.addEventListener(
-                "animationend",
-                () => {
-                    prompt.hidden = true;
-                    delete prompt.dataset.closing;
-                },
-                { once: true },
-            );
+            const done = (event: AnimationEvent) => {
+                if (event.target !== prompt) return; // Not the progress bar's
+                prompt.removeEventListener("animationend", done);
+                prompt.hidden = true;
+                delete prompt.dataset.closing;
+            };
+            prompt.addEventListener("animationend", done);
         };
 
-        root.querySelector("[data-translation-dismiss]")!.addEventListener("click", () => {
+        // While translating, the article is blocked out (see the styles above) and can't be used.
+        const setBusy = (busy: boolean) => {
+            for (const element of [title, body]) {
+                element.inert = busy;
+                element.toggleAttribute("data-translating", busy);
+                element.setAttribute("aria-busy", String(busy));
+            }
+            progress.hidden = !busy;
+            start.disabled = busy;
+            dismiss.disabled = busy;
+            start.textContent = busy ? (start.dataset.busyLabel ?? startLabel) : startLabel;
+        };
+
+        dismiss.addEventListener("click", () => {
             closePrompt();
             storage.set();
         });
 
         start.addEventListener("click", async () => {
-            start.disabled = true;
-            start.textContent = start.dataset.busyLabel ?? startLabel;
+            setBusy(true);
             error.hidden = true;
             try {
                 show(await waitForTranslation());
@@ -175,8 +222,7 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
             } catch {
                 error.hidden = false;
             } finally {
-                start.disabled = false;
-                start.textContent = startLabel;
+                setBusy(false);
             }
         });
 
