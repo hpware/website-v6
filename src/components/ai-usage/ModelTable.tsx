@@ -70,12 +70,12 @@ export default function ModelTable({ models, locale, labels }: Props) {
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder={labels.search}
                 aria-label={labels.search}
-                className="w-full rounded-lg border border-accent bg-transparent px-3 py-2 text-sm sm:w-72"
+                className="w-full rounded-lg border border-foreground/10 bg-transparent px-3 py-2 text-sm focus:border-foreground/30 sm:w-72"
             />
 
             <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-sm">
-                    <thead className="border-b border-muted-foreground/30 text-muted-foreground">
+                    <thead className="border-b border-foreground/10 text-muted-foreground">
                         <tr>
                             {header("model", "left")}
                             {header("cost", "right")}
@@ -84,7 +84,7 @@ export default function ModelTable({ models, locale, labels }: Props) {
                     </thead>
                     <tbody>
                         {visible.map((model) => (
-                            <tr key={model.model} className="border-b border-muted-foreground/10">
+                            <tr key={model.model} className="border-b border-foreground/10">
                                 <td className="px-2 py-2 whitespace-nowrap">
                                     <span className="flex items-center gap-2">
                                         <span
@@ -114,7 +114,7 @@ export default function ModelTable({ models, locale, labels }: Props) {
                 <button
                     type="button"
                     onClick={() => setExpanded(!expanded)}
-                    className="mt-3 text-sm underline hover:cursor-pointer"
+                    className="mt-3 text-sm text-primary hover:underline hover:cursor-pointer"
                 >
                     {expanded ? labels.showLess : labels.showAll.replace("{count}", String(rows.length))}
                 </button>
