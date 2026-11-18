@@ -58,7 +58,7 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                     </div>
                     <p class="mt-1 text-sm">{report.reason}</p>
                     <code class="mt-2 block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs whitespace-nowrap">
-                        {report.handle} | {report.reason} | {formatDate(report.created_at)}
+                        {report.handle}: {report.reason}
                     </code>
                     <div class="mt-3 flex gap-2">
                         <form method="post">
@@ -96,7 +96,11 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         </p>
                         <p class="admin-hint truncate">{report.reason}</p>
                     </div>
-                    <span class="admin-hint">{formatDate(report.created_at)}</span>
+                    <span class="admin-hint">
+                        {report.status === "listed" && report.listed_at
+                            ? formatDate(report.listed_at)
+                            : formatDate(report.created_at)}
+                    </span>
                 </li>
             ))
         }
@@ -117,7 +121,6 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         <p class="truncate font-medium">@{entry.handle}</p>
                         <p class="admin-hint truncate">{entry.reason}</p>
                     </div>
-                    <span class="admin-hint">{entry.added}</span>
                 </li>
             ))
         }

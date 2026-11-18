@@ -21,7 +21,8 @@ export const create = mutation({
     // The site's API route validates and localizes errors for humans; these
     // checks are the defensive server-side backstop.
     const handle = args.handle.trim().replace(/^@+/, "").toLowerCase();
-    const reason = args.reason.trim();
+    // One line per account in src/data/slopblock/ig.txt, so reasons must be single-line.
+    const reason = args.reason.trim().replace(/\s+/g, " ");
     if (args.platform !== "ig" || !INSTAGRAM_HANDLE.test(handle)) {
       throw new ConvexError("Invalid slop report.");
     }
@@ -68,6 +69,32 @@ export const settle = mutation({
   },
   handler: async (ctx, args) => {
     requireAdmin(args.secret);
-    await ctx.db.patch(args.id, { status: args.status });
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      ...(args.status === "listed"
+        ? { listed_at: Date.now() }
+        : {}),
+    });
+  },
+});
+
+// Public: when each listed account was listed, for the dates shown on
+// /slopblock/. Only handles and dates — no report details.
+export const listedDates = query({
+  args: {},
+  handler: async (ctx) => {
+    const reports = await ctx.db
+      .query("slop_reports")
+      .withIndex("by_platform_status", (q) =>
+        q.eq("platform", "ig").eq("status", "listed"),
+      )
+      .collect();
+    const dated: { handle: string; listed_at: number }[] = [];
+    for (const report of reports) {
+      if (report.listed_at !== undefined) {
+        dated.push({ handle: report.handle, listed_at: report.listed_at });
+      }
+    }
+    return dated;
   },
 });

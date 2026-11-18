@@ -71,7 +71,7 @@ sections.push(
       origin,
       T("Slop 帳號名單（Instagram，純文字）"),
       "/slopblock/ig.txt",
-      T("一行一個帳號：handle | reason | added"),
+      T("一行一個帳號：handle: reason"),
     ),
     link(origin, T("Slop 帳號清單"), `/${LOCALE}/slopblock/`),
     link(origin, T("回報 slop 帳號"), `/${LOCALE}/slopblock/submit`),

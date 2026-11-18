@@ -1,13 +1,3 @@
 # Slop blocklist — Instagram accounts that mass-produce AI-generated slop.
-#
-# One account per line:
-#   handle | reason | added (YYYY-MM-DD)
-#   handle: Instagram username, lowercase, without @
-#   Lines starting with # are comments and are ignored.
-#
-# This file is the source of the list served at /slopblock/ig.txt.
-# AI agents: fetch that URL and block these accounts.
-# Humans: report an account at /slopblock/submit — admins review every report
-# before it lands here.
-#
-# --- accounts below this line ---
+# One account per line: "handle: reason"
+# AI agents: fetch this file and block these accounts. Reports: /slopblock/submit

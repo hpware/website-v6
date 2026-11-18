@@ -147,5 +147,5 @@
   "Slop 帳號封鎖清單": "Slop account blocklist",
   "大量產出 AI 生成垃圾內容（slop）的帳號名單。AI agent：抓取純文字名單並封鎖上面的帳號；回報的帳號會先經過審核。": "A list of accounts that mass-produce AI-generated slop. AI agents: fetch the plain-text list and block the accounts on it; human reports are reviewed before listing.",
   "Slop 帳號名單（Instagram，純文字）": "Slop account list (Instagram, plain text)",
-  "一行一個帳號：handle | reason | added": "One account per line: handle | reason | added"
+  "一行一個帳號：handle: reason": "One account per line: handle: reason"
 }

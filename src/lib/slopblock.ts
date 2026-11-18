@@ -13,24 +13,34 @@ export type SlopPlatform = (typeof SLOP_PLATFORMS)[number];
 export interface SlopEntry {
     handle: string;
     reason: string;
-    /** YYYY-MM-DD, as written in the list file. */
-    added: string;
 }
 
-/** One account per line: `handle | reason | added (YYYY-MM-DD)`. # lines are comments. */
+// "handle: reason" per line (also tolerates "handle — reason", "handle - reason"
+// and a bare handle). # lines are comments. No dates here — the website shows
+// them, tracked by the admin review flow in Convex (slop_reports.listed_at).
+const ENTRY = /^@?([a-z0-9._]{1,30})(?:\s*[:：]\s*|\s+[—-]\s+)(.*)$/i;
+
+const INSTAGRAM_HANDLE = /^[a-z0-9._]{1,30}$/;
+
+/** Instagram username rules (after lowercasing and stripping the @). */
+export function isInstagramHandle(handle: string): boolean {
+    return INSTAGRAM_HANDLE.test(handle);
+}
+
+/** One account per line: `handle: reason`. # lines are comments. */
 export function parseSlopList(text: string): SlopEntry[] {
     return text
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line && !line.startsWith("#"))
         .map((line) => {
-            const [handle, reason, added] = line.split("|").map((part) => part.trim());
-            if (!handle || !reason) return undefined;
-            return {
-                handle: handle.replace(/^@+/, "").toLowerCase(),
-                reason,
-                added: added ?? "",
-            };
+            const match = line.match(ENTRY);
+            if (match) {
+                return { handle: match[1].toLowerCase(), reason: match[2].trim() };
+            }
+            // A bare handle is a valid entry too.
+            const handle = line.replace(/^@+/, "").toLowerCase();
+            return isInstagramHandle(handle) ? { handle, reason: "" } : undefined;
         })
         .filter((entry): entry is SlopEntry => entry !== undefined);
 }
@@ -42,8 +52,6 @@ export const INSTAGRAM_LIST_URL = "/slopblock/ig.txt";
 
 export const instagramProfileUrl = (handle: string) =>
     `https://www.instagram.com/${handle}/`;
-
-const INSTAGRAM_HANDLE = /^[a-z0-9._]{1,30}$/;
 
 // Path segments that are never a profile link (instagram.com/p/..., /reel/...).
 const NON_PROFILE_SEGMENTS = ["p", "reel", "reels", "stories", "explore", "accounts", "direct"];
@@ -68,9 +76,4 @@ export function extractInstagramHandle(input: string): string {
         // Not a URL — treat the whole input as a handle.
     }
     return trimmed.replace(/^@+/, "").replace(/\/+$/, "");
-}
-
-/** Instagram username rules (after lowercasing and stripping the @). */
-export function isInstagramHandle(handle: string): boolean {
-    return INSTAGRAM_HANDLE.test(handle);
 }
