@@ -194,8 +194,24 @@ const languageUrl = localizedPath(otherLocale, translationPath);
         navbar = document.querySelector("[data-navbar]");
         menuToggle = document.querySelector("[data-menu-toggle]");
         mobileMenu = document.querySelector("[data-mobile-menu]");
-        handleScroll();
     };
     bindPage();
+    handleScroll();
+    // Router navigations only rebind here: the new page's snapshot is taken
+    // after this moment, so reconciling the pill state now would flip the
+    // navbar between snapshots (two navbars at once mid-transition).
     document.addEventListener("astro:page-load", bindPage);
+
+    // Instead, once a navigation's snapshots are actually taken, drop the
+    // scrolled-pill state copied over in BaseHead and let the live navbar
+    // morph back to the full bar with its own CSS transition, right as the
+    // new page finishes fading in.
+    const startViewTransition = document.startViewTransition?.bind(document);
+    if (startViewTransition) {
+        document.startViewTransition = (callback) => {
+            const transition = startViewTransition(callback);
+            transition.ready.then(handleScroll).catch(() => {});
+            return transition;
+        };
+    }
 </script>
