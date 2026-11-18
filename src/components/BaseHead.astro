@@ -57,18 +57,6 @@ const {
         const next = event.newDocument.documentElement;
         next.classList.toggle("dark", current.classList.contains("dark"));
         if (current.dataset.theme) next.dataset.theme = current.dataset.theme;
-        // Same for the navbar's scrolled-pill state: otherwise the transition
-        // shows the old pill and the new full bar stacked on top of each other.
-        // The header script drops the state again once the new page is in (it
-        // starts at the top), and the live navbar morphs back with its own
-        // CSS transition — the same one it uses while scrolling.
-        const currentNavbar = document.querySelector("[data-navbar]");
-        const nextNavbar = event.newDocument.querySelector("[data-navbar]");
-        if (currentNavbar && nextNavbar) {
-            currentNavbar.hasAttribute("data-scrolled")
-                ? nextNavbar.setAttribute("data-scrolled", "")
-                : nextNavbar.removeAttribute("data-scrolled");
-        }
     });
 </script>
 

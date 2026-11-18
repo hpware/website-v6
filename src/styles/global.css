@@ -304,13 +304,20 @@
 ::view-transition-new(root) {
     animation: page-in 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-::view-transition-old(site-navbar),
+/* The navbar never animates during a navigation: the old snapshot is hidden and
+   the new one shown the instant the transition starts, in its settled state.
+   Any morphing here (the scrolled pill ↔ full bar) reads as a flash of color
+   the moment the page settles — the old page, pill included, just dissolves
+   under the incoming page instead. */
+::view-transition-old(site-navbar) {
+    animation: none;
+    opacity: 0;
+}
 ::view-transition-new(site-navbar) {
     animation: none;
 }
 ::view-transition-group(site-navbar) {
-    animation-duration: 300ms;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation: none;
 }
 @keyframes page-in {
     from {
