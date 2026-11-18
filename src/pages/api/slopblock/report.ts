@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { api } from "../../../../convex/_generated/api";
 import { convex } from "../../../lib/convex";
+import { adminSecret } from "../../../lib/admin/utils";
 import { extractInstagramHandle, isInstagramHandle } from "../../../lib/slopblock";
 
 export const prerender = false;
@@ -16,8 +17,8 @@ const messages = (locale: "en" | "zh-TW") => {
     const zh = locale === "zh-TW";
     return {
         postLink: zh
-            ? "這是貼文連結，請貼帳號的個檔連結或 @使用者名稱。"
-            : "That's a post link — paste the account's profile link or @username.",
+            ? "這個連結不是帳號的個檔，請貼帳號的個檔連結或 @使用者名稱。"
+            : "That link doesn't point to an account — paste the account's profile link or @username.",
         notUsername: zh
             ? "這看起來不是 Instagram 使用者名稱。"
             : "That doesn't look like an Instagram username.",
@@ -50,6 +51,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     try {
         const result = await convex.mutation(api.slopReports.create, {
+            secret: adminSecret(),
             platform: "ig",
             handle,
             reason,

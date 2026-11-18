@@ -44,7 +44,9 @@ const formatDate = (value: number) => new Date(value).toISOString().slice(0, 10)
         </p>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("名單以純文字檔維護：")}
-            <Link href={INSTAGRAM_LIST_URL}>{INSTAGRAM_LIST_URL}</Link>
+            <!-- Link.astro renders a div inside its anchor, which would close
+                 this paragraph — use a native anchor here. -->
+            <a href={INSTAGRAM_LIST_URL} class="underline">{INSTAGRAM_LIST_URL}</a>
             {T("，其他 AI agent 可以直接抓取並封鎖上面的帳號。")}
         </p>
 

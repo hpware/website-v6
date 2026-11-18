@@ -13,11 +13,16 @@ const MAX_REASON = 500;
 
 export const create = mutation({
   args: {
+    // The site's server is the only caller (it holds ADMIN_API_SECRET), so
+    // direct public Convex calls can't write reports.
+    secret: v.string(),
     platform: v.string(),
     handle: v.string(),
     reason: v.string(),
   },
   handler: async (ctx, args) => {
+    requireAdmin(args.secret);
+
     // The site's API route validates and localizes errors for humans; these
     // checks are the defensive server-side backstop.
     const handle = args.handle.trim().replace(/^@+/, "").toLowerCase();
@@ -31,13 +36,16 @@ export const create = mutation({
     }
 
     // Skip reports that are already waiting for review with the same reason.
-    const pending = await ctx.db
+    // The filter runs on the index's platform/handle/pending range and stops
+    // at the first match, so the queue is never fully collected.
+    const existing = await ctx.db
       .query("slop_reports")
       .withIndex("by_platform_handle_status", (q) =>
         q.eq("platform", "ig").eq("handle", handle).eq("status", "pending"),
       )
-      .collect();
-    if (pending.some((report) => report.reason === reason)) {
+      .filter((q) => q.eq(q.field("reason"), reason))
+      .first();
+    if (existing) {
       return { duplicate: true };
     }
 
@@ -56,11 +64,15 @@ export const list = query({
   args: { secret: v.string() },
   handler: async (ctx, args) => {
     requireAdmin(args.secret);
-    return await ctx.db.query("slop_reports").order("desc").collect();
+    // Bounded and newest-first, so the admin page can't be broken by Convex
+    // read/return limits as the history grows.
+    return await ctx.db.query("slop_reports").order("desc").take(200);
   },
 });
 
 // "listed" = added to src/data/slopblock/ig.txt; "dismissed" = rejected.
+// Only the first moderation decision counts: a report already reviewed in
+// another tab can't be settled again.
 export const settle = mutation({
   args: {
     secret: v.string(),
@@ -69,6 +81,13 @@ export const settle = mutation({
   },
   handler: async (ctx, args) => {
     requireAdmin(args.secret);
+    const report = await ctx.db.get(args.id);
+    if (!report) {
+      throw new ConvexError("Report not found.");
+    }
+    if (report.status !== "pending") {
+      throw new ConvexError("Report was already reviewed.");
+    }
     await ctx.db.patch(args.id, {
       status: args.status,
       ...(args.status === "listed"

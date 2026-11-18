@@ -53,8 +53,34 @@ export const INSTAGRAM_LIST_URL = "/slopblock/ig.txt";
 export const instagramProfileUrl = (handle: string) =>
     `https://www.instagram.com/${handle}/`;
 
-// Path segments that are never a profile link (instagram.com/p/..., /reel/...).
-const NON_PROFILE_SEGMENTS = ["p", "reel", "reels", "stories", "explore", "accounts", "direct"];
+// Path segments that are never a profile link (instagram.com/p/...,
+// /reel/..., /legal/privacy/, ...). Any other top-level path is a profile.
+const NON_PROFILE_SEGMENTS = [
+    "p",
+    "reel",
+    "reels",
+    "stories",
+    "explore",
+    "accounts",
+    "direct",
+    "legal",
+    "about",
+    "developer",
+    "directory",
+    "topics",
+    "web",
+    "challenge",
+    "session",
+    "your_account",
+    "emails",
+    "invites",
+    "help",
+    "terms",
+    "privacy",
+    "press",
+    "api",
+    "lite",
+];
 
 /**
  * Extracts an Instagram username from whatever someone threw at the form:

@@ -10,8 +10,9 @@ import { igSlopList, instagramProfileUrl } from "../../lib/slopblock";
 
 let error = "";
 if (Astro.request.method === "POST") {
-    const form = await Astro.request.formData();
     try {
+        // Inside the try: an unparseable body uses the page's error path too.
+        const form = await Astro.request.formData();
         const id = text(form, "id") as Id<"slop_reports">;
         const status = text(form, "status");
         if (status !== "listed" && status !== "dismissed") {
