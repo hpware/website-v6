@@ -29,7 +29,9 @@ try {
 } catch {
     // Convex unavailable — the list still renders, just without dates.
 }
-const formatDate = (value: number) => new Date(value).toISOString().slice(0, 10);
+// Shown in the owner's timezone (Asia/Taipei) — a UTC ISO date would read as
+// "yesterday" for anything listed before 08:00 local. "en-CA" → YYYY-MM-DD.
+const formatDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
 
 // Pager for the list: ?page=N, clamped to what actually exists.
 const PAGE_SIZE = 50;
@@ -94,7 +96,7 @@ const pageHref = (target: number) => `${Astro.url.pathname}?page=${target}`;
                             </Link>
                             {added !== undefined && (
                                 <span class="text-xs text-muted-foreground">
-                                    {T("加入於")} {formatDate(added)}
+                                    {T("加入於")} {formatDate.format(added)}
                                 </span>
                             )}
                         </div>
