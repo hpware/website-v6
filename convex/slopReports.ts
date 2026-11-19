@@ -1,15 +1,35 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
+import { cleanReason, cleanVideoUrl } from "../src/lib/slopLinks";
 
 // Slop account reports thrown from the public form at /slopblock/submit (via
 // the site's /api/slopblock/report). Admins review them in
-// /system-admin/slopblock and list accepted accounts in
-// src/data/slopblock/ig.txt, which is served at /slopblock/ig.txt for AI
-// agents to fetch and block.
+// /system-admin/slopblock. A "listed" report IS the listing: the site builds
+// /slopblock/ and /slopblock/ig.txt from them (plus any hand-written lines in
+// src/data/slopblock/ig.txt), so approving goes live without a deploy.
 
 const INSTAGRAM_HANDLE = /^[a-z0-9._]{1,30}$/;
 const MAX_REASON = 500;
+
+async function isListed(ctx: QueryCtx | MutationCtx, handle: string) {
+  const listed = await ctx.db
+    .query("slop_reports")
+    .withIndex("by_platform_handle_status", (q) =>
+      q.eq("platform", "ig").eq("handle", handle).eq("status", "listed"),
+    )
+    .first();
+  return listed !== null;
+}
+
+function normalizeHandle(handle: string) {
+  const normalized = handle.trim().replace(/^@+/, "").toLowerCase();
+  if (!INSTAGRAM_HANDLE.test(normalized)) {
+    throw new ConvexError("Invalid Instagram username.");
+  }
+  return normalized;
+}
 
 export const create = mutation({
   args: {
@@ -28,13 +48,17 @@ export const create = mutation({
     const handle = args.handle.trim().replace(/^@+/, "").toLowerCase();
     // One line per account in src/data/slopblock/ig.txt, so this must be a
     // single-line value; reports use a video link (the slop reel, ...) as the
-    // reason.
-    const reason = args.reason.trim();
+    // reason. Share/tracking params (Instagram's igsh names the sharer's
+    // account) are stripped here too, whatever the caller sent.
+    const reason = cleanVideoUrl(args.reason);
     if (args.platform !== "ig" || !INSTAGRAM_HANDLE.test(handle)) {
       throw new ConvexError("Invalid slop report.");
     }
-    if (!/^https?:\/\/\S+$/i.test(reason) || reason.length > MAX_REASON) {
+    if (!reason || reason.length > MAX_REASON) {
       throw new ConvexError("Invalid video link.");
+    }
+    if (await isListed(ctx, handle)) {
+      return { alreadyListed: true };
     }
 
     // Skip reports that are already waiting for review with the same reason.
@@ -85,9 +109,10 @@ export const list = query({
   },
 });
 
-// "listed" = added to src/data/slopblock/ig.txt; "dismissed" = rejected.
+// "listed" = on the public list right away; "dismissed" = rejected.
 // Only the first moderation decision counts: a report already reviewed in
-// another tab can't be settled again.
+// another tab can't be settled again. Listing an account also lists its other
+// pending reports, so duplicates don't need a click each.
 export const settle = mutation({
   args: {
     secret: v.string(),
@@ -103,12 +128,110 @@ export const settle = mutation({
     if (report.status !== "pending") {
       throw new ConvexError("Report was already reviewed.");
     }
-    await ctx.db.patch(args.id, {
-      status: args.status,
-      ...(args.status === "listed"
-        ? { listed_at: Date.now() }
-        : {}),
+    if (args.status === "dismissed") {
+      await ctx.db.patch(args.id, { status: "dismissed" });
+      return;
+    }
+    const now = Date.now();
+    const pending = await ctx.db
+      .query("slop_reports")
+      .withIndex("by_platform_handle_status", (q) =>
+        q.eq("platform", "ig").eq("handle", report.handle).eq("status", "pending"),
+      )
+      .take(100);
+    for (const item of pending) {
+      await ctx.db.patch(item._id, {
+        status: "listed",
+        listed_at: now,
+        reason: cleanReason(item.reason),
+      });
+    }
+  },
+});
+
+// Admin shortcut: list an account straight away, no report or review step.
+// The video link is optional here.
+export const addListed = mutation({
+  args: { secret: v.string(), handle: v.string(), reason: v.string() },
+  handler: async (ctx, args) => {
+    requireAdmin(args.secret);
+    const handle = normalizeHandle(args.handle);
+    const raw = args.reason.trim();
+    const reason = raw ? cleanVideoUrl(raw) : "";
+    if (raw && (!reason || reason.length > MAX_REASON)) {
+      throw new ConvexError("Invalid video link.");
+    }
+    if (await isListed(ctx, handle)) {
+      return { alreadyListed: true };
+    }
+    const now = Date.now();
+    await ctx.db.insert("slop_reports", {
+      platform: "ig",
+      handle,
+      reason,
+      status: "listed",
+      listed_at: now,
+      created_at: now,
     });
+    // Anything still waiting for review on this account is settled too.
+    const pending = await ctx.db
+      .query("slop_reports")
+      .withIndex("by_platform_handle_status", (q) =>
+        q.eq("platform", "ig").eq("handle", handle).eq("status", "pending"),
+      )
+      .take(100);
+    for (const item of pending) {
+      await ctx.db.patch(item._id, { status: "listed", listed_at: now, reason: cleanReason(item.reason) });
+    }
+    return { created: true };
+  },
+});
+
+// Takes an account off the list (its listed reports become dismissed).
+export const unlist = mutation({
+  args: { secret: v.string(), handle: v.string() },
+  handler: async (ctx, args) => {
+    requireAdmin(args.secret);
+    const handle = normalizeHandle(args.handle);
+    const listed = await ctx.db
+      .query("slop_reports")
+      .withIndex("by_platform_handle_status", (q) =>
+        q.eq("platform", "ig").eq("handle", handle).eq("status", "listed"),
+      )
+      .take(100);
+    for (const item of listed) {
+      await ctx.db.patch(item._id, { status: "dismissed" });
+    }
+    return { removed: listed.length };
+  },
+});
+
+// Public: the listed accounts, one entry per handle (its first listing), oldest
+// first. Reasons are video links with share/tracking params removed.
+export const listed = query({
+  args: {},
+  handler: async (ctx) => {
+    const reports = await ctx.db
+      .query("slop_reports")
+      .withIndex("by_platform_status", (q) =>
+        q.eq("platform", "ig").eq("status", "listed"),
+      )
+      .collect();
+    const byHandle = new Map<string, { handle: string; reason: string; listed_at: number }>();
+    for (const report of reports) {
+      const listed_at = report.listed_at ?? report.created_at;
+      const current = byHandle.get(report.handle);
+      if (!current || listed_at < current.listed_at) {
+        byHandle.set(report.handle, {
+          handle: report.handle,
+          reason: cleanReason(report.reason || current?.reason || ""),
+          listed_at,
+        });
+      } else if (!current.reason && report.reason) {
+        current.reason = cleanReason(report.reason);
+      }
+    }
+    return [...byHandle.values()].sort((a, b) => a.listed_at - b.listed_at);
   },
 });
 

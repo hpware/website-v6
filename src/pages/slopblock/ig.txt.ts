@@ -1,14 +1,21 @@
 import type { APIRoute } from "astro";
-import igList from "../../data/slopblock/ig.txt?raw";
+import { formatSlopList, getIgSlopList } from "../../lib/slopblock";
 
 export const prerender = false;
 
-// The machine-readable slop blocklist for AI agents, served straight from
-// src/data/slopblock/ig.txt (see src/lib/slopblock.ts for the format).
-export const GET: APIRoute = async () =>
-    new Response(igList, {
+// The machine-readable slop blocklist for AI agents: the accounts approved in
+// /system-admin/slopblock (Convex) plus the hand-written lines in
+// src/data/slopblock/ig.txt. See src/lib/slopblock.ts for the format.
+export const GET: APIRoute = async () => {
+    const { entries, ok } = await getIgSlopList();
+    return new Response(formatSlopList(entries), {
         headers: {
             "Content-Type": "text/plain; charset=utf-8",
-            "Cache-Control": "public, max-age=0, s-maxage=3600",
+            // Short CDN cache so approvals show up within minutes. When Convex
+            // is down, don't let the partial list stick around.
+            "Cache-Control": ok
+                ? "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
+                : "no-store",
         },
     });
+};

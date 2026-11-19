@@ -1,13 +1,11 @@
 ---
 import { ListPlus } from "@lucide/astro";
-import { api } from "../../../convex/_generated/api";
 import Layout from "../../layouts/Default.astro";
 import Link from "../Link.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
-import { convex } from "../../lib/convex";
 import {
     INSTAGRAM_LIST_URL,
-    igSlopList,
+    getIgSlopList,
     instagramProfileUrl,
     isHttpUrl,
 } from "../../lib/slopblock";
@@ -20,18 +18,14 @@ const { locale } = Astro.props;
 const T = createTranslator(locale);
 const submitUrl = localizedPath(locale, "/slopblock/submit");
 
-// The list is just a list (src/data/slopblock/ig.txt) — dates are tracked here
-// on the website side, from the admin review flow in Convex.
-let listedAt = new Map<string, number>();
-try {
-    const listed = await convex.query(api.slopReports.listedDates, {});
-    listedAt = new Map(listed.map((item) => [item.handle, item.listed_at]));
-} catch {
-    // Convex unavailable — the list still renders, just without dates.
-}
+// Live from Convex (approved reports + admin additions) merged with the
+// hand-written lines in src/data/slopblock/ig.txt. Newest first here.
+const { entries: allEntries } = await getIgSlopList();
+const igSlopList = [...allEntries].reverse();
 // Shown in the owner's timezone (Asia/Taipei) — a UTC ISO date would read as
 // "yesterday" for anything listed before 08:00 local. "en-CA" → YYYY-MM-DD.
-const formatDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
+const dateFormat = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
+const formatDate = (value: number) => dateFormat.format(value);
 
 // Pager for the list: ?page=N, clamped to what actually exists.
 const PAGE_SIZE = 50;
@@ -60,7 +54,7 @@ const pageHref = (target: number) => `${Astro.url.pathname}?page=${target}`;
             {T("在 Instagram 上大量產出 AI 生成垃圾內容（slop）的帳號。")}
         </p>
         <p class="mt-2 text-sm text-muted-foreground">
-            {T("名單以純文字檔維護：")}
+            {T("名單也提供純文字檔：")}
             <!-- Link.astro renders a div inside its anchor, which would close
                  this paragraph — use a native anchor here. -->
             <a href={INSTAGRAM_LIST_URL} class="underline">{INSTAGRAM_LIST_URL}</a>
@@ -87,7 +81,7 @@ const pageHref = (target: number) => `${Astro.url.pathname}?page=${target}`;
                 )
             }
             {entries.map((entry) => {
-                const added = listedAt.get(entry.handle);
+                const added = entry.listedAt;
                 return (
                     <li class="rounded-xl border border-border p-4">
                         <div class="flex flex-wrap items-baseline justify-between gap-x-3">
@@ -96,7 +90,7 @@ const pageHref = (target: number) => `${Astro.url.pathname}?page=${target}`;
                             </Link>
                             {added !== undefined && (
                                 <span class="text-xs text-muted-foreground">
-                                    {T("加入於")} {formatDate.format(added)}
+                                    {T("加入於")} {formatDate(added)}
                                 </span>
                             )}
                         </div>

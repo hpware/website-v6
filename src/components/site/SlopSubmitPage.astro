@@ -20,7 +20,7 @@ const listUrl = localizedPath(locale, "/slopblock/");
     <div class="mx-auto max-w-xl pb-16">
         <h1 class="text-2xl">{T("回報 slop 帳號")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
-            {T("在 Instagram 上看到大量產出 AI 生成垃圾內容（slop）的帳號？把帳號跟影片連結丟過來；審核通過的帳號會加進")}
+            {T("在 Instagram 上看到大量產出 AI 生成垃圾內容（slop）的帳號？把影片連結丟過來；審核通過的帳號會加進")}
             <!-- Link.astro renders a div inside its anchor, which would close
                  this paragraph — use a native anchor here. -->
             <a href={listUrl} class="underline">{T("slop 帳號清單")}</a>
@@ -29,28 +29,46 @@ const listUrl = localizedPath(locale, "/slopblock/");
 
         <form data-slop-report class="mt-6 flex flex-col gap-4">
             <label class="flex flex-col gap-1 text-sm">
-                {T("Instagram 帳號")}
-                <input
-                    data-slop-handle
-                    type="text"
-                    required
-                    autocomplete="off"
-                    placeholder="@username"
-                    class="rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
-                />
-            </label>
-            <label class="flex flex-col gap-1 text-sm">
                 {T("影片連結")}
+                <!-- type=text, not url: "instagram.com/reel/…" without
+                     https:// is fine, the server adds it. -->
                 <input
                     data-slop-video
-                    type="url"
+                    type="text"
+                    inputmode="url"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
                     required
                     placeholder="https://www.instagram.com/reel/…"
                     class="rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
                 />
             </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span>
+                    {T("Instagram 帳號")}
+                    <span class="text-muted-foreground">{T("（選填）")}</span>
+                </span>
+                <input
+                    data-slop-handle
+                    type="text"
+                    autocomplete="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    placeholder={T("使用者名稱或個檔連結")}
+                    class="rounded-lg border border-border bg-transparent px-3 py-2 outline-none focus:border-primary"
+                />
+                <span
+                    data-slop-detected
+                    data-template={T("從連結偵測到：@{handle}")}
+                    class="text-xs text-muted-foreground empty:hidden"
+                ></span>
+            </label>
             <p class="text-xs text-muted-foreground">
-                {T("帳號可以貼 @使用者名稱或個檔連結；影片欄請貼上 slop 影片（例如 reel）的連結。")}
+                {T("貼上 slop 影片（例如 reel）的連結就好；帳號會盡量從連結自動判斷，判斷不出來時才需要填。有沒有 @ 都可以。")}
+            </p>
+            <p class="text-xs text-muted-foreground">
+                {T("分享連結裡的追蹤參數（例如 Instagram 的 igsh，會透露是誰分享的）會在送出前自動移除。")}
             </p>
             <button
                 type="submit"
@@ -67,8 +85,10 @@ const listUrl = localizedPath(locale, "/slopblock/");
              while empty. -->
         <p
             data-slop-status
-            data-received={T("已收到！審核通過的帳號才會加進名單，謝謝。")}
-            data-duplicate={T("這個帳號已經有人回報過了。")}
+            data-received={T("已收到 @{handle}！審核通過的帳號才會加進名單，謝謝。")}
+            data-duplicate={T("@{handle} 已經有人回報過了。")}
+            data-already-listed={T("@{handle} 已經在名單上了。")}
+            data-admin-listed={T("已直接把 @{handle} 加進名單（管理員）。")}
             data-error={T("回報失敗，請稍後再試。")}
             role="status"
             class="mt-3 text-sm empty:hidden"
@@ -77,15 +97,62 @@ const listUrl = localizedPath(locale, "/slopblock/");
 </Layout>
 
 <script>
+    import { cleanVideoUrl, parseInstagramInput } from "../../lib/slopLinks";
+
     const form = document.querySelector<HTMLFormElement>("[data-slop-report]");
     if (form) {
         const button = form.querySelector<HTMLButtonElement>("[data-slop-submit]")!;
         const handleInput = form.querySelector<HTMLInputElement>("[data-slop-handle]")!;
         const videoInput = form.querySelector<HTMLInputElement>("[data-slop-video]")!;
+        const detected = form.querySelector<HTMLElement>("[data-slop-detected]")!;
         const status = document.querySelector<HTMLElement>("[data-slop-status]")!;
+        const fill = (template: string | undefined, handle: string) =>
+            (template ?? "").replace("{handle}", handle);
+
+        // Strip share/tracking params as soon as a link lands in the field, so
+        // the reporter sees exactly what gets sent.
+        const tidyVideo = () => {
+            const cleaned = cleanVideoUrl(videoInput.value);
+            if (cleaned && cleaned !== videoInput.value.trim()) videoInput.value = cleaned;
+        };
+
+        // Shows the account the link names (instagram.com/user/reel/…, a
+        // profile link) when the account field is empty.
+        const updateDetected = () => {
+            const parsed = parseInstagramInput(videoInput.value);
+            detected.textContent =
+                !handleInput.value.trim() && parsed.kind === "handle"
+                    ? fill(detected.dataset.template, parsed.handle)
+                    : "";
+        };
+
+        // A profile link / @handle pasted in the account field is tidied to
+        // the bare username.
+        const tidyHandle = () => {
+            const parsed = parseInstagramInput(handleInput.value);
+            if (parsed.kind === "handle") handleInput.value = parsed.handle;
+        };
+
+        videoInput.addEventListener("change", () => {
+            tidyVideo();
+            updateDetected();
+        });
+        videoInput.addEventListener("paste", () =>
+            setTimeout(() => {
+                tidyVideo();
+                updateDetected();
+            }),
+        );
+        videoInput.addEventListener("input", updateDetected);
+        handleInput.addEventListener("change", () => {
+            tidyHandle();
+            updateDetected();
+        });
+        handleInput.addEventListener("input", updateDetected);
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+            tidyVideo();
             const submitLabel = button.textContent ?? "";
             button.disabled = true;
             button.textContent = button.dataset.busyLabel ?? submitLabel;
@@ -110,18 +177,26 @@ const listUrl = localizedPath(locale, "/slopblock/");
                 if (
                     !response.ok ||
                     result.ok !== true ||
-                    (result.created !== true && result.duplicate !== true)
+                    (result.created !== true &&
+                        result.duplicate !== true &&
+                        result.alreadyListed !== true)
                 ) {
                     throw new Error(
                         typeof result.error === "string" ? result.error : "",
                     );
                 }
-                status.textContent =
-                    result.duplicate === true
-                        ? (status.dataset.duplicate ?? "")
-                        : (status.dataset.received ?? "");
+                const handle = typeof result.handle === "string" ? result.handle : "";
+                const template = result.alreadyListed
+                    ? status.dataset.alreadyListed
+                    : result.duplicate
+                      ? status.dataset.duplicate
+                      : result.admin
+                        ? status.dataset.adminListed
+                        : status.dataset.received;
+                status.textContent = fill(template, handle);
                 status.classList.remove("text-destructive");
                 form.reset();
+                detected.textContent = "";
             } catch (error) {
                 status.textContent =
                     error instanceof Error && error.message
