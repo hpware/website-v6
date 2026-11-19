@@ -155,5 +155,14 @@
   "@{handle} 已經有人回報過了。": "Someone already reported @{handle}.",
   "@{handle} 已經在名單上了。": "@{handle} is already on the list.",
   "已直接把 @{handle} 加進名單（管理員）。": "Listed @{handle} right away (admin).",
-  "名單也提供純文字檔：": "The list is also a plain-text file: "
+  "名單也提供純文字檔：": "The list is also a plain-text file: ",
+  "用 iPhone 捷徑一鍵回報": "Report in one tap with an iPhone shortcut",
+  "做一個捷徑，之後在 Instagram 按「分享」選它，這一頁就會打開並自動送出影片連結。": "Make a shortcut once. After that, tap Share on Instagram and pick it: this page opens and sends the video link for you.",
+  "打開「捷徑」App，新增一個捷徑，在詳細資訊裡開啟「在分享表單中顯示」，接收類型選「URL」和「文字」。": "Open the Shortcuts app and make a new shortcut. In its details, turn on Show in Share Sheet and have it receive URLs and Text.",
+  "加入「URL 編碼」動作，內容選「捷徑輸入」。": "Add a URL Encode action and set its input to Shortcut Input.",
+  "加入「打開 URL」動作，貼上下面這串，並在最後面接上「已編碼的 URL」變數：": "Add an Open URLs action. Paste this in, then add the URL Encoded Text variable at the end:",
+  "複製": "Copy",
+  "已複製": "Copied",
+  "在 Instagram 的 reel 上按「分享」，選這個捷徑就完成了。": "On an Instagram reel, tap Share and pick the shortcut. That's it.",
+  "不想自動送出的話，把 send=1& 拿掉，頁面只會先幫你填好。其他手機或 App 也可以用同一串網址。": "To check before sending, remove send=1& and the page only fills in the link. The same address works from other phones and apps too."
 }

@@ -26,11 +26,12 @@ export const prerender = false;
 const MAX_REASON = 500;
 
 // Best-effort anonymous throttle: at most MAX_PER_WINDOW reports per IP per
-// minute. Vercel serverless instances don't share memory, so this is friction
-// rather than a hard quota — combined with the exact-duplicate suppression in
+// minute, roomy enough to report reel after reel with the share-sheet
+// shortcut. Vercel serverless instances don't share memory, so this is
+// friction rather than a hard quota — combined with the exact-duplicate suppression in
 // Convex it bounds what a caller can do to the moderation queue.
 const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = 3;
+const MAX_PER_WINDOW = 10;
 const hits = new Map<string, number[]>();
 
 function rateLimited(request: Request) {

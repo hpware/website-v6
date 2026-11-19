@@ -9,6 +9,10 @@ interface Props {
 const { locale } = Astro.props;
 const T = createTranslator(locale);
 const listUrl = localizedPath(locale, "/slopblock/");
+// Opening this with a link appended fills the form and sends the report —
+// what the iPhone shortcut below does. `url=` must stay last: the shared link
+// is read raw to the end, so an unencoded link with its own & still works.
+const shortcutPrefix = `${new URL(localizedPath(locale, "/slopblock/submit"), Astro.site)}?send=1&url=`;
 ---
 
 <Layout
@@ -93,6 +97,38 @@ const listUrl = localizedPath(locale, "/slopblock/");
             role="status"
             class="mt-3 text-sm empty:hidden"
         ></p>
+
+        <section class="mt-10 border-t border-border pt-6">
+            <h2 class="text-lg">{T("用 iPhone 捷徑一鍵回報")}</h2>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {T("做一個捷徑，之後在 Instagram 按「分享」選它，這一頁就會打開並自動送出影片連結。")}
+            </p>
+            <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm">
+                <li>{T("打開「捷徑」App，新增一個捷徑，在詳細資訊裡開啟「在分享表單中顯示」，接收類型選「URL」和「文字」。")}</li>
+                <li>{T("加入「URL 編碼」動作，內容選「捷徑輸入」。")}</li>
+                <li>
+                    {T("加入「打開 URL」動作，貼上下面這串，並在最後面接上「已編碼的 URL」變數：")}
+                    <div class="mt-2 flex items-center gap-2">
+                        <code
+                            data-slop-shortcut-url
+                            class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg border border-border px-3 py-2 text-xs"
+                        >{shortcutPrefix}</code>
+                        <button
+                            type="button"
+                            data-slop-copy
+                            data-copied-label={T("已複製")}
+                            class="shrink-0 rounded-lg border border-border px-3 py-2 text-xs"
+                        >
+                            {T("複製")}
+                        </button>
+                    </div>
+                </li>
+                <li>{T("在 Instagram 的 reel 上按「分享」，選這個捷徑就完成了。")}</li>
+            </ol>
+            <p class="mt-3 text-xs text-muted-foreground">
+                {T("不想自動送出的話，把 send=1& 拿掉，頁面只會先幫你填好。其他手機或 App 也可以用同一串網址。")}
+            </p>
+        </section>
     </div>
 </Layout>
 
@@ -210,5 +246,44 @@ const listUrl = localizedPath(locale, "/slopblock/");
                 button.textContent = submitLabel;
             }
         });
+
+        // A link handed over in the address (?url=… from the share-sheet
+        // shortcut, or ?text=… with a link inside) fills the form; with
+        // send=1 the report goes out straight away. This runs after the
+        // submit handler is attached, or requestSubmit() would do a plain GET
+        // form submit. The link is read raw to the end of the address, so an
+        // unencoded link keeps its own & and ?.
+        const shared = location.search.match(/[?&](?:url|text)=(.*)$/)?.[1];
+        if (shared) {
+            let value = shared;
+            try {
+                value = decodeURIComponent(shared);
+            } catch {
+                // A stray % — use the raw text.
+            }
+            const link = value.match(/https?:\/\/\S+/i)?.[0] ?? value.trim();
+            const send = new URLSearchParams(location.search).get("send") === "1";
+            // Don't leave the link in the address bar or history.
+            history.replaceState(history.state, "", location.pathname);
+            videoInput.value = link;
+            tidyVideo();
+            updateDetected();
+            if (send) form.requestSubmit();
+            else button.focus();
+        }
     }
+
+    const copyButton = document.querySelector<HTMLButtonElement>("[data-slop-copy]");
+    const shortcutUrl = document.querySelector<HTMLElement>("[data-slop-shortcut-url]");
+    copyButton?.addEventListener("click", async () => {
+        const label = copyButton.textContent ?? "";
+        try {
+            await navigator.clipboard.writeText(shortcutUrl?.textContent?.trim() ?? "");
+            copyButton.textContent = copyButton.dataset.copiedLabel ?? label;
+            setTimeout(() => (copyButton.textContent = label), 1500);
+        } catch {
+            // No clipboard access: select the text so it can be copied by hand.
+            if (shortcutUrl) getSelection()?.selectAllChildren(shortcutUrl);
+        }
+    });
 </script>

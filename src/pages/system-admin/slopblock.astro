@@ -18,11 +18,16 @@ import {
 } from "../../lib/slopblock";
 
 let error = "";
+// The page's quick actions (List, Dismiss, Remove) post with this header and
+// get JSON back instead of a redirect and a full re-render, so the card can go
+// away the moment it's clicked.
+const quick = Astro.request.headers.get("x-slop-quick") === "1";
 if (Astro.request.method === "POST") {
     try {
         // Inside the try: an unparseable body uses the page's error path too.
         const form = await Astro.request.formData();
         const action = text(form, "action");
+        let message = "";
         if (action === "add") {
             // Admin bypass: straight onto the list. The account can be a
             // username, @username or profile link; it can also be left empty
@@ -48,14 +53,11 @@ if (Astro.request.method === "POST") {
                 handle,
                 reason,
             });
-            setToast(
-                Astro.cookies,
-                result.alreadyListed ? `@${handle} is already listed.` : `Listed @${handle}.`,
-            );
+            message = result.alreadyListed ? `@${handle} is already listed.` : `Listed @${handle}.`;
         } else if (action === "unlist") {
             const handle = text(form, "handle");
             await convex.mutation(api.slopReports.unlist, { secret: adminSecret(), handle });
-            setToast(Astro.cookies, `Removed @${handle} from the list.`);
+            message = `Removed @${handle} from the list.`;
         } else {
             const id = text(form, "id") as Id<"slop_reports">;
             const status = text(form, "status");
@@ -63,11 +65,14 @@ if (Astro.request.method === "POST") {
                 throw new Error("Unknown status.");
             }
             await convex.mutation(api.slopReports.settle, { secret: adminSecret(), id, status });
-            setToast(Astro.cookies, status === "listed" ? "Listed — it's live." : "Report dismissed.");
+            message = status === "listed" ? "Listed — it's live." : "Report dismissed.";
         }
+        if (quick) return Response.json({ ok: true, message });
+        setToast(Astro.cookies, message);
         return Astro.redirect("/system-admin/slopblock", 303);
     } catch (caught) {
         error = errorMessage(caught);
+        if (quick) return Response.json({ ok: false, error }, { status: 400 });
     }
 }
 
@@ -119,14 +124,14 @@ const reviewed = reports.filter((report) => report.status !== "pending");
         </button>
     </form>
 
-    <h2 class="mt-8 text-xl font-bold">Pending ({pending.length})</h2>
+    <h2 class="mt-8 text-xl font-bold">Pending (<span data-pending-count>{pending.length}</span>)</h2>
     <ul class="mt-3 flex flex-col gap-2">
         {
             pending.length === 0 && <li class="admin-hint">No pending reports.</li>
         }
         {
             pending.map((report) => (
-                <li class="admin-card p-4">
+                <li class="admin-card p-4" data-quick-item data-handle={report.handle}>
                     <div class="flex flex-wrap items-baseline justify-between gap-x-3">
                         <a
                             href={instagramProfileUrl(report.handle)}
@@ -154,14 +159,14 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         <p class="mt-1 text-sm">{report.reason}</p>
                     )}
                     <div class="mt-3 flex gap-2">
-                        <form method="post">
+                        <form method="post" data-quick="list">
                             <input type="hidden" name="id" value={report._id} />
                             <input type="hidden" name="status" value="listed" />
                             <button class="admin-btn admin-btn-primary px-3 py-1.5">
                                 <Check class="size-4" aria-hidden="true" /> List
                             </button>
                         </form>
-                        <form method="post" data-confirm="Dismiss this report?">
+                        <form method="post" data-quick="dismiss">
                             <input type="hidden" name="id" value={report._id} />
                             <input type="hidden" name="status" value="dismissed" />
                             <button class="admin-btn admin-btn-danger px-3 py-1.5">
@@ -210,7 +215,7 @@ const reviewed = reports.filter((report) => report.status !== "pending");
         }
         {
             igSlopList.map((entry) => (
-                <li class="admin-card flex items-center gap-3 py-3">
+                <li class="admin-card flex items-center gap-3 py-3" data-quick-item>
                     <div class="min-w-0 flex-1">
                         <p class="truncate font-medium">
                             <a
@@ -228,7 +233,7 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         <p class="admin-hint truncate">{entry.reason}</p>
                     </div>
                     {entry.source === "convex" ? (
-                        <form method="post" data-confirm={`Remove @${entry.handle} from the list?`}>
+                        <form method="post" data-quick="unlist" data-quick-confirm={`Remove @${entry.handle} from the list?`}>
                             <input type="hidden" name="action" value="unlist" />
                             <input type="hidden" name="handle" value={entry.handle} />
                             <button class="admin-btn admin-btn-danger px-3 py-1.5" aria-label={`Remove @${entry.handle}`}>
@@ -243,3 +248,67 @@ const reviewed = reports.filter((report) => report.status !== "pending");
         }
     </ul>
 </Admin>
+
+<script>
+    // Quick actions: the card disappears as soon as List / Dismiss / Remove is
+    // clicked, and the request finishes in the background. If it fails, the
+    // card comes back where it was with the error. No page reload either way.
+    const pendingCount = document.querySelector<HTMLElement>("[data-pending-count]");
+
+    function toast(message: string, failed = false) {
+        document.querySelectorAll(".admin-toast").forEach((old) => old.remove());
+        const note = document.createElement("p");
+        note.className = "admin-toast";
+        note.setAttribute("role", failed ? "alert" : "status");
+        if (failed) note.style.background = "var(--color-red-700)";
+        note.textContent = message;
+        document.body.append(note);
+    }
+
+    function bumpPending(delta: number) {
+        if (pendingCount) pendingCount.textContent = String(Number(pendingCount.textContent) + delta);
+    }
+
+    document.querySelectorAll<HTMLFormElement>("form[data-quick]").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const question = form.dataset.quickConfirm;
+            if (question && !window.confirm(question)) return;
+
+            const kind = form.dataset.quick;
+            const item = form.closest<HTMLElement>("[data-quick-item]");
+            if (!item) return form.submit();
+            // Listing an account also lists its other pending reports, so
+            // those cards go too.
+            const handle = item.dataset.handle;
+            const items =
+                kind === "list" && handle
+                    ? [...document.querySelectorAll<HTMLElement>("[data-quick-item]")].filter(
+                          (other) => other.dataset.handle === handle,
+                      )
+                    : [item];
+            const spots = items.map((card) => ({ card, parent: card.parentElement, next: card.nextSibling }));
+            items.forEach((card) => card.remove());
+            if (kind !== "unlist") bumpPending(-items.length);
+
+            try {
+                const response = await fetch(location.pathname, {
+                    method: "POST",
+                    headers: { "x-slop-quick": "1" },
+                    body: new FormData(form),
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || result.ok !== true) {
+                    throw new Error(typeof result.error === "string" ? result.error : "That didn't go through.");
+                }
+                toast(result.message || "Done.");
+            } catch (caught) {
+                for (const { card, parent, next } of spots.reverse()) {
+                    parent?.insertBefore(card, next && next.parentNode === parent ? next : null);
+                }
+                if (kind !== "unlist") bumpPending(items.length);
+                toast(caught instanceof Error ? caught.message : "That didn't go through.", true);
+            }
+        });
+    });
+</script>
