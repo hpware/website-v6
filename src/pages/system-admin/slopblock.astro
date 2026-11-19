@@ -112,12 +112,12 @@ const onList = new Set(igSlopList.map((entry) => entry.handle));
                         <p class="truncate font-medium">
                             @{report.handle}
                             <span class="admin-hint ml-2">{report.status}</span>
-                            {report.status === "listed" && !onList.has(report.handle) && (
-                                <span class="ml-2 text-xs font-normal text-amber-600 dark:text-amber-400">
-                                    not in ig.txt yet
-                                </span>
-                            )}
                         </p>
+                        {report.status === "listed" && !onList.has(report.handle) && (
+                            <p class="text-xs text-amber-600 dark:text-amber-400">
+                                not in ig.txt yet
+                            </p>
+                        )}
                         <p class="admin-hint truncate">{report.reason}</p>
                     </div>
                     <span class="admin-hint">
