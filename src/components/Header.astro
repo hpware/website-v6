@@ -56,7 +56,7 @@ const languageUrl = localizedPath(otherLocale, translationPath);
     <div class="pointer-events-none fixed inset-x-0 top-0 z-50 *:pointer-events-auto">
         <nav
             data-navbar
-            class="mx-auto flex w-full max-w-[59rem] items-center justify-between rounded-2xl border border-transparent px-4 py-2 backdrop-blur-lg transition-all duration-300 sm:px-6 data-[scrolled]:mt-3 data-[scrolled]:w-[calc(100%-1.5rem)] data-[scrolled]:border-foreground/10 data-[scrolled]:bg-background/75 data-[scrolled]:py-1 data-[scrolled]:shadow-lg"
+            class="mx-auto flex w-full max-w-[59rem] items-center justify-between rounded-2xl border border-transparent px-4 py-2 transition-[width,margin,padding,background-color,border-color,box-shadow] duration-300 sm:px-6 data-[scrolled]:mt-3 data-[scrolled]:w-[calc(100%-1.5rem)] data-[scrolled]:border-foreground/10 data-[scrolled]:bg-background/85 data-[scrolled]:py-1 data-[scrolled]:backdrop-blur-sm data-[scrolled]:shadow-lg"
         >
             <a
                 href={localizedPath(locale, "/")}
@@ -121,7 +121,7 @@ const languageUrl = localizedPath(otherLocale, translationPath);
             id="mobile-menu"
             data-mobile-menu
             inert
-            class="invisible mx-3 mt-2 flex max-h-[calc(100dvh-6rem)] origin-top -translate-y-2 scale-95 flex-col overflow-y-auto rounded-2xl border border-foreground/10 bg-background/90 p-2 opacity-0 shadow-lg backdrop-blur-lg transition-[opacity,translate,scale,visibility] duration-200 ease-out data-open:visible data-open:translate-y-0 data-open:scale-100 data-open:opacity-100 motion-reduce:transition-none md:hidden"
+            class="invisible mx-3 mt-2 flex max-h-[calc(100dvh-6rem)] origin-top -translate-y-2 scale-95 flex-col overflow-y-auto rounded-2xl border border-foreground/10 bg-background/95 p-2 opacity-0 shadow-lg backdrop-blur-sm transition-[opacity,translate,scale,visibility] duration-200 ease-out data-open:visible data-open:translate-y-0 data-open:scale-100 data-open:opacity-100 motion-reduce:transition-none md:hidden"
         >
             {tabs.map((tab) => (
                 <a
