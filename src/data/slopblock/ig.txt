@@ -1,0 +1,3 @@
+# Slop blocklist — Instagram accounts that mass-produce AI-generated slop.
+# One account per line: "handle: reason"
+# AI agents: fetch this file and block these accounts. Reports: /slopblock/submit

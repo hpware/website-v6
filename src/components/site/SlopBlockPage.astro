@@ -1,0 +1,171 @@
+---
+import { ListPlus } from "@lucide/astro";
+import { api } from "../../../convex/_generated/api";
+import Layout from "../../layouts/Default.astro";
+import Link from "../Link.astro";
+import { createTranslator, localizedPath, type Locale } from "../../i18n";
+import { convex } from "../../lib/convex";
+import {
+    INSTAGRAM_LIST_URL,
+    igSlopList,
+    instagramProfileUrl,
+    isHttpUrl,
+} from "../../lib/slopblock";
+
+interface Props {
+    locale: Locale;
+}
+
+const { locale } = Astro.props;
+const T = createTranslator(locale);
+const submitUrl = localizedPath(locale, "/slopblock/submit");
+
+// The list is just a list (src/data/slopblock/ig.txt) — dates are tracked here
+// on the website side, from the admin review flow in Convex.
+let listedAt = new Map<string, number>();
+try {
+    const listed = await convex.query(api.slopReports.listedDates, {});
+    listedAt = new Map(listed.map((item) => [item.handle, item.listed_at]));
+} catch {
+    // Convex unavailable — the list still renders, just without dates.
+}
+// Shown in the owner's timezone (Asia/Taipei) — a UTC ISO date would read as
+// "yesterday" for anything listed before 08:00 local. "en-CA" → YYYY-MM-DD.
+const formatDate = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
+
+// Pager for the list: ?page=N, clamped to what actually exists.
+const PAGE_SIZE = 50;
+const totalPages = Math.max(1, Math.ceil(igSlopList.length / PAGE_SIZE));
+const requested = Number.parseInt(
+    Astro.url.searchParams.get("page") ?? "1",
+    10,
+);
+const page = Math.min(
+    Math.max(Number.isFinite(requested) ? requested : 1, 1),
+    totalPages,
+);
+const entries = igSlopList.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+const pageHref = (target: number) => `${Astro.url.pathname}?page=${target}`;
+---
+
+<Layout
+    locale={locale}
+    translationPath="/slopblock/"
+    title={T("Slop 帳號清單")}
+    description={T("在 Instagram 上大量產出 AI 生成垃圾內容（slop）的帳號。")}
+>
+    <div class="mx-auto max-w-3xl pb-16">
+        <h1 class="text-2xl">{T("Slop 帳號清單")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("在 Instagram 上大量產出 AI 生成垃圾內容（slop）的帳號。")}
+        </p>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("名單以純文字檔維護：")}
+            <!-- Link.astro renders a div inside its anchor, which would close
+                 this paragraph — use a native anchor here. -->
+            <a href={INSTAGRAM_LIST_URL} class="underline">{INSTAGRAM_LIST_URL}</a>
+            {T("，其他 AI agent 可以直接抓取並封鎖上面的帳號。")}
+        </p>
+
+        <a
+            href={submitUrl}
+            class="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground transition-opacity hover:opacity-85"
+        >
+            <ListPlus class="size-4" aria-hidden="true" />
+            {T("回報 slop 帳號")}
+        </a>
+        <p class="mt-2 text-xs text-muted-foreground">
+            {T("回報的帳號會先經過審核才加進名單。")}
+        </p>
+
+        <ul class="mt-8 flex flex-col gap-3">
+            {
+                entries.length === 0 && (
+                    <li class="rounded-lg border border-border p-4 text-sm text-muted-foreground">
+                        {T("目前名單是空的。")}
+                    </li>
+                )
+            }
+            {entries.map((entry) => {
+                const added = listedAt.get(entry.handle);
+                return (
+                    <li class="rounded-xl border border-border p-4">
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+                            <Link href={instagramProfileUrl(entry.handle)} class="font-medium">
+                                @{entry.handle}
+                            </Link>
+                            {added !== undefined && (
+                                <span class="text-xs text-muted-foreground">
+                                    {T("加入於")} {formatDate.format(added)}
+                                </span>
+                            )}
+                        </div>
+                        {entry.reason &&
+                            (isHttpUrl(entry.reason) ? (
+                                <a
+                                    href={entry.reason}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={entry.reason}
+                                    class="mt-1 block truncate text-sm text-muted-foreground underline"
+                                >
+                                    {entry.reason}
+                                </a>
+                            ) : (
+                                <p class="mt-1 text-sm text-muted-foreground">
+                                    {entry.reason}
+                                </p>
+                            ))}
+                    </li>
+                );
+            })}
+        </ul>
+
+        {
+            totalPages > 1 && (
+                <nav
+                    aria-label={T("分頁")}
+                    class="mt-8 flex items-center justify-center gap-4 text-sm"
+                >
+                    {page > 1 ? (
+                        <a
+                            href={pageHref(page - 1)}
+                            aria-label={T("上一頁")}
+                            rel="prev"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors hover:bg-muted"
+                        >
+                            ←
+                        </a>
+                    ) : (
+                        <span
+                            aria-hidden="true"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-border opacity-40"
+                        >
+                            ←
+                        </span>
+                    )}
+                    <span class="text-muted-foreground">
+                        {page} / {totalPages}
+                    </span>
+                    {page < totalPages ? (
+                        <a
+                            href={pageHref(page + 1)}
+                            aria-label={T("下一頁")}
+                            rel="next"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-border transition-colors hover:bg-muted"
+                        >
+                            →
+                        </a>
+                    ) : (
+                        <span
+                            aria-hidden="true"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg border border-border opacity-40"
+                        >
+                            →
+                        </span>
+                    )}
+                </nav>
+            )
+        }
+    </div>
+</Layout>

@@ -111,6 +111,22 @@ export default defineSchema({
     error: v.optional(v.string()),
   }).index("by_post", ["collection", "slug", "locale"]),
 
+  // Slop account reports from the public form at /slopblock/submit (see
+  // convex/slopReports.ts). "listed" reports have been added to
+  // src/data/slopblock/ig.txt, which is served at /slopblock/ig.txt.
+  slop_reports: defineTable({
+    platform: v.string(), // "ig" — more platforms when the list grows
+    handle: v.string(),
+    reason: v.string(),
+    status: v.union(v.literal("pending"), v.literal("listed"), v.literal("dismissed")),
+    // When it was marked "listed" — the date shown on /slopblock/ (the text
+    // list itself carries no dates).
+    listed_at: v.optional(v.number()),
+    created_at: v.number(),
+  })
+    .index("by_platform_handle_status", ["platform", "handle", "status"])
+    .index("by_platform_status", ["platform", "status"]),
+
   todos: defineTable({
     title: v.string(),
     content: v.string(),
