@@ -15,11 +15,16 @@ export function errorMessage(error: unknown) {
     return error instanceof Error ? error.message : String(error);
 }
 
+// Admin dates are shown in the owner's timezone (Asia/Taipei), not UTC — a
+// UTC ISO date would read as "yesterday" for anything before 08:00 local.
+// "en-CA" formats as YYYY-MM-DD.
+const ADMIN_DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei" });
+
 /** Formats created_at / updated_at, which are timestamps or legacy date strings. */
 export function formatDate(value: number | string | undefined) {
     if (value === undefined) return "";
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? String(value) : date.toISOString().slice(0, 10);
+    return Number.isNaN(date.getTime()) ? String(value) : ADMIN_DATE.format(date);
 }
 
 /** A trimmed text field from a submitted form ("" if missing). */

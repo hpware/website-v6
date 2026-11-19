@@ -29,6 +29,10 @@ if (Astro.request.method === "POST") {
 const reports = await convex.query(api.slopReports.list, { secret: adminSecret() });
 const pending = reports.filter((report) => report.status === "pending");
 const reviewed = reports.filter((report) => report.status !== "pending");
+// Handles actually present in src/data/slopblock/ig.txt. Marking a report
+// "listed" only records the review decision — the entry itself still has to
+// be added to ig.txt and deployed, so flag the ones that aren't there yet.
+const onList = new Set(igSlopList.map((entry) => entry.handle));
 ---
 
 <Admin title="Slopblock" error={error}>
@@ -108,6 +112,11 @@ const reviewed = reports.filter((report) => report.status !== "pending");
                         <p class="truncate font-medium">
                             @{report.handle}
                             <span class="admin-hint ml-2">{report.status}</span>
+                            {report.status === "listed" && !onList.has(report.handle) && (
+                                <span class="ml-2 text-xs font-normal text-amber-600 dark:text-amber-400">
+                                    not in ig.txt yet
+                                </span>
+                            )}
                         </p>
                         <p class="admin-hint truncate">{report.reason}</p>
                     </div>
