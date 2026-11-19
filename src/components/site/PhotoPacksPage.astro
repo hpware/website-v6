@@ -24,12 +24,12 @@ const packs = await Promise.all(
     title={T("圖片")}
     description={T("一包一包的照片，點開來看看。")}
 >
-    <div class="mx-auto max-w-5xl pb-16">
-        <h1 class="text-2xl">{T("圖片")}</h1>
-        <p class="opacity-70">{T("一包一包的照片，點開來看看。")}</p>
+    <div class="mx-auto max-w-4xl pb-16">
+        <h1 class="text-3xl font-bold">{T("圖片")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">{T("一包一包的照片，點開來看看。")}</p>
         {
             packs.length === 0 ? (
-                <p class="mt-8 text-center opacity-70">
+                <p class="mt-8 text-center text-muted-foreground">
                     {T("目前還沒有圖片包。")}
                 </p>
             ) : (
@@ -39,13 +39,13 @@ const packs = await Promise.all(
                             {/* Square cover with the album name over a soft gradient, like a photos app */}
                             <a
                                 href={localizedPath(locale, `/photos/${encodeURIComponent(pack.id)}/`)}
-                                class="relative block aspect-square overflow-hidden rounded-2xl bg-gray-500/20 shadow-md transition-transform duration-300 active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
+                                class="group relative block aspect-square overflow-hidden rounded-2xl bg-gray-500/20 shadow-md transition-transform duration-300 active:scale-[0.98] motion-reduce:transform-none motion-reduce:transition-none"
                             >
                                 <img
                                     src={pack.coverSrc}
                                     alt=""
                                     loading="lazy"
-                                    class="size-full object-cover"
+                                    class="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none"
                                 />
                                 <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-4 pb-3 pt-10">
                                     <span class="line-clamp-2 font-bold text-white drop-shadow">

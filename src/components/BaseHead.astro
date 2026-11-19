@@ -50,9 +50,32 @@ const {
         document.documentElement.classList.toggle("dark", theme === "dark");
         document.documentElement.dataset.theme = theme;
     })();
+    // The client router swaps in a server-rendered document that doesn't know
+    // the theme applied above, so copy it over before the new page paints.
+    document.addEventListener("astro:before-swap", (event) => {
+        const current = document.documentElement;
+        const next = event.newDocument.documentElement;
+        next.classList.toggle("dark", current.classList.contains("dark"));
+        if (current.dataset.theme) next.dataset.theme = current.dataset.theme;
+    });
 </script>
 
-<Font cssVariable="--font-atkinson" />
+<!-- Marks the first page opened in this tab, so the staggered entrances (see
+     [data-fresh] in global.css) play once as a first-load moment. The client
+     router keeps this script around after the first page, so it does not re-run
+     on navigation — navigated pages are revealed by the view transition alone. -->
+<script is:inline>
+    (() => {
+        try {
+            const key = `seen:${location.pathname}`;
+            if (sessionStorage.getItem(key)) return;
+            sessionStorage.setItem(key, "1");
+        } catch {}
+        document.documentElement.dataset.fresh = "";
+    })();
+</script>
+
+<Font cssVariable="--font-atkinson" preload />
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />

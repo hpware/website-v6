@@ -12,7 +12,7 @@ const T = createTranslator(locale);
 
 <button
     type="button"
-    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-2 transition-all duration-200 hover:cursor-pointer hover:bg-gray-500/20 dark:hover:bg-white/20"
+    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg p-2 transition-all duration-200 hover:cursor-pointer hover:bg-foreground/10"
     aria-label={T("切換深淺色主題")}
     data-theme-toggle
 >
@@ -38,13 +38,35 @@ const T = createTranslator(locale);
 
     applyTheme(getTheme());
 
+    // Counts theme reveals: a newer one skips the older transition, but the older
+    // transition's finished promise still settles — only the newest still owns .theme-switching.
+    let revealCount = 0;
+
     document.addEventListener("click", (event) => {
         const button = (event.target as HTMLElement).closest("[data-theme-toggle]");
         if (!button) return;
 
         const nextTheme = root.classList.contains("dark") ? "light" : "dark";
         localStorage.setItem(storageKey, nextTheme);
-        applyTheme(nextTheme);
+
+        // The new theme spreads out in a circle from the button (see .theme-switching in global.css).
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduceMotion) {
+            applyTheme(nextTheme);
+            return;
+        }
+        const { left, top, width, height } = button.getBoundingClientRect();
+        root.style.setProperty("--reveal-x", `${left + width / 2}px`);
+        root.style.setProperty("--reveal-y", `${top + height / 2}px`);
+        root.classList.add("theme-switching");
+        const reveal = ++revealCount;
+        document
+            .startViewTransition(() => applyTheme(nextTheme))
+            .finished.catch(() => {})
+            .finally(() => {
+                if (reveal === revealCount)
+                    root.classList.remove("theme-switching");
+            });
     });
 
     window

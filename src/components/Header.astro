@@ -15,13 +15,16 @@ import {
     Languages,
     MenuIcon,
     Utensils,
+    XIcon,
 } from "@lucide/astro";
 
 interface Props {
     locale?: Locale;
+    translationPath?: string;
 }
 
-const { locale = defaultLocale } = Astro.props;
+const { locale = defaultLocale, translationPath = Astro.url.pathname } =
+    Astro.props;
 const T = createTranslator(locale);
 const tabs = [
     { name: T("首頁"), icon: HouseIcon, url: localizedPath(locale, "/") },
@@ -38,31 +41,37 @@ const tabs = [
         url: localizedPath(locale, "/contributions/"),
     },
 ];
+// The tab for the current section ("/" only matches the homepage itself).
+const currentPath = localizedPath(locale, translationPath);
+const isCurrent = (url: string) =>
+    url === localizedPath(locale, "/")
+        ? currentPath === url
+        : currentPath.startsWith(url);
 const otherLocale: Locale = locale === "en" ? "zh-TW" : "en";
 const languageLabel = locale === "en" ? "繁體中文" : "English";
-const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
+const languageUrl = localizedPath(otherLocale, translationPath);
 ---
 
 <header>
-    <div class="fixed inset-x-0 top-0 z-50">
+    <div class="pointer-events-none fixed inset-x-0 top-0 z-50 *:pointer-events-auto">
         <nav
             data-navbar
-            class="flex flex-row justify-between border border-gray-300/0 rounded-xl px-4 py-2 text-center backdrop-blur-lg transition-all duration-300 data-[scrolled]:mx-7 data-[scrolled]:mt-5 data-[scrolled]:rounded-2xl data-[scrolled]:border-gray-300/30 data-[scrolled]:px-3 data-[scrolled]:py-1 data-[scrolled]:shadow-lg"
+            class="mx-auto flex w-full max-w-[59rem] items-center justify-between rounded-2xl border border-transparent px-4 py-2 transition-[width,margin,padding,background-color,border-color,box-shadow] duration-300 sm:px-6 data-[scrolled]:mt-3 data-[scrolled]:w-[calc(100%-1.5rem)] data-[scrolled]:border-foreground/10 data-[scrolled]:bg-background/85 data-[scrolled]:py-1 data-[scrolled]:backdrop-blur-sm data-[scrolled]:shadow-lg"
         >
-            <div class="mx-2">
-                <div class="flex flex-row items-center justify-center text-center">
-                    <a
-                        href={localizedPath(locale, "/")}
-                        class="flex h-11 items-center text-xl font-bold whitespace-nowrap"
-                    >
-                        {SITE_NAME}
-                    </a>
-                </div>
-            </div>
+            <a
+                href={localizedPath(locale, "/")}
+                class="flex h-11 items-center text-xl font-bold whitespace-nowrap"
+            >
+                {SITE_NAME}
+            </a>
 
-            <div class="hidden flex-row items-center justify-center text-center gap-3 px-1 mx-1 md:flex">
+            <div class="-mr-3 hidden items-center gap-4 md:flex">
                 {tabs.map((tab) => (
-                    <a href={tab.url} class="group flex h-11 items-center">
+                    <a
+                        href={tab.url}
+                        aria-current={isCurrent(tab.url) ? "page" : undefined}
+                        class="group flex h-11 items-center text-foreground/65 transition-colors duration-200 hover:text-foreground aria-[current=page]:text-foreground"
+                    >
                         <span class="flex flex-row items-center gap-1.5">
                             <tab.icon
                                 class="size-5 shrink-0"
@@ -74,42 +83,63 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
                         </span>
                     </a>
                 ))}
+                <a
+                    href={languageUrl}
+                    lang={otherLocale}
+                    hreflang={otherLocale}
+                    aria-label={`${T("語言")}: ${languageLabel}`}
+                    title={languageLabel}
+                    class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-all duration-200 hover:bg-foreground/10"
+                >
+                    <Languages class="size-5" aria-hidden="true" />
+                </a>
                 <ThemeToggle locale={locale} />
             </div>
 
-            <div class="flex flex-row items-center justify-center text-center px-1 mx-1 md:hidden">
+            <div class="-mr-3 flex items-center md:hidden">
                 <button
                     type="button"
                     data-menu-toggle
                     aria-label={T("選單")}
-                    class="flex h-11 w-11 items-center justify-center rounded-lg transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/20"
+                    aria-expanded="false"
+                    aria-controls="mobile-menu"
+                    class="group relative flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-foreground/10"
                 >
-                    <MenuIcon class="size-5" aria-hidden="true" />
+                    <MenuIcon
+                        class="size-5 transition-[rotate,scale,opacity] duration-200 group-aria-expanded:scale-50 group-aria-expanded:rotate-90 group-aria-expanded:opacity-0"
+                        aria-hidden="true"
+                    />
+                    <XIcon
+                        class="absolute size-5 scale-50 -rotate-90 opacity-0 transition-[rotate,scale,opacity] duration-200 group-aria-expanded:scale-100 group-aria-expanded:rotate-0 group-aria-expanded:opacity-100"
+                        aria-hidden="true"
+                    />
                 </button>
             </div>
         </nav>
 
         <div
+            id="mobile-menu"
             data-mobile-menu
-            hidden
-            class="mx-7 mt-2 flex-col overflow-hidden rounded-2xl border border-gray-300/30 bg-background/90 p-2 shadow-lg backdrop-blur-lg md:hidden"
+            inert
+            class="invisible mx-3 mt-2 flex max-h-[calc(100dvh-6rem)] origin-top -translate-y-2 scale-95 flex-col overflow-y-auto rounded-2xl border border-foreground/10 bg-background/95 p-2 opacity-0 shadow-lg backdrop-blur-sm transition-[opacity,translate,scale,visibility] duration-200 ease-out data-open:visible data-open:translate-y-0 data-open:scale-100 data-open:opacity-100 motion-reduce:transition-none md:hidden"
         >
             {tabs.map((tab) => (
                 <a
                     href={tab.url}
-                    class="flex flex-row items-center gap-3 rounded-xl p-3 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
+                    aria-current={isCurrent(tab.url) ? "page" : undefined}
+                    class="flex flex-row items-center gap-3 rounded-xl p-3 transition-colors duration-200 hover:bg-foreground/10 aria-[current=page]:bg-foreground/10"
                 >
                     <tab.icon class="size-5 shrink-0" aria-hidden="true" />
                     <span>{tab.name}</span>
                 </a>
             ))}
-            <div class="mx-3 my-1 border-t border-gray-300/20"></div>
+            <div class="mx-3 my-1 border-t border-foreground/10"></div>
             <div class="flex flex-row items-center justify-between p-1">
                 <a
                     href={languageUrl}
                     lang={otherLocale}
                     hreflang={otherLocale}
-                    class="flex flex-row items-center gap-3 rounded-xl p-2 transition-all duration-200 hover:bg-gray-500/20 dark:hover:bg-white/10"
+                    class="flex flex-row items-center gap-3 rounded-xl p-2 transition-all duration-200 hover:bg-foreground/10"
                 >
                     <Languages aria-hidden="true" class="size-5 shrink-0" />
                     <span>{languageLabel}</span>
@@ -121,30 +151,53 @@ const languageUrl = localizedPath(otherLocale, Astro.url.pathname);
 </header>
 
 <script>
-    const navbar = document.querySelector("[data-navbar]");
+    // The client router replaces the <body> on every navigation, so the elements
+    // are re-queried on each page load. The window/document listeners outlive the
+    // pages and are registered exactly once.
+    let navbar: Element | null = null;
+    let menuToggle: Element | null = null;
+    let mobileMenu: Element | null = null;
+
     const handleScroll = () => {
-        if (!navbar) return;
-        if (window.scrollY > 10) {
-            navbar.setAttribute("data-scrolled", "");
-        } else {
-            navbar.removeAttribute("data-scrolled");
-        }
+        navbar?.toggleAttribute("data-scrolled", window.scrollY > 10);
     };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
-    const menuToggle = document.querySelector("[data-menu-toggle]");
-    const mobileMenu = document.querySelector("[data-mobile-menu]");
-    menuToggle?.addEventListener("click", () => {
-        if (mobileMenu instanceof HTMLElement) {
-            mobileMenu.hidden = !mobileMenu.hidden;
+    // Mobile menu: the toggle, Escape, a click outside, or picking a link closes it.
+    const setMenuOpen = (open: boolean) => {
+        if (!(mobileMenu instanceof HTMLElement)) return;
+        mobileMenu.toggleAttribute("data-open", open);
+        mobileMenu.inert = !open;
+        menuToggle?.setAttribute("aria-expanded", String(open));
+    };
+    document.addEventListener("click", (event) => {
+        const target = event.target as Node;
+        if (menuToggle?.contains(target)) {
+            setMenuOpen(!mobileMenu?.hasAttribute("data-open"));
+            return;
         }
+        if (mobileMenu?.contains(target) && !(target as Element).closest("a"))
+            return;
+        setMenuOpen(false);
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        // If focus is inside the open menu, hand it back to the toggle so it isn't lost.
+        const focusInside = mobileMenu?.contains(document.activeElement) ?? false;
+        setMenuOpen(false);
+        if (focusInside && menuToggle instanceof HTMLElement) menuToggle.focus();
     });
 
-    const languageSelect = document.querySelector("[data-language-select]");
-    languageSelect?.addEventListener("change", (event) => {
-        if (event.target instanceof HTMLSelectElement) {
-            window.location.href = event.target.value;
-        }
-    });
+    // Pages without the router (the admin layout) never fire astro:page-load,
+    // so the elements are also bound right away. The navbar's state reconciles
+    // here too — the incoming page's snapshot is taken right after, so the
+    // transition shows the navbar in exactly the state it should settle in.
+    const bindPage = () => {
+        navbar = document.querySelector("[data-navbar]");
+        menuToggle = document.querySelector("[data-menu-toggle]");
+        mobileMenu = document.querySelector("[data-mobile-menu]");
+        handleScroll();
+    };
+    bindPage();
+    document.addEventListener("astro:page-load", bindPage);
 </script>

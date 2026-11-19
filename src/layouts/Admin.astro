@@ -55,10 +55,11 @@ const isActive = (url: string) =>
                 document.documentElement.dataset.theme = theme;
             })();
         </script>
-        <Font cssVariable="--font-atkinson" />
+        <Font cssVariable="--font-atkinson" preload />
     </head>
     <body>
-        <Header locale="en" />
+        {/* /system-admin has no translated pages, so the language link points home. */}
+        <Header locale="en" translationPath="/" />
 
         <main class="mx-auto max-w-5xl px-4 pt-24 pb-20">
             {

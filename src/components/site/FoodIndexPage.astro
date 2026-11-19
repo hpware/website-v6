@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
-import FormattedDate from "../FormattedDate.astro";
+import Pill from "../Pill.astro";
+import PostCard from "../PostCard.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
@@ -21,41 +22,36 @@ const reviews = (await getCollection("food"))
     title={T("美食")}
     description={T("美食食記，記錄我吃過的東西。")}
 >
-    <div class="mx-auto max-w-3xl">
-        <h1 class="text-2xl">{T("食記")}</h1>
-        <ul class="mt-4 flex flex-col gap-4">
+    <div class="mx-auto max-w-4xl">
+        <h1 class="text-3xl font-bold">{T("食記")}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {T("美食食記，記錄我吃過的東西。")}
+        </p>
+        <ul class="mt-6 grid gap-y-1 md:grid-cols-2 md:gap-x-10">
             {
                 reviews.map((review) => (
-                    <li>
-                        <a
-                            href={localizedPath(
-                                locale,
-                                `/food/${review.id}/`,
-                            )}
-                            class="block rounded-lg border border-accent p-4 transition-all duration-300 hover:bg-gray-500/10 dark:hover:bg-white/10"
+                    <li class="grid">
+                        <PostCard
+                            href={localizedPath(locale, `/food/${review.id}/`)}
+                            title={review.data.title}
+                            description={review.data.description}
+                            date={review.data.pubDate}
+                            locale={locale}
+                            image={review.data.heroImage}
                         >
-                            <span class="text-xl">{review.data.title}</span>
-                            <br />
-                            <small>
-                                {T("發佈於")}{" "}
-                                <FormattedDate
-                                    date={review.data.pubDate}
-                                    locale={locale}
-                                />
-                                {review.data.rating !== undefined && (
-                                    <>
-                                        {" · "}
-                                        {review.data.rating} / 5
-                                    </>
-                                )}
-                                {review.data.location && (
-                                    <>
-                                        {" · "}
-                                        {review.data.location}
-                                    </>
-                                )}
-                            </small>
-                        </a>
+                            {review.data.rating !== undefined && (
+                                <Pill>
+                                    <span class="text-[#e8761f]">★</span>{" "}
+                                    {review.data.rating}
+                                </Pill>
+                            )}
+                            {review.data.location && (
+                                <Pill>{review.data.location}</Pill>
+                            )}
+                            {review.data.priceRange && (
+                                <Pill>{review.data.priceRange}</Pill>
+                            )}
+                        </PostCard>
                     </li>
                 ))
             }

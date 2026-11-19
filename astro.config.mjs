@@ -18,6 +18,9 @@ export default defineConfig({
   output: "server",
   adapter: vercel(),
   integrations: [mdx(), sitemap(), react()],
+  // Warm the next page on hover so router navigation feels instant on top of
+  // the prerendered, CDN-served pages.
+  prefetch: { prefetchAll: true },
   // Admin panel secrets (read at runtime on the server, never sent to the browser).
   env: {
     schema: {
@@ -91,13 +94,13 @@ export default defineConfig({
       options: {
         variants: [
           {
-            src: ["./src/assets/fonts/atkinson-regular.woff"],
+            src: ["./src/assets/fonts/atkinson-regular.woff2"],
             weight: 400,
             style: "normal",
             display: "swap",
           },
           {
-            src: ["./src/assets/fonts/atkinson-bold.woff"],
+            src: ["./src/assets/fonts/atkinson-bold.woff2"],
             weight: 700,
             style: "normal",
             display: "swap",

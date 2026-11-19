@@ -1,12 +1,7 @@
 ---
-import { type CollectionEntry, render } from "astro:content";
-import { Image } from "astro:assets";
-import { CalendarSync, Calendar, ChevronLeft } from "@lucide/astro";
-import ArticleTranslation from "../ArticleTranslation.astro";
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import ArticlePage from "../ArticlePage.astro";
 import FormattedDate from "../FormattedDate.astro";
-import Link from "../Link.astro";
-import Prose from "../Prose.astro";
-import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
 interface Props {
@@ -16,68 +11,72 @@ interface Props {
 
 const { locale, post } = Astro.props;
 const T = createTranslator(locale);
-const { Content } = await render(post);
-const { heroImage, pubDate, updatedDate } = post.data;
+const { Content, headings } = await render(post);
+const { rating, location, priceRange, pubDate } = post.data;
+
+// Newest first, so the review after this one in the list is the older one.
+const reviews = (await getCollection("food"))
+    .filter((entry) => entry.data.status === "published")
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const index = reviews.findIndex((entry) => entry.id === post.id);
+const link = (entry: CollectionEntry<"food"> | undefined) =>
+    entry && {
+        title: entry.data.title,
+        href: localizedPath(locale, `/food/${entry.id}/`),
+    };
 ---
 
-<Layout
+<ArticlePage
     locale={locale}
+    collection="food"
+    slug={post.id}
+    markdown={post.body}
     translationPath={`/food/${post.id}/`}
+    backHref={localizedPath(locale, "/food/")}
     title={post.data.title}
     description={post.data.description}
+    heroImage={post.data.heroImage}
+    headings={headings}
+    previous={link(reviews[index + 1])}
+    next={index > 0 ? link(reviews[index - 1]) : undefined}
 >
-    <article class="mx-auto max-w-3xl pb-3">
-        <div class="hero-image">
-            {
-                heroImage && (
-                    <Image width={1020} height={510} src={heroImage} alt="" />
-                )
-            }
-        </div>
-        <div>
-            <div class="mb-1 pb-4">
-                <Link
-                    href={localizedPath(locale, "/food/")}
-                    class="text-sm text-gray-500 dark:text-gray-400"
-                >
-                    <ChevronLeft class="h-5 w-5" />{T("返回")}
-                </Link>
-                <h1 data-article-title class="text-4xl font-bold">{post.data.title}</h1>
-                <div class="mt-2 flex flex-row space-x-2">
-                    <div class="flex flex-row items-center space-x-1 text-center">
-                        <Calendar class="h-5 w-5" />
-                        <FormattedDate date={pubDate} locale={locale} />
-                    </div>
-                    {
-                        updatedDate && (
-                            <div class="flex flex-row items-center space-x-1 text-center">
-                                <CalendarSync class="h-5 w-5" />
-                                <FormattedDate
-                                    date={updatedDate}
-                                    locale={locale}
-                                />
-                            </div>
-                        )
-                    }
-                    {
-                        post.data.rating !== undefined && (
-                            <div class="flex flex-row items-center space-x-1 text-center">
-                                ★ {post.data.rating} / 5
-                            </div>
-                        )
-                    }
+    <dl
+        slot="meta"
+        class="card-soft mt-5 flex flex-wrap gap-x-12 gap-y-4 px-5 py-4"
+    >
+        {
+            rating !== undefined && (
+                <div>
+                    <dt class="text-xs text-muted-foreground">{T("評分")}</dt>
+                    <dd class="mt-1 text-lg">
+                        <span class="text-[#e8761f]">★</span> {rating}{" "}
+                        <span class="text-sm text-muted-foreground">/ 5</span>
+                    </dd>
                 </div>
-            </div>
-            <hr class="mb-7 border-t border-border" />
-            <ArticleTranslation
-                locale={locale}
-                collection="food"
-                slug={post.id}
-                markdown={post.body}
-            />
-            <Prose data-article-body>
-                <Content />
-            </Prose>
+            )
+        }
+        {
+            location && (
+                <div>
+                    <dt class="text-xs text-muted-foreground">{T("地點")}</dt>
+                    <dd class="mt-1 text-lg">{location}</dd>
+                </div>
+            )
+        }
+        {
+            priceRange && (
+                <div>
+                    <dt class="text-xs text-muted-foreground">{T("價位")}</dt>
+                    <dd class="mt-1 text-lg">{priceRange}</dd>
+                </div>
+            )
+        }
+        <div>
+            <dt class="text-xs text-muted-foreground">{T("發佈於")}</dt>
+            <dd class="mt-1 text-lg">
+                <FormattedDate date={pubDate} locale={locale} />
+            </dd>
         </div>
-    </article>
-</Layout>
+    </dl>
+    <Content />
+</ArticlePage>

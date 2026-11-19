@@ -46,14 +46,14 @@ export default function Heatmap({ days, locale, labels }: Props) {
 
     return (
         <div>
-            <div className="inline-flex rounded-lg border border-accent p-0.5 text-sm" role="group">
+            <div className="inline-flex rounded-lg border border-foreground/10 p-0.5 text-sm" role="group">
                 {(["cost", "tokens"] as const).map((option) => (
                     <button
                         key={option}
                         type="button"
                         aria-pressed={metric === option}
                         onClick={() => setMetric(option)}
-                        className="rounded-md px-3 py-1 transition-colors hover:cursor-pointer aria-pressed:bg-accent aria-pressed:text-background"
+                        className="rounded-md px-3 py-1 transition-colors hover:bg-foreground/10 hover:cursor-pointer aria-pressed:bg-foreground/10"
                     >
                         {labels[option]}
                     </button>
@@ -108,7 +108,7 @@ export default function Heatmap({ days, locale, labels }: Props) {
                                                             <TipRow value={money(formats, day.cost)} label={labels.cost} />
                                                             <TipRow value={formats.compact.format(day.tokens)} label={labels.tokens} />
                                                             {day.topModels.length > 0 && (
-                                                                <div className="mt-1 border-t border-muted-foreground/20 pt-1">
+                                                                <div className="mt-1 border-t border-foreground/10 pt-1">
                                                                     {day.topModels.map((model) => (
                                                                         <TipRow
                                                                             key={model.model}

@@ -1,0 +1,61 @@
+---
+// One row in a list of blog posts or food reviews. Extra pills (rating, location...) go in the slot.
+import type { ImageMetadata } from "astro";
+import { Image } from "astro:assets";
+import FormattedDate from "./FormattedDate.astro";
+import type { Locale } from "../i18n";
+
+interface Props {
+    href: string;
+    title: string;
+    description?: string;
+    date: Date;
+    locale: Locale;
+    image?: ImageMetadata;
+}
+
+const { href, title, description, date, locale, image } = Astro.props;
+---
+
+<a
+    href={href}
+    class="group -mx-3 flex items-center gap-4 rounded-lg px-3 py-4 transition-[background-color,scale] duration-200 ease-out hover:bg-foreground/5 active:scale-[0.99] motion-reduce:transition-none"
+>
+    <div class="min-w-0 flex-1">
+        <div class="flex items-baseline justify-between gap-4">
+            <span class="text-lg leading-snug font-medium transition-colors duration-200 group-hover:text-primary">
+                {title}
+            </span>
+            <span class="shrink-0 text-sm text-muted-foreground tabular-nums">
+                <FormattedDate date={date} locale={locale} />
+            </span>
+        </div>
+        {
+            description && (
+                <span class="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                    {description}
+                </span>
+            )
+        }
+        {
+            Astro.slots.has("default") && (
+                <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                    <slot />
+                </div>
+            )
+        }
+    </div>
+    {
+        image && (
+            <div class="size-20 shrink-0 overflow-hidden rounded-md">
+                <Image
+                    src={image}
+                    width={160}
+                    height={160}
+                    alt=""
+                    class="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 motion-reduce:transition-none"
+                />
+            </div>
+        )
+    }
+</a>

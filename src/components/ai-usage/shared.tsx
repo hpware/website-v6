@@ -63,7 +63,7 @@ export function useTooltip() {
         tip === null ? null : (
             <div
                 role="tooltip"
-                className="pointer-events-none fixed z-50 min-w-40 rounded-lg border border-accent bg-background px-3 py-2 text-sm shadow-lg"
+                className="pointer-events-none fixed z-50 min-w-40 rounded-lg border border-foreground/10 bg-background px-3 py-2 text-sm shadow-lg"
                 style={{
                     left: tip.x + (flipLeft ? -12 : 12),
                     top: tip.y + 12,

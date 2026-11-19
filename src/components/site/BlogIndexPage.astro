@@ -1,6 +1,6 @@
 ---
 import { getCollection } from "astro:content";
-import FormattedDate from "../FormattedDate.astro";
+import PostCard from "../PostCard.astro";
 import Layout from "../../layouts/Default.astro";
 import { createTranslator, localizedPath, type Locale } from "../../i18n";
 
@@ -13,6 +13,13 @@ const T = createTranslator(locale);
 const posts = (await getCollection("blog"))
     .filter((post) => post.data.status === "published")
     .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Posts grouped by the year they were published, newest year first.
+const years = new Map<number, typeof posts>();
+for (const post of posts) {
+    const year = post.data.pubDate.getFullYear();
+    years.set(year, [...(years.get(year) ?? []), post]);
+}
 ---
 
 <Layout
@@ -21,32 +28,30 @@ const posts = (await getCollection("blog"))
     title={T("部落格")}
     description={T("歡迎來到我的網站！")}
 >
-    <div class="mx-auto max-w-3xl">
-        <h1 class="text-2xl">{T("貼文")}</h1>
-        <ul class="mt-4 flex flex-col gap-4">
-            {
-                posts.map((post) => (
-                    <li>
-                        <a
-                            href={localizedPath(
-                                locale,
-                                `/blog/${post.id}/`,
-                            )}
-                            class="block rounded-lg border border-accent p-4 transition-all duration-300 hover:bg-gray-500/10 dark:hover:bg-white/10"
-                        >
-                            <span class="text-xl">{post.data.title}</span>
-                            <br />
-                            <small>
-                                {T("發佈於")}{" "}
-                                <FormattedDate
+    <div class="mx-auto max-w-4xl">
+        <h1 class="text-3xl font-bold">{T("貼文")}</h1>
+        {
+            [...years].map(([year, yearPosts]) => (
+                <section class="mt-10 border-t border-foreground/10 pt-6 md:grid md:grid-cols-[6rem_1fr] md:gap-6">
+                    <h2 class="text-lg font-semibold text-muted-foreground tabular-nums md:sticky md:top-24 md:self-start md:pt-4">
+                        {year}
+                    </h2>
+                    <ul class="mt-2 flex flex-col divide-y divide-foreground/10 md:mt-0">
+                        {yearPosts.map((post) => (
+                            <li>
+                                <PostCard
+                                    href={localizedPath(locale, `/blog/${post.id}/`)}
+                                    title={post.data.title}
+                                    description={post.data.description}
                                     date={post.data.pubDate}
                                     locale={locale}
+                                    image={post.data.heroImage}
                                 />
-                            </small>
-                        </a>
-                    </li>
-                ))
-            }
-        </ul>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            ))
+        }
     </div>
 </Layout>

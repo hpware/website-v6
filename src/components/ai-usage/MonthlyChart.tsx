@@ -51,7 +51,7 @@ export default function MonthlyChart({ months, locale, labels }: Props) {
                         {ticks.map((tick) => (
                             <div
                                 key={tick}
-                                className="absolute inset-x-0 border-t border-muted-foreground/15"
+                                className="absolute inset-x-0 border-t border-foreground/10"
                                 style={{ bottom: (tick / top) * HEIGHT }}
                             />
                         ))}

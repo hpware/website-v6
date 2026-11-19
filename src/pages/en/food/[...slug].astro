@@ -1,14 +1,21 @@
 ---
-import { getEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import FoodPostPage from "../../../components/site/FoodPostPage.astro";
 
-const post = Astro.params.slug
-    ? await getEntry("food", Astro.params.slug)
-    : undefined;
+export const prerender = true;
 
-if (!post || post.data.status !== "published") {
-    return Astro.rewrite("/en/404");
+export async function getStaticPaths() {
+    const reviews = await getCollection(
+        "food",
+        ({ data }) => data.status === "published",
+    );
+    return reviews.map((review) => ({
+        params: { slug: review.id },
+        props: { post: review },
+    }));
 }
+
+const { post } = Astro.props;
 ---
 
 <FoodPostPage locale="en" post={post} />

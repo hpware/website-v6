@@ -150,10 +150,14 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
     const POLL_MS = 3000;
     const GIVE_UP_MS = 5 * 60 * 1000;
 
-    const root = document.querySelector<HTMLElement>("[data-article-translation]");
-    const title = document.querySelector<HTMLElement>("[data-article-title]");
-    const body = document.querySelector<HTMLElement>("[data-article-body]");
-    if (root && title && body) setUp(root, title, body);
+    // The client router swaps the page on every navigation, so the prompt is
+    // wired up on each page load.
+    document.addEventListener("astro:page-load", () => {
+        const root = document.querySelector<HTMLElement>("[data-article-translation]");
+        const title = document.querySelector<HTMLElement>("[data-article-title]");
+        const body = document.querySelector<HTMLElement>("[data-article-body]");
+        if (root && title && body) setUp(root, title, body);
+    });
 
     function setUp(root: HTMLElement, title: HTMLElement, body: HTMLElement) {
         const { collection = "", slug = "", locale = "" } = root.dataset;
@@ -261,6 +265,8 @@ const show = markdown !== undefined && postLocale(markdown) !== locale;
                 body.innerHTML = shown.html;
                 toggle.textContent =
                     (showingTranslation ? toggle.dataset.originalLabel : toggle.dataset.translatedLabel) ?? "";
+                // Tells ArticlePage's table of contents to watch the headings now in the body.
+                body.dispatchEvent(new CustomEvent("article-body-swap"));
             };
             swap();
             toggle.addEventListener("click", swap);

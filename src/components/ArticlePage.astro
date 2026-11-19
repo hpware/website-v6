@@ -1,0 +1,224 @@
+---
+// Shared page for a blog post or food review.
+// Wide screens: a sticky left column (back link, meta, table of contents) next to the article.
+// Narrow screens: everything stacks, with the meta under the title.
+// The "meta" slot holds the dates (blog) or the review info box (food).
+import type { ImageMetadata, MarkdownHeading } from "astro";
+import { Image } from "astro:assets";
+import { ArrowLeft, ArrowRight, ChevronLeft } from "@lucide/astro";
+import ArticleTranslation from "./ArticleTranslation.astro";
+import Link from "./Link.astro";
+import Prose from "./Prose.astro";
+import Layout from "../layouts/Default.astro";
+import { createTranslator, type Locale } from "../i18n";
+import type { TranslatableCollection } from "../lib/translations";
+
+interface Neighbour {
+    title: string;
+    href: string;
+}
+
+interface Props {
+    locale: Locale;
+    collection: TranslatableCollection;
+    slug: string;
+    markdown: string | undefined;
+    translationPath: string;
+    backHref: string;
+    title: string;
+    description: string;
+    heroImage?: ImageMetadata;
+    headings: MarkdownHeading[];
+    /** The older post. */
+    previous?: Neighbour;
+    /** The newer post. */
+    next?: Neighbour;
+}
+
+const {
+    locale,
+    collection,
+    slug,
+    markdown,
+    translationPath,
+    backHref,
+    title,
+    description,
+    heroImage,
+    headings,
+    previous,
+    next,
+} = Astro.props;
+const T = createTranslator(locale);
+const toc = headings.filter((heading) => heading.depth <= 3);
+const showToc = toc.length >= 2;
+// Rendered once, shown in two places: under the title, or in the side column.
+const meta = await Astro.slots.render("meta");
+---
+
+<Layout
+    locale={locale}
+    translationPath={translationPath}
+    title={title}
+    description={description}
+>
+    <div
+        class="mx-auto max-w-3xl xl:grid xl:max-w-none xl:grid-cols-[1fr_minmax(0,48rem)_1fr] xl:gap-12"
+    >
+        <aside class="hidden xl:col-start-1 xl:row-start-1 xl:block xl:justify-self-end">
+            <div class="sticky top-28 flex w-56 flex-col gap-8 text-sm">
+                <Link href={backHref} class="w-fit text-muted-foreground">
+                    <ChevronLeft class="h-5 w-5" />{T("返回")}
+                </Link>
+                <div class="[&>*]:mt-0"><Fragment set:html={meta} /></div>
+                {
+                    showToc && (
+                        <nav aria-labelledby="toc-heading">
+                            <p id="toc-heading" class="mb-3 font-bold">
+                                {T("目錄")}
+                            </p>
+                            <ul class="flex flex-col border-l border-foreground/10">
+                                {toc.map((heading) => (
+                                    <li>
+                                        <a
+                                            href={`#${heading.slug}`}
+                                            data-toc-link
+                                            class:list={[
+                                                "-ml-px block border-l border-transparent py-1 pr-2 text-muted-foreground transition-colors hover:text-foreground aria-[current=true]:border-primary aria-[current=true]:text-foreground",
+                                                heading.depth === 3 ? "pl-7" : "pl-4",
+                                            ]}
+                                        >
+                                            {heading.text}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    )
+                }
+            </div>
+        </aside>
+
+        <article class="min-w-0 pb-3 xl:col-start-2 xl:row-start-1">
+            <header>
+                <Link href={backHref} class="text-sm text-muted-foreground xl:hidden">
+                    <ChevronLeft class="h-5 w-5" />{T("返回")}
+                </Link>
+                <h1
+                    data-article-title
+                    class="mt-4 text-4xl leading-tight font-bold xl:mt-0"
+                >
+                    {title}
+                </h1>
+                {
+                    description && (
+                        <p class="mt-3 text-lg text-muted-foreground">
+                            {description}
+                        </p>
+                    )
+                }
+                <div class="xl:hidden"><Fragment set:html={meta} /></div>
+            </header>
+
+            {
+                heroImage && (
+                    <Image
+                        width={1020}
+                        height={510}
+                        src={heroImage}
+                        alt=""
+                        class="mt-8 w-full rounded-xl"
+                    />
+                )
+            }
+
+            <hr class="my-8 border-t border-foreground/10" />
+
+            <ArticleTranslation
+                locale={locale}
+                collection={collection}
+                slug={slug}
+                markdown={markdown}
+            />
+            <Prose data-article-body>
+                <slot />
+            </Prose>
+
+            {
+                (previous || next) && (
+                    <nav class="mt-16 grid gap-3 sm:grid-cols-2">
+                        {previous ? (
+                            <a
+                                href={previous.href}
+                                class="card-soft px-5 py-4"
+                            >
+                                <span class="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <ArrowLeft class="h-4 w-4" />
+                                    {T("上一篇")}
+                                </span>
+                                <span class="mt-1 block">{previous.title}</span>
+                            </a>
+                        ) : (
+                            <span class="hidden sm:block" />
+                        )}
+                        {next && (
+                            <a
+                                href={next.href}
+                                class="card-soft px-5 py-4 text-right"
+                            >
+                                <span class="flex items-center justify-end gap-1 text-sm text-muted-foreground">
+                                    {T("下一篇")}
+                                    <ArrowRight class="h-4 w-4" />
+                                </span>
+                                <span class="mt-1 block">{next.title}</span>
+                            </a>
+                        )}
+                    </nav>
+                )
+            }
+        </article>
+    </div>
+</Layout>
+
+<script>
+    // Highlight the table of contents entry for the section being read. The
+    // client router swaps the page on every navigation, so this is (re)set up
+    // on each page load and the previous page's observer is dropped.
+    let observer: IntersectionObserver | null = null;
+    const setupToc = () => {
+        observer?.disconnect();
+        const links = [
+            ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
+        ];
+        const linkFor = new Map(
+            links.map((link) => [decodeURIComponent(link.hash.slice(1)), link]),
+        );
+        const pageObserver = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    links.forEach((link) => link.removeAttribute("aria-current"));
+                    linkFor.get(entry.target.id)?.setAttribute("aria-current", "true");
+                }
+            },
+            { rootMargin: "-96px 0px -70% 0px" },
+        );
+        observer = pageObserver;
+
+        // ArticleTranslation swaps the body's innerHTML, replacing every heading
+        // the observer was watching — observe the headings now in the body again
+        // after each swap.
+        const observeHeadings = () => {
+            pageObserver.disconnect();
+            for (const id of linkFor.keys()) {
+                const heading = document.getElementById(id);
+                if (heading) pageObserver.observe(heading);
+            }
+        };
+        observeHeadings();
+        document
+            .querySelector("[data-article-body]")
+            ?.addEventListener("article-body-swap", observeHeadings);
+    };
+    document.addEventListener("astro:page-load", setupToc);
+</script>

@@ -66,15 +66,15 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
     title={T("AI 使用量")}
     description={T("我用 AI 花掉的 token，以 API 價格計算。")}
 >
-    <div class="ai-usage mx-auto max-w-3xl pb-16">
-        <h1 class="text-2xl">{T("AI 使用量")}</h1>
+    <div class="ai-usage mx-auto max-w-4xl pb-16">
+        <h1 class="text-3xl font-bold">{T("AI 使用量")}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
             {T("我用 AI 花掉的 token，以 API 價格計算。")}
         </p>
 
         {
             usage === null ? (
-                <p class="mt-10 rounded-lg border border-accent p-4 text-sm">
+                <p class="card-soft mt-10 p-4 text-sm">
                     {T("目前無法從 Tokscale 取得資料，請稍後再試。")}{" "}
                     <Link href={TOKSCALE_PROFILE_URL}>{T("在 Tokscale 上查看")}</Link>
                 </p>
@@ -97,7 +97,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
 
                         <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                             {tiles.map((tile) => (
-                                <div class="rounded-lg border border-accent p-3">
+                                <div class="card-soft p-3">
                                     <dt class="text-xs text-muted-foreground">{tile.label}</dt>
                                     <dd class="mt-1 text-xl">{tile.value}</dd>
                                     {tile.note && (
@@ -109,7 +109,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                     </section>
 
                     <section class="mt-12" aria-labelledby="usage-vendors">
-                        <h2 id="usage-vendors" class="text-xl">{T("錢花在哪家")}</h2>
+                        <h2 class="text-xl font-bold" id="usage-vendors" class="text-xl">{T("錢花在哪家")}</h2>
                         <div class="mt-4 flex h-6 gap-[2px] overflow-hidden rounded-[4px]">
                             {vendors.map((vendor) => (
                                 <div
@@ -135,7 +135,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                     </section>
 
                     <section class="mt-12" aria-labelledby="usage-months">
-                        <h2 id="usage-months" class="text-xl">{T("每月花費")}</h2>
+                        <h2 class="text-xl font-bold" id="usage-months" class="text-xl">{T("每月花費")}</h2>
                         <div class="mt-4">
                             <MonthlyChart
                                 client:visible
@@ -147,7 +147,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                     </section>
 
                     <section class="mt-12" aria-labelledby="usage-daily">
-                        <h2 id="usage-daily" class="text-xl">{T("過去一年")}</h2>
+                        <h2 class="text-xl font-bold" id="usage-daily" class="text-xl">{T("過去一年")}</h2>
                         <div class="mt-4">
                             <Heatmap
                                 client:visible
@@ -166,7 +166,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
 
                     <div class="mt-12 grid gap-12 sm:grid-cols-2">
                         <section aria-labelledby="usage-weekdays">
-                            <h2 id="usage-weekdays" class="text-xl">{T("星期幾用最多")}</h2>
+                            <h2 class="text-xl font-bold" id="usage-weekdays" class="text-xl">{T("星期幾用最多")}</h2>
                             <ul class="mt-4 flex flex-col gap-2 text-sm">
                                 {usage.weekdays.map((cost, weekday) => (
                                     <li class="grid grid-cols-[3rem_1fr_4.5rem] items-center gap-2">
@@ -181,7 +181,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                         </section>
 
                         <section aria-labelledby="usage-mix">
-                            <h2 id="usage-mix" class="text-xl">{T("Token 組成")}</h2>
+                            <h2 class="text-xl font-bold" id="usage-mix" class="text-xl">{T("Token 組成")}</h2>
                             <ul class="mt-4 flex flex-col gap-2 text-sm">
                                 {tokenMix.map((item) => (
                                     <li>
@@ -192,7 +192,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                                                 <span class="text-muted-foreground">{percent(item.value, tokenMixTotal)}</span>
                                             </span>
                                         </div>
-                                        <div class="mt-1 h-1.5 rounded-full bg-muted-foreground/10">
+                                        <div class="mt-1 h-1.5 rounded-full bg-foreground/10">
                                             <div
                                                 class="h-full min-w-1 rounded-full bg-[var(--series-openai)]"
                                                 style={`width: ${(item.value / tokenMixTotal) * 100}%`}
@@ -211,7 +211,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                     </div>
 
                     <section class="mt-12" aria-labelledby="usage-models">
-                        <h2 id="usage-models" class="text-xl">{T("模型")}</h2>
+                        <h2 class="text-xl font-bold" id="usage-models" class="text-xl">{T("模型")}</h2>
                         <p class="mt-1 text-sm text-muted-foreground">
                             {T("用過 {count} 個模型。").replace("{count}", String(usage.models.length))}
                         </p>
@@ -237,10 +237,10 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                     </section>
 
                     <section class="mt-12" aria-labelledby="usage-clients">
-                        <h2 id="usage-clients" class="text-xl">{T("用的工具")}</h2>
+                        <h2 class="text-xl font-bold" id="usage-clients" class="text-xl">{T("用的工具")}</h2>
                         <div class="mt-4 overflow-x-auto">
                             <table class="w-full text-sm">
-                                <thead class="border-b border-muted-foreground/30 text-muted-foreground">
+                                <thead class="border-b border-foreground/10 text-muted-foreground">
                                     <tr>
                                         <th scope="col" class="px-2 py-2 text-left font-normal">{T("工具")}</th>
                                         <th scope="col" class="px-2 py-2 text-right font-normal">{T("花費")}</th>
@@ -251,10 +251,10 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                                 </thead>
                                 <tbody>
                                     {usage.clients.map((client) => (
-                                        <tr class="border-b border-muted-foreground/10">
+                                        <tr class="border-b border-foreground/10">
                                             <td class="px-2 py-2 whitespace-nowrap">
                                                 {client.client}
-                                                <div class="mt-1 h-1 rounded-full bg-muted-foreground/10">
+                                                <div class="mt-1 h-1 rounded-full bg-foreground/10">
                                                     <div
                                                         class="h-full min-w-1 rounded-full bg-[var(--series-openai)]"
                                                         style={`width: ${(client.cost / clientMax) * 100}%`}
@@ -264,7 +264,7 @@ const clientMax = Math.max(1, ...(usage?.clients.map((client) => client.cost) ??
                                             <td class="px-2 py-2 text-right whitespace-nowrap">{money(formats, client.cost)}</td>
                                             <td class="px-2 py-2 text-right whitespace-nowrap">{formats.compact.format(client.tokens)}</td>
                                             <td class="px-2 py-2 text-right">{client.days}</td>
-                                            <td class="px-2 py-2 whitespace-nowrap"><code>{client.topModel}</code></td>
+                                            <td class="px-2 py-2 whitespace-nowrap"><code class="rounded-md bg-foreground/10 px-1.5 py-0.5 text-[0.875em] font-normal">{client.topModel}</code></td>
                                         </tr>
                                     ))}
                                 </tbody>
