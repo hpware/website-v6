@@ -112,15 +112,15 @@ export default defineSchema({
   }).index("by_post", ["collection", "slug", "locale"]),
 
   // Slop account reports from the public form at /slopblock/submit (see
-  // convex/slopReports.ts). "listed" reports have been added to
-  // src/data/slopblock/ig.txt, which is served at /slopblock/ig.txt.
+  // convex/slopReports.ts). "listed" reports are the live list, served at
+  // /slopblock/ and /slopblock/ig.txt (with src/data/slopblock/ig.txt's
+  // hand-written lines). Admins can also list an account directly.
   slop_reports: defineTable({
     platform: v.string(), // "ig" — more platforms when the list grows
     handle: v.string(),
     reason: v.string(),
     status: v.union(v.literal("pending"), v.literal("listed"), v.literal("dismissed")),
-    // When it was marked "listed" — the date shown on /slopblock/ (the text
-    // list itself carries no dates).
+    // When it was marked "listed" — the date shown on /slopblock/.
     listed_at: v.optional(v.number()),
     created_at: v.number(),
   })

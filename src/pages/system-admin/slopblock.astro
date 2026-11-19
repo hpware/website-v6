@@ -1,46 +1,123 @@
 ---
-import { Check, X } from "@lucide/astro";
+import { Check, Plus, Trash2, X } from "@lucide/astro";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import Admin from "../../layouts/Admin.astro";
 import { convex } from "../../lib/convex";
 import { adminSecret, errorMessage, formatDate, text } from "../../lib/admin/utils";
 import { setToast } from "../../lib/admin/session";
-import { igSlopList, instagramProfileUrl, isHttpUrl } from "../../lib/slopblock";
+import {
+    cleanReason,
+    cleanVideoUrl,
+    getIgSlopList,
+    instagramProfileUrl,
+    isHttpUrl,
+    isInstagramMediaLink,
+    lookupInstagramOwner,
+    parseInstagramInput,
+} from "../../lib/slopblock";
 
 let error = "";
 if (Astro.request.method === "POST") {
     try {
         // Inside the try: an unparseable body uses the page's error path too.
         const form = await Astro.request.formData();
-        const id = text(form, "id") as Id<"slop_reports">;
-        const status = text(form, "status");
-        if (status !== "listed" && status !== "dismissed") {
-            throw new Error("Unknown status.");
+        const action = text(form, "action");
+        if (action === "add") {
+            // Admin bypass: straight onto the list. The account can be a
+            // username, @username or profile link; it can also be left empty
+            // when the video link names the account.
+            let account = text(form, "account");
+            let video = text(form, "video");
+            if (isInstagramMediaLink(account) && !video) [account, video] = [video, account];
+            const reason = video ? cleanVideoUrl(video) : "";
+            if (video && !reason) throw new Error("That video link isn't an http(s) link.");
+            let handle = "";
+            const parsed = parseInstagramInput(account || reason);
+            if (parsed.kind === "handle") handle = parsed.handle;
+            else if (!account && parsed.kind === "media") handle = await lookupInstagramOwner(parsed.url);
+            if (!handle) {
+                throw new Error(
+                    account
+                        ? "That isn't an Instagram username or profile link."
+                        : "Couldn't tell which account posted that video — type the username.",
+                );
+            }
+            const result = await convex.mutation(api.slopReports.addListed, {
+                secret: adminSecret(),
+                handle,
+                reason,
+            });
+            setToast(
+                Astro.cookies,
+                result.alreadyListed ? `@${handle} is already listed.` : `Listed @${handle}.`,
+            );
+        } else if (action === "unlist") {
+            const handle = text(form, "handle");
+            await convex.mutation(api.slopReports.unlist, { secret: adminSecret(), handle });
+            setToast(Astro.cookies, `Removed @${handle} from the list.`);
+        } else {
+            const id = text(form, "id") as Id<"slop_reports">;
+            const status = text(form, "status");
+            if (status !== "listed" && status !== "dismissed") {
+                throw new Error("Unknown status.");
+            }
+            await convex.mutation(api.slopReports.settle, { secret: adminSecret(), id, status });
+            setToast(Astro.cookies, status === "listed" ? "Listed — it's live." : "Report dismissed.");
         }
-        await convex.mutation(api.slopReports.settle, { secret: adminSecret(), id, status });
-        setToast(Astro.cookies, `Report marked ${status}.`);
         return Astro.redirect("/system-admin/slopblock", 303);
     } catch (caught) {
         error = errorMessage(caught);
     }
 }
 
-const reports = await convex.query(api.slopReports.list, { secret: adminSecret() });
+const [reports, list] = await Promise.all([
+    convex.query(api.slopReports.list, { secret: adminSecret() }),
+    getIgSlopList(),
+]);
+const igSlopList = [...list.entries].reverse();
 const pending = reports.filter((report) => report.status === "pending");
 const reviewed = reports.filter((report) => report.status !== "pending");
-// Handles actually present in src/data/slopblock/ig.txt. Marking a report
-// "listed" only records the review decision — the entry itself still has to
-// be added to ig.txt and deployed, so flag the ones that aren't there yet.
-const onList = new Set(igSlopList.map((entry) => entry.handle));
 ---
 
 <Admin title="Slopblock" error={error}>
     <h1 class="text-3xl font-bold">Slopblock</h1>
     <p class="mt-1 text-sm opacity-70">
-        Reports from <code>/slopblock/submit</code>. To accept one, add its line to
-        <code>src/data/slopblock/ig.txt</code> and deploy, then mark it listed.
+        Reports from <code>/slopblock/submit</code>. <strong>List</strong> puts an
+        account on <code>/slopblock/</code> and <code>/slopblock/ig.txt</code> right
+        away — no deploy. While signed in, the public submit form lists directly too.
     </p>
+
+    <h2 class="mt-8 text-xl font-bold">Add an account</h2>
+    <form method="post" class="admin-card mt-3 flex flex-col gap-3 p-4">
+        <input type="hidden" name="action" value="add" />
+        <label class="flex flex-col gap-1 text-sm">
+            Account
+            <input
+                name="account"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="username, @username or profile link"
+                class="admin-input"
+            />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+            Video link <span class="admin-hint">(optional; fills in the account if left empty)</span>
+            <input
+                name="video"
+                inputmode="url"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                placeholder="https://www.instagram.com/reel/…"
+                class="admin-input"
+            />
+        </label>
+        <button class="admin-btn admin-btn-primary w-fit px-3 py-1.5">
+            <Plus class="size-4" aria-hidden="true" /> List now
+        </button>
+    </form>
 
     <h2 class="mt-8 text-xl font-bold">Pending ({pending.length})</h2>
     <ul class="mt-3 flex flex-col gap-2">
@@ -65,26 +142,23 @@ const onList = new Set(igSlopList.map((entry) => entry.handle));
                          review the slop clip. -->
                     {isHttpUrl(report.reason) ? (
                         <a
-                            href={report.reason}
+                            href={cleanReason(report.reason)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title={report.reason}
+                            title={cleanReason(report.reason)}
                             class="mt-1 block truncate text-sm underline"
                         >
-                            {report.reason}
+                            {cleanReason(report.reason)}
                         </a>
                     ) : (
                         <p class="mt-1 text-sm">{report.reason}</p>
                     )}
-                    <code class="mt-2 block overflow-x-auto rounded-lg bg-muted px-3 py-2 text-xs whitespace-nowrap">
-                        {report.handle}: {report.reason}
-                    </code>
                     <div class="mt-3 flex gap-2">
                         <form method="post">
                             <input type="hidden" name="id" value={report._id} />
                             <input type="hidden" name="status" value="listed" />
                             <button class="admin-btn admin-btn-primary px-3 py-1.5">
-                                <Check class="size-4" aria-hidden="true" /> Listed
+                                <Check class="size-4" aria-hidden="true" /> List
                             </button>
                         </form>
                         <form method="post" data-confirm="Dismiss this report?">
@@ -113,12 +187,7 @@ const onList = new Set(igSlopList.map((entry) => entry.handle));
                             @{report.handle}
                             <span class="admin-hint ml-2">{report.status}</span>
                         </p>
-                        {report.status === "listed" && !onList.has(report.handle) && (
-                            <p class="text-xs text-amber-600 dark:text-amber-400">
-                                not in ig.txt yet
-                            </p>
-                        )}
-                        <p class="admin-hint truncate">{report.reason}</p>
+                        <p class="admin-hint truncate">{cleanReason(report.reason)}</p>
                     </div>
                     <span class="admin-hint">
                         {report.status === "listed" && report.listed_at
@@ -132,7 +201,8 @@ const onList = new Set(igSlopList.map((entry) => entry.handle));
 
     <h2 class="mt-8 text-xl font-bold">On the list ({igSlopList.length})</h2>
     <p class="admin-hint mt-1">
-        From src/data/slopblock/ig.txt, served at /slopblock/ig.txt.
+        Served at /slopblock/ig.txt. Newest first.
+        {!list.ok && " Convex is unreachable — only src/data/slopblock/ig.txt lines are shown."}
     </p>
     <ul class="mt-3 flex flex-col gap-2">
         {
@@ -142,9 +212,32 @@ const onList = new Set(igSlopList.map((entry) => entry.handle));
             igSlopList.map((entry) => (
                 <li class="admin-card flex items-center gap-3 py-3">
                     <div class="min-w-0 flex-1">
-                        <p class="truncate font-medium">@{entry.handle}</p>
+                        <p class="truncate font-medium">
+                            <a
+                                href={instagramProfileUrl(entry.handle)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="underline"
+                            >
+                                @{entry.handle}
+                            </a>
+                            {entry.listedAt !== undefined && (
+                                <span class="admin-hint ml-2">{formatDate(entry.listedAt)}</span>
+                            )}
+                        </p>
                         <p class="admin-hint truncate">{entry.reason}</p>
                     </div>
+                    {entry.source === "convex" ? (
+                        <form method="post" data-confirm={`Remove @${entry.handle} from the list?`}>
+                            <input type="hidden" name="action" value="unlist" />
+                            <input type="hidden" name="handle" value={entry.handle} />
+                            <button class="admin-btn admin-btn-danger px-3 py-1.5" aria-label={`Remove @${entry.handle}`}>
+                                <Trash2 class="size-4" aria-hidden="true" />
+                            </button>
+                        </form>
+                    ) : (
+                        <span class="admin-hint">in ig.txt</span>
+                    )}
                 </li>
             ))
         }
