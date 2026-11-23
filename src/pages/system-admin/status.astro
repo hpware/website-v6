@@ -1,0 +1,242 @@
+---
+import { getCollection } from "astro:content";
+import { ExternalLink, Megaphone, Save, Trash } from "@lucide/astro";
+import { api } from "../../../convex/_generated/api";
+import type { Doc, Id } from "../../../convex/_generated/dataModel";
+import Admin from "../../layouts/Admin.astro";
+import { convex } from "../../lib/convex";
+import { setToast } from "../../lib/admin/session";
+import { adminSecret, errorMessage, text } from "../../lib/admin/utils";
+
+type Incident = Doc<"status_incidents">;
+
+const STATUSES: Incident["status"][] = ["investigating", "identified", "monitoring", "resolved"];
+const IMPACTS: Incident["impact"][] = ["minor", "major", "maintenance"];
+
+// Posts an incident can link to: the blog, newest first.
+const posts = (await getCollection("blog", (post) => post.data.status === "published")).sort(
+    (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime(),
+);
+const postSlugs = new Set(posts.map((post) => post.id));
+
+function pick<T extends string>(form: FormData, name: string, allowed: readonly T[]) {
+    const value = text(form, name) as T;
+    if (!allowed.includes(value)) throw new Error(`Unknown ${name}.`);
+    return value;
+}
+
+function postSlug(form: FormData) {
+    const slug = text(form, "post");
+    if (slug && !postSlugs.has(slug)) throw new Error("That post doesn't exist.");
+    return slug || undefined;
+}
+
+let error = "";
+if (Astro.request.method === "POST") {
+    try {
+        const form = await Astro.request.formData();
+        const action = text(form, "action");
+        const secret = adminSecret();
+        const id = text(form, "id") as Id<"status_incidents">;
+        let message: string;
+        if (action === "create") {
+            await convex.mutation(api.statusIncidents.create, {
+                secret,
+                title: text(form, "title"),
+                impact: pick(form, "impact", IMPACTS),
+                status: pick(form, "status", STATUSES),
+                message: text(form, "message"),
+                post_slug: postSlug(form),
+            });
+            message = "Incident posted.";
+        } else if (action === "update") {
+            const status = pick(form, "status", STATUSES);
+            await convex.mutation(api.statusIncidents.addUpdate, {
+                secret,
+                id,
+                status,
+                message: text(form, "message"),
+            });
+            message = status === "resolved" ? "Resolved." : "Update posted.";
+        } else if (action === "edit") {
+            await convex.mutation(api.statusIncidents.edit, {
+                secret,
+                id,
+                title: text(form, "title"),
+                impact: pick(form, "impact", IMPACTS),
+                post_slug: postSlug(form),
+            });
+            message = "Saved.";
+        } else if (action === "delete") {
+            await convex.mutation(api.statusIncidents.remove, { secret, id });
+            message = "Incident deleted.";
+        } else {
+            throw new Error("Unknown action.");
+        }
+        setToast(Astro.cookies, message);
+        return Astro.redirect("/system-admin/status", 303);
+    } catch (caught) {
+        error = errorMessage(caught);
+    }
+}
+
+const incidents = await convex.query(api.statusIncidents.recent, {});
+const active = incidents.filter((incident) => incident.status !== "resolved");
+const past = incidents.filter((incident) => incident.status === "resolved");
+const when = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Taipei",
+    dateStyle: "short",
+    timeStyle: "short",
+    hourCycle: "h23",
+});
+const label = (value: string) => value[0].toUpperCase() + value.slice(1);
+---
+
+<Admin title="Status" error={error}>
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 class="text-3xl font-bold">Status</h1>
+        <a href="/en/hl/status/" class="inline-flex items-center gap-1 text-sm underline">
+            /hl/status/ <ExternalLink class="size-4" aria-hidden="true" />
+        </a>
+    </div>
+
+    <h2 class="mt-8 text-xl font-bold">New incident</h2>
+    <form method="post" class="admin-card mt-3 flex flex-col gap-3 p-4">
+        <input type="hidden" name="action" value="create" />
+        <label class="flex flex-col gap-1 text-sm">
+            Title
+            <input name="title" required maxlength="200" class="admin-input" />
+        </label>
+        <div class="grid gap-3 sm:grid-cols-3">
+            <label class="flex flex-col gap-1 text-sm">
+                Impact
+                <select name="impact" class="admin-input">
+                    {IMPACTS.map((value) => <option value={value}>{label(value)}</option>)}
+                </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                Status
+                <select name="status" class="admin-input">
+                    {STATUSES.map((value) => <option value={value}>{label(value)}</option>)}
+                </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                Post
+                <select name="post" class="admin-input">
+                    <option value="">None</option>
+                    {posts.map((post) => <option value={post.id}>{post.data.title}</option>)}
+                </select>
+            </label>
+        </div>
+        <label class="flex flex-col gap-1 text-sm">
+            Message
+            <textarea name="message" required rows="3" maxlength="5000" class="admin-input"></textarea>
+        </label>
+        <button class="admin-btn admin-btn-primary w-fit px-3 py-1.5">
+            <Megaphone class="size-4" aria-hidden="true" /> Post incident
+        </button>
+    </form>
+
+    {
+        [
+            { title: "Active", list: active, empty: "Nothing ongoing." },
+            { title: "Resolved", list: past, empty: "No resolved incidents." },
+        ].map((section) => (
+            <>
+                <h2 class="mt-8 text-xl font-bold">
+                    {section.title} ({section.list.length})
+                </h2>
+                <ul class="mt-3 flex flex-col gap-3">
+                    {section.list.length === 0 && <li class="admin-hint">{section.empty}</li>}
+                    {section.list.map((incident) => (
+                        <li class="admin-card p-4">
+                            <form method="post" class="flex flex-col gap-3">
+                                <input type="hidden" name="action" value="edit" />
+                                <input type="hidden" name="id" value={incident._id} />
+                                <input
+                                    name="title"
+                                    required
+                                    maxlength="200"
+                                    value={incident.title}
+                                    aria-label="Title"
+                                    class="admin-input font-medium"
+                                />
+                                <div class="flex flex-wrap items-end gap-3">
+                                    <label class="flex flex-col gap-1 text-sm">
+                                        Impact
+                                        <select name="impact" class="admin-input">
+                                            {IMPACTS.map((value) => (
+                                                <option value={value} selected={value === incident.impact}>
+                                                    {label(value)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label class="flex min-w-0 flex-1 flex-col gap-1 text-sm">
+                                        Post
+                                        <select name="post" class="admin-input">
+                                            <option value="">None</option>
+                                            {posts.map((post) => (
+                                                <option value={post.id} selected={post.id === incident.post_slug}>
+                                                    {post.data.title}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <button class="admin-btn px-3 py-1.5" aria-label="Save">
+                                        <Save class="size-4" aria-hidden="true" />
+                                    </button>
+                                    <button
+                                        class="admin-btn admin-btn-danger px-3 py-1.5"
+                                        name="action"
+                                        value="delete"
+                                        formnovalidate
+                                        aria-label="Delete"
+                                        data-confirm={`Delete “${incident.title}”?`}
+                                    >
+                                        <Trash class="size-4" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </form>
+
+                            <ol class="mt-4 flex flex-col gap-2 border-l border-gray-300/40 pl-3 text-sm">
+                                {[...incident.updates].reverse().map((update) => (
+                                    <li>
+                                        <span class="admin-hint">
+                                            {label(update.status)} · {when.format(update.at)}
+                                        </span>
+                                        <p class="whitespace-pre-line">{update.message}</p>
+                                    </li>
+                                ))}
+                            </ol>
+
+                            <form method="post" class="mt-4 flex flex-col gap-2">
+                                <input type="hidden" name="action" value="update" />
+                                <input type="hidden" name="id" value={incident._id} />
+                                <textarea
+                                    name="message"
+                                    required
+                                    rows="2"
+                                    maxlength="5000"
+                                    placeholder="What's new?"
+                                    aria-label="Update"
+                                    class="admin-input"
+                                />
+                                <div class="flex gap-2">
+                                    <select name="status" aria-label="Status" class="admin-input">
+                                        {STATUSES.map((value) => (
+                                            <option value={value} selected={value === incident.status}>
+                                                {label(value)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button class="admin-btn admin-btn-primary px-3 py-1.5">Post update</button>
+                                </div>
+                            </form>
+                        </li>
+                    ))}
+                </ul>
+            </>
+        ))
+    }
+</Admin>

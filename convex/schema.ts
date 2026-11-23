@@ -127,6 +127,36 @@ export default defineSchema({
     .index("by_platform_handle_status", ["platform", "handle", "status"])
     .index("by_platform_status", ["platform", "status"]),
 
+  // Incidents on the home lab status page at /hl/status/ (see
+  // convex/statusIncidents.ts). Written from /system-admin/status; each one
+  // can point at a blog post (src/content/blog) with the full write-up.
+  status_incidents: defineTable({
+    title: v.string(),
+    impact: v.union(v.literal("minor"), v.literal("major"), v.literal("maintenance")),
+    status: v.union(
+      v.literal("investigating"),
+      v.literal("identified"),
+      v.literal("monitoring"),
+      v.literal("resolved"),
+    ),
+    // Newest last. The first one is the opening message.
+    updates: v.array(
+      v.object({
+        status: v.union(
+          v.literal("investigating"),
+          v.literal("identified"),
+          v.literal("monitoring"),
+          v.literal("resolved"),
+        ),
+        message: v.string(),
+        at: v.number(),
+      }),
+    ),
+    post_slug: v.optional(v.string()), // A src/content/blog slug
+    created_at: v.number(),
+    resolved_at: v.optional(v.number()),
+  }).index("by_created", ["created_at"]),
+
   todos: defineTable({
     title: v.string(),
     content: v.string(),
