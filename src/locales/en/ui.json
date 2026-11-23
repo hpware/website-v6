@@ -179,9 +179,7 @@
   "過去的事件": "Past incidents",
   "目前沒有事件紀錄。": "No incidents so far.",
   "事件紀錄目前無法載入。": "Couldn't load the incidents.",
-  "Uptime Kuma 目前無法連線。": "Couldn't reach Uptime Kuma.",
   "Beszel 目前無法連線。": "Couldn't reach Beszel.",
-  "24 小時": "over 24h",
   "閱讀完整報告": "Read the write-up",
   "調查中": "Investigating",
   "已確認原因": "Identified",
@@ -196,5 +194,9 @@
   "未知": "Unknown",
   "已運作": "up",
   "記憶體": "Memory",
-  "磁碟": "Disk"
+  "磁碟": "Disk",
+  "網路架構": "Network",
+  "30 天": "over 30 days",
+  "Kener 目前無法連線。": "Couldn't reach Kener.",
+  "效能下降": "Degraded"
 }

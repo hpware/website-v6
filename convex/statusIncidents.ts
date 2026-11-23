@@ -2,7 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
 
-// Incidents for the home lab status page (/hl/status/). Uptime Kuma and
+// Incidents for the home lab status page (/hl/status/). Kener and
 // Beszel only say what's up or down; the story of an outage is written here
 // from /system-admin/status, and can link to a blog post with the write-up.
 

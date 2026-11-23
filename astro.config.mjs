@@ -73,6 +73,12 @@ export default defineConfig({
         access: "secret",
         optional: true,
       }),
+      // Kener status page for /hl/status/ (only its public data is read).
+      KENER_URL: envField.string({
+        context: "server",
+        access: "public",
+        default: "https://newstatus.yhw.tw",
+      }),
       // Private Beszel hub for the home lab status page (/hl/status/). Use a
       // read-only Beszel user that can see the systems to show; only their
       // names, state and usage are published, never hosts or addresses.
