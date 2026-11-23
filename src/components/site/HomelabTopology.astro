@@ -81,6 +81,16 @@ function layout(vertical: boolean) {
     };
 }
 
+// Packets travel every link, from the internet inwards, except links that
+// touch a node that is down.
+const PACKET_SECONDS = 2.4;
+const flowing = links.map(([from, to]) =>
+    [from, to].every((id) => {
+        const node = nodes.find((other) => other.id === id);
+        return !node || healthOf(node) !== "down";
+    }),
+);
+
 const views = [
     { view: layout(false), class: "hidden sm:block" },
     { view: layout(true), class: "mx-auto block sm:hidden" },
@@ -102,6 +112,20 @@ const description = nodes
             {view.paths.map((d) => (
                 <path d={d} fill="none" class="stroke-muted-foreground/50" stroke-width="1.5" />
             ))}
+            {view.paths.map((d, index) =>
+                flowing[index]
+                    ? [0, 0.5].map((phase) => (
+                          <circle r="2.5" class="fill-primary motion-reduce:hidden" aria-hidden="true">
+                              <animateMotion
+                                  path={d}
+                                  dur={`${PACKET_SECONDS}s`}
+                                  begin={`-${((index * 0.37 + phase) % 1) * PACKET_SECONDS}s`}
+                                  repeatCount="indefinite"
+                              />
+                          </circle>
+                      ))
+                    : null,
+            )}
             {nodes.map((node) => {
                 const box = view.boxes.get(node.id)!;
                 const health = healthOf(node);
