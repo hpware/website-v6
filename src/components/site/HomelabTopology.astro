@@ -1,9 +1,10 @@
 ---
-import { links, nodes } from "../../data/homelab/topology";
+import type { TopologyNode, TopologySite } from "../../data/homelab/topology";
 import type { Locale } from "../../i18n";
 import type { Health, Monitor, Server } from "../../lib/homelabStatus";
 
 interface Props {
+    site: TopologySite;
     locale: Locale;
     monitors: Monitor[];
     servers: Server[];
@@ -11,11 +12,12 @@ interface Props {
     labels: Record<Health, string>;
 }
 
-const { locale, monitors, servers, labels } = Astro.props;
+const { site, locale, monitors, servers, labels } = Astro.props;
+const { nodes, links } = site;
 
 // Worst state wins when a node follows both Kener and Beszel.
 const RANK: Health[] = ["down", "degraded", "pending", "maintenance", "unknown", "up"];
-function healthOf(node: (typeof nodes)[number]): Health | undefined {
+function healthOf(node: TopologyNode): Health | undefined {
     const found = [
         node.kener && monitors.find((monitor) => monitor.tag === node.kener)?.health,
         node.beszel && servers.find((server) => server.name === node.beszel)?.health,
@@ -65,19 +67,23 @@ function layout(vertical: boolean) {
         return `M${x1} ${y1}C${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`;
     });
     const length = (columns - 1) * step + (vertical ? height : width);
+    // Drawn at its natural size (smaller only when the screen is), so every
+    // site's boxes come out the same size.
+    const [viewWidth, viewHeight] = vertical ? [span, length] : [length, span];
     return {
+        naturalWidth: viewWidth + 2,
         width,
         height,
         boxes,
         paths,
         font: vertical ? 11 : 13,
-        viewBox: vertical ? `-1 -1 ${span + 2} ${length + 2}` : `-1 -1 ${length + 2} ${span + 2}`,
+        viewBox: `-1 -1 ${viewWidth + 2} ${viewHeight + 2}`,
     };
 }
 
 const views = [
     { view: layout(false), class: "hidden sm:block" },
-    { view: layout(true), class: "mx-auto max-w-sm sm:hidden" },
+    { view: layout(true), class: "mx-auto block sm:hidden" },
 ];
 const description = nodes
     .map((node) => {
@@ -89,7 +95,10 @@ const description = nodes
 
 {
     views.map(({ view, class: className }) => (
-        <svg viewBox={view.viewBox} class:list={["h-auto w-full", className]} role="img" aria-label={description}>
+        <svg
+            viewBox={view.viewBox}
+            class:list={["h-auto max-w-full", className]}
+            style={`width: ${view.naturalWidth}px`} role="img" aria-label={description}>
             {view.paths.map((d) => (
                 <path d={d} fill="none" class="stroke-muted-foreground/50" stroke-width="1.5" />
             ))}
