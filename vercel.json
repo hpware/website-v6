@@ -58,6 +58,11 @@
             "permanent": false
         },
         {
+            "source": "/hl/status",
+            "destination": "/zh-TW/hl/status/",
+            "permanent": false
+        },
+        {
             "source": "/contributions",
             "destination": "/zh-TW/contributions/",
             "permanent": false

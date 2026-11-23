@@ -1,0 +1,160 @@
+---
+import type { TopologyNode, TopologySite } from "../../data/homelab/topology";
+import type { Locale } from "../../i18n";
+import type { Health, Monitor, Server } from "../../lib/homelabStatus";
+
+interface Props {
+    site: TopologySite;
+    locale: Locale;
+    monitors: Monitor[];
+    servers: Server[];
+    /** Health names in the page's language. */
+    labels: Record<Health, string>;
+}
+
+const { site, locale, monitors, servers, labels } = Astro.props;
+const { nodes, links } = site;
+
+// Worst state wins when a node follows both Kener and Beszel.
+const RANK: Health[] = ["down", "degraded", "pending", "maintenance", "unknown", "up"];
+function healthOf(node: TopologyNode): Health | undefined {
+    const found = [
+        node.kener && monitors.find((monitor) => monitor.tag === node.kener)?.health,
+        node.beszel && servers.find((server) => server.name === node.beszel)?.health,
+    ].filter((health): health is Health => Boolean(health));
+    if (found.length > 0) return RANK.find((health) => found.includes(health));
+    return node.kener || node.beszel ? "unknown" : undefined;
+}
+const DOT: Record<Health, string> = {
+    up: "fill-emerald-500",
+    degraded: "fill-amber-500",
+    down: "fill-red-500",
+    pending: "fill-amber-500",
+    maintenance: "fill-sky-500",
+    unknown: "fill-gray-400",
+};
+
+// The same graph twice: left to right for wide screens, top to bottom for phones.
+const columns = Math.max(...nodes.map((node) => node.column)) + 1;
+const tallest = Math.max(...Array.from({ length: columns }, (_, column) => nodes.filter((node) => node.column === column).length));
+
+function layout(vertical: boolean) {
+    const width = vertical ? 112 : 148;
+    const height = 44;
+    const gap = vertical ? 10 : 18;
+    const step = vertical ? 86 : 200;
+    const across = vertical ? width : height;
+    const span = tallest * across + (tallest - 1) * gap;
+    const boxes = new Map(
+        nodes.map((node) => {
+            const column = nodes.filter((other) => other.column === node.column);
+            const offset = (span - (column.length * across + (column.length - 1) * gap)) / 2;
+            const cross = offset + column.indexOf(node) * (across + gap);
+            const main = node.column * step;
+            return [node.id, vertical ? { x: cross, y: main } : { x: main, y: cross }];
+        }),
+    );
+    const paths = links.map(([from, to]) => {
+        const a = boxes.get(from)!;
+        const b = boxes.get(to)!;
+        if (vertical) {
+            const [x1, y1, x2, y2] = [a.x + width / 2, a.y + height, b.x + width / 2, b.y];
+            const mid = (y1 + y2) / 2;
+            return `M${x1} ${y1}C${x1} ${mid} ${x2} ${mid} ${x2} ${y2}`;
+        }
+        const [x1, y1, x2, y2] = [a.x + width, a.y + height / 2, b.x, b.y + height / 2];
+        const mid = (x1 + x2) / 2;
+        return `M${x1} ${y1}C${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`;
+    });
+    const length = (columns - 1) * step + (vertical ? height : width);
+    // Drawn at its natural size (smaller only when the screen is), so every
+    // site's boxes come out the same size.
+    const [viewWidth, viewHeight] = vertical ? [span, length] : [length, span];
+    return {
+        naturalWidth: viewWidth + 2,
+        width,
+        height,
+        boxes,
+        paths,
+        font: vertical ? 11 : 13,
+        viewBox: `-1 -1 ${viewWidth + 2} ${viewHeight + 2}`,
+    };
+}
+
+// Packets travel every link, from the internet inwards, except links that
+// touch a node that is down.
+const PACKET_SECONDS = 2.4;
+const flowing = links.map(([from, to]) =>
+    [from, to].every((id) => {
+        const node = nodes.find((other) => other.id === id);
+        return !node || healthOf(node) !== "down";
+    }),
+);
+
+const views = [
+    { view: layout(false), class: "hidden sm:block" },
+    { view: layout(true), class: "mx-auto block sm:hidden" },
+];
+const description = nodes
+    .map((node) => {
+        const health = healthOf(node);
+        return health ? `${node.label[locale]}: ${labels[health]}` : node.label[locale];
+    })
+    .join(", ");
+---
+
+{
+    views.map(({ view, class: className }) => (
+        <svg
+            viewBox={view.viewBox}
+            class:list={["h-auto max-w-full", className]}
+            style={`width: ${view.naturalWidth}px`} role="img" aria-label={description}>
+            {view.paths.map((d) => (
+                <path d={d} fill="none" class="stroke-muted-foreground/50" stroke-width="1.5" />
+            ))}
+            {view.paths.map((d, index) =>
+                flowing[index]
+                    ? [0, 0.5].map((phase) => (
+                          <circle r="2.5" class="fill-primary motion-reduce:hidden" aria-hidden="true">
+                              <animateMotion
+                                  path={d}
+                                  dur={`${PACKET_SECONDS}s`}
+                                  begin={`-${((index * 0.37 + phase) % 1) * PACKET_SECONDS}s`}
+                                  repeatCount="indefinite"
+                              />
+                          </circle>
+                      ))
+                    : null,
+            )}
+            {nodes.map((node) => {
+                const box = view.boxes.get(node.id)!;
+                const health = healthOf(node);
+                return (
+                    <g>
+                        <title>{health ? `${node.label[locale]} · ${labels[health]}` : node.label[locale]}</title>
+                        <rect
+                            x={box.x}
+                            y={box.y}
+                            width={view.width}
+                            height={view.height}
+                            rx="10"
+                            class:list={["fill-background", health === "down" ? "stroke-red-500" : "stroke-border"]}
+                            stroke-width="1.5"
+                        />
+                        {health && <circle cx={box.x + 12} cy={box.y + view.height / 2} r="4" class={DOT[health]} />}
+                        <text
+                            x={box.x + view.width / 2 + (health ? 6 : 0)}
+                            y={box.y + view.height / 2}
+                            text-anchor="middle"
+                            dominant-baseline="central"
+                            font-size={view.font}
+                            class="fill-foreground"
+                        >
+                            {node.label[locale]}
+                        </text>
+                    </g>
+                );
+            })}
+        </svg>
+    ))
+}
